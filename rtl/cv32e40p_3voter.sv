@@ -25,7 +25,7 @@ module cv32e40p_voter
   input  logic [LEN-1:0]         in_2_i,
   input  logic [LEN-1:0]         in_3_i,
 
-  output logic 					 voted_o,
+  output logic [LEN-1:0]		 voted_o,
   output logic                   error_correct_o,
   output logic					 error_detected_o
 );

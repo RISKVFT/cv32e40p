@@ -33,7 +33,9 @@ module cv32e40p_ff_one_ft
   input  logic [LEN-1:0]         in_i,
 
   output logic [$clog2(LEN)-1:0] first_one_o,
-  output logic                   no_ones_o
+  output logic                   no_ones_o,
+  output logic                   error_correct_o,
+  output logic                   error_detected_o
 );
 
   localparam N = 3;
@@ -43,6 +45,8 @@ module cv32e40p_ff_one_ft
   logic [LEN-1:0][N-1:0] in_i_ft;
   logic [$clog2(LEN)-1:0][N-1:0] first_one_o_ft;
   logic [N-1:0] no_ones_o_ft;
+  logic [1:0] error_correct_o_ft;
+  logic [1:0] error_detected_o_ft;
 
   //assign to each replica its set of inputs and outputs
   generate
@@ -66,15 +70,25 @@ module cv32e40p_ff_one_ft
   // instatiation of the the two voters, one for each output
   cv32e40p_voter voter_first_one_i
   (
-    .in_i        ( first_one_o_ft[N-1:0] ),
-    .out_o       ( first_one_o )
+    .in_1_i        ( first_one_o_ft[0] ),
+    .in_2_i        ( first_one_o_ft[1] ),
+    .in_3_i        ( first_one_o_ft[2] ),
+    .voted_o       ( first_one_o ),
+    .error_correct_o (error_correct_o_ft[0]),
+    .error_detected_o (error_detected_o_ft[0])
   );
 
   cv32e40p_voter voter_no_one_i
   (
-    .in_i        ( no_ones_o_ft[N-1:0] ),
-    .out_o       ( no_ones_o )
+    .in_1_i        ( no_ones_o_ft[0] ),
+    .in_2_i        ( no_ones_o_ft[1] ),
+    .in_3_i        ( no_ones_o_ft[2] ),
+    .voted_o       ( no_ones_o ),
+    .error_correct_o (error_correct_o_ft[1]),
+    .error_detected_o (error_detected_o_ft[1])
   );
 
+assign error_correct_o = error_correct_o_ft[0] | error_correct_o_ft[1];
+assign error_detected_o = error_detected_o_ft[0] | error_detected_o_ft[1];
 
 endmodule

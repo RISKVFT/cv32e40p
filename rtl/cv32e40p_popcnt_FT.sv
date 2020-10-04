@@ -29,7 +29,9 @@ module cv32e40p_popcnt_ft
 )
 (
   input  logic [LEN-1:0]  in_i,
-  output logic [5: 0]  result_o
+  output logic [5:0]      result_o,
+  output logic            error_correct_o,
+  output logic            error_detected_o
 );
 
   localparam N = 3;
@@ -45,7 +47,7 @@ module cv32e40p_popcnt_ft
     for(k = 0; k < N; k++)
     begin
       assign in_i_ft[LEN-1:0][k] = in_i[LEN-1:0];
-      assign result_o_ft[5:0][k] = result_o[5:0];
+      //assign result_ft_o[5:0][k] = result_o[5:0];
     end
   endgenerate
 
@@ -53,16 +55,19 @@ module cv32e40p_popcnt_ft
   cv32e40p_popcnt cv32e40p_popcnt_i[N-1:0]
   (
     .in_i        ( in_i_ft[N-1:0] ),
-    .result_o ( result_o_ft[N-1:0] )
+    .result_o    ( result_o_ft[5:0][N-1:0] )
   );  
 
   // instatiation of the the voter
-  cv32e40p_voter voter_popcnt_i
+  cv32e40p_3voter #(6) voter_popcnt_i
   (
-    .in_i        ( first_one_o_ft[N-1:0] ),
-    .out_o       ( first_one_o )
+    .in_1_i        ( result_o_ft[0] ),
+    .in_2_i        ( result_o_ft[1] ),
+    .in_3_i        ( result_o_ft[2] ),
+    .voted_o       ( result_o ),
+    .error_correct_o (error_correct_o),
+    .error_detected_o (error_detected_o)
   );
-
 
 
 endmodule
