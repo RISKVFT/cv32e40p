@@ -1,22 +1,11 @@
-// Copyright 2018 ETH Zurich and University of Bologna.
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 0.51 (the "License"); you may not use this file except in
-// compliance with the License.  You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
+// Copyright 2020 Politecnico di Torino.
 
 ////////////////////////////////////////////////////////////////////////////////
-// Engineer:       Andreas Traber - atraber@student.ethz.ch                   //
-//                 Luca Fiore - luca.fiore@studenti.polito.it                 //
+// Engineer:       Luca Fiore - luca.fiore@studenti.polito.it                 //
 //                                                                            //
-// Additional contributions by:                                               //
-//                 Davide Schiavone - pschiavo@iis.ee.ethz.ch                 //
-//                                                                            //
-// Design Name:    cv32e40p_ff_one                                            //
-// Project Name:   RI5CY                                                      //
+//                                                                            //                                                               
+// Design Name:    cv32e40p_popcnt_ft                                         //
+// Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    FAULT TOLERANT VERSION OF cv32e40p_popcnt                  //
@@ -35,6 +24,7 @@ module cv32e40p_popcnt_ft
 );
 
   localparam N = 3;
+  localparam N_OUT =1; //Number of outputs 
 
   // definition of input and output signals of the three replicas;
   // they are just 3 legth arrays of input and output signals of one replica
@@ -58,8 +48,9 @@ module cv32e40p_popcnt_ft
     .result_o    ( result_o_ft[5:0][N-1:0] )
   );  
 
+
   // instatiation of the the voter
-  cv32e40p_3voter #(6) voter_popcnt_i
+  cv32e40p_generic_3voter #(6,N_OUT) voter_popcnt_i
   (
     .in_1_i        ( result_o_ft[0] ),
     .in_2_i        ( result_o_ft[1] ),
@@ -69,5 +60,17 @@ module cv32e40p_popcnt_ft
     .error_detected_o (error_detected_o)
   );
 
+  /* THIS IF WE WANT TO USE TWO 3voter INSTEAD OF THE GENERIC 3voter
+  // instatiation of the the voter
+  cv32e40p__3voter #(6) voter_popcnt_i
+  (
+    .in_1_i        ( result_o_ft[0] ),
+    .in_2_i        ( result_o_ft[1] ),
+    .in_3_i        ( result_o_ft[2] ),
+    .voted_o       ( result_o ),
+    .error_correct_o (error_correct_o),
+    .error_detected_o (error_detected_o)
+  );
+  */
 
 endmodule

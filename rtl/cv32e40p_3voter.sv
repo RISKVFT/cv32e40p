@@ -6,7 +6,7 @@
 //                                                                            //
 // Additional contributions by:                                               //
 //                 Marcello Neri - s257090@studenti.polito.it                 //
-//                 Elia Ribaldone - s257090@studenti.polito.it                //
+//                 Elia Ribaldone - s265613@studenti.polito.it                //
 //                                                                            //
 // Design Name:    cv32e40p_voter                                             //
 // Project Name:   cv32e40p Fault tolernat                                    //
