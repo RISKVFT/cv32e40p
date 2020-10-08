@@ -28,15 +28,15 @@ module cv32e40p_popcnt_ft
 
   // definition of input and output signals of the three replicas;
   // they are just 3 legth arrays of input and output signals of one replica
-  logic [LEN-1:0][N-1:0] in_i_ft;
-  logic [5:0][N-1:0] result_o_ft;
+  logic [N-1:0][LEN-1:0] in_i_ft;
+  logic [N-1:0][5:0]     result_o_ft;
 
   //assign to each replica its set of inputs and outputs
   generate
     genvar k;
     for(k = 0; k < N; k++)
     begin
-      assign in_i_ft[LEN-1:0][k] = in_i[LEN-1:0];
+      assign in_i_ft[k][LEN-1:0] = in_i[LEN-1:0];
       //assign result_ft_o[5:0][k] = result_o[5:0];
     end
   endgenerate
@@ -45,7 +45,7 @@ module cv32e40p_popcnt_ft
   cv32e40p_popcnt cv32e40p_popcnt_i[N-1:0]
   (
     .in_i        ( in_i_ft[N-1:0] ),
-    .result_o    ( result_o_ft[5:0][N-1:0] )
+    .result_o    ( result_o_ft[N-1:0][5:0] )
   );  
 
 

@@ -13,7 +13,7 @@
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:   Majority voter of 3 with arbitrary number of 				  //
-//				  input triplets                                              //
+//				  input triplets all with same parallelism                    //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 

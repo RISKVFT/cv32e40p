@@ -66,8 +66,8 @@ module cv32e40p_ff_one_ft
     .in_2_i        ( {first_one_o_ft[1], no_ones_o_ft[1]} ),
     .in_3_i        ( {first_one_o_ft[2], no_ones_o_ft[2]} ),
     .voted_o       ( {first_one_o, no_ones_o} ),
-    .error_correct_o (error_correct_o_ft[0]),
-    .error_detected_o (error_detected_o_ft[0])
+    .error_correct_o ( {error_correct_o_ft[0], error_correct_o_ft[1]}),
+    .error_detected_o ( {error_detected_o_ft[0], error_detected_o_ft[1]})
   );
 
     
@@ -95,8 +95,8 @@ module cv32e40p_ff_one_ft
   );
 */
 
-assign error_correct_o = error_correct_o_ft[0] | error_correct_o_ft[1];
-assign error_detected_o = error_detected_o_ft[0] | error_detected_o_ft[1];
+assign error_correct_o = error_correct_o_ft.or();
+assign error_detected_o = error_detected_o_ft.or();
 
 
 endmodule
