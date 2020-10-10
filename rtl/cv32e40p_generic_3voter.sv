@@ -63,9 +63,6 @@ generate
 	end
 endgenerate
 
-/* THIS IF WE WANT TO OUTPUT JUST THE OR OF THE "DETECTION" AND "CORRECTION" SIGNALS
-assign error_correct_o = error_correct_o.or();
-assign error_detected_o = error_detected_o.or();
-*/
+
 
 endmodule
