@@ -23,8 +23,8 @@ module cv32e40p_ff_one_ft
 
   output logic [$clog2(LEN)-1:0] first_one_o,
   output logic                   no_ones_o,
-  output logic                   error_correct_o,
-  output logic                   error_detected_o
+  output logic                   err_corrected_o,
+  output logic                   err_detected_o
 );
 
   localparam N = 3;
@@ -35,8 +35,8 @@ module cv32e40p_ff_one_ft
   logic [N-1:0][LEN-1:0] in_i_ft;
   logic [N-1:0][$clog2(LEN)-1:0] first_one_o_ft;
   logic [N-1:0] no_ones_o_ft;
-  logic [N_OUT-1:0] error_correct_o_ft;
-  logic [N_OUT-1:0] error_detected_o_ft;
+  logic [N_OUT-1:0] err_corrected_o_ft;
+  logic [N_OUT-1:0] err_detected_o_ft;
 
   //assign to each replica its set of inputs and outputs
   generate
@@ -66,8 +66,8 @@ module cv32e40p_ff_one_ft
     .in_2_i        ( {first_one_o_ft[1], no_ones_o_ft[1]} ),
     .in_3_i        ( {first_one_o_ft[2], no_ones_o_ft[2]} ),
     .voted_o       ( {first_one_o, no_ones_o} ),
-    .error_correct_o ( {error_correct_o_ft[0], error_correct_o_ft[1]}),
-    .error_detected_o ( {error_detected_o_ft[0], error_detected_o_ft[1]})
+    .err_corrected_o ( {err_corrected_o_ft[0], err_corrected_o_ft[1]}),
+    .err_detected_o ( {err_detected_o_ft[0], err_detected_o_ft[1]})
   );
 
     
@@ -80,8 +80,8 @@ module cv32e40p_ff_one_ft
     .in_2_i        ( first_one_o_ft[1] ),
     .in_3_i        ( first_one_o_ft[2] ),
     .voted_o       ( first_one_o ),
-    .error_correct_o (error_correct_o_ft[0]),
-    .error_detected_o (error_detected_o_ft[0])
+    .err_corrected_o (err_corrected_o_ft[0]),
+    .err_detected_o (err_detected_o_ft[0])
   );
 
   cv32e40p_3voter voter_no_one_i
@@ -90,13 +90,13 @@ module cv32e40p_ff_one_ft
     .in_2_i        ( no_ones_o_ft[1] ),
     .in_3_i        ( no_ones_o_ft[2] ),
     .voted_o       ( no_ones_o ),
-    .error_correct_o (error_correct_o_ft[1]),
-    .error_detected_o (error_detected_o_ft[1])
+    .err_corrected_o (err_corrected_o_ft[1]),
+    .err_detected_o (err_detected_o_ft[1])
   );
 */
 
-assign error_correct_o = error_correct_o_ft.or();
-assign error_detected_o = error_detected_o_ft.or();
+assign err_corrected_o = err_corrected_o_ft.or();
+assign err_detected_o = err_detected_o_ft.or();
 
 
 endmodule

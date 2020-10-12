@@ -28,8 +28,8 @@ module cv32e40p_generic_voter
   input  logic [N_IN-1:0][LEN-1:0]          in_3_i,
 
   output logic [N_IN-1:0][LEN-1:0] 		voted_o,
-  output logic [N_IN-1:0]        		error_correct_o,
-  output logic [N_IN-1:0]     	 		error_detected_o
+  output logic [N_IN-1:0]        		err_corrected_o,
+  output logic [N_IN-1:0]     	 		err_detected_o
 );
 
 //structural description of majority voter of 3 with arbitrary number of input triplets
@@ -40,22 +40,22 @@ generate
 	for (k = 0; k < N_IN; k++) begin
 	//------------------------------------------------------------
 		if (in_1_i[k]!=in_2_i[k] && in_1_i[k]!=in_3_i[k] && in_2_i[k]!=in_3_i[k]) begin // the 3 outputs are all different
-			assign error_correct_o[k] = 1'b0;
-			assign error_detected_o[k] = '1'b1;
+			assign err_corrected_o[k] = 1'b0;
+			assign err_detected_o[k] = '1'b1;
 			assign voted_o[k] = in_1_i[k]; //default output if the outputs are all different
 		else
 			if (in_2_i[k]!=in_3_i[k]) begin
 				assign voted_o[k] = in_1_i[k] ;
-				assign error_correct_o[k] = 1'b1;
-				assign error_detected_o[k] = '1'b1;
+				assign err_corrected_o[k] = 1'b1;
+				assign err_detected_o[k] = '1'b1;
 			else
 				assign voted_o[k]=in_2_i[k];
 				if (in_2_i[k]!=in_1_i[k]) begin
-					assign error_correct_o[k] = 1'b1;
-					assign error_detected_o[k] = '1'b1;
+					assign err_corrected_o[k] = 1'b1;
+					assign err_detected_o[k] = '1'b1;
 				else // the 3 outputs are all equal
-					assign error_correct_o[k] = 1'b0;
-					assign error_detected_o[k] = '1'b0;
+					assign err_corrected_o[k] = 1'b0;
+					assign err_detected_o[k] = '1'b0;
 				end
 			end
 		end

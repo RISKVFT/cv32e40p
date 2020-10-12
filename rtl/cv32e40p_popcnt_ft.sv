@@ -19,8 +19,8 @@ module cv32e40p_popcnt_ft
 (
   input  logic [LEN-1:0]  in_i,
   output logic [5:0]      result_o,
-  output logic            error_correct_o,
-  output logic            error_detected_o
+  output logic            err_corrected_o,
+  output logic            err_detected_o
 );
 
   localparam N = 3;
@@ -56,20 +56,20 @@ module cv32e40p_popcnt_ft
     .in_2_i        ( result_o_ft[1] ),
     .in_3_i        ( result_o_ft[2] ),
     .voted_o       ( result_o ),
-    .error_correct_o (error_correct_o),
-    .error_detected_o (error_detected_o)
+    .err_corrected_o (err_corrected_o),
+    .err_detected_o (err_detected_o)
   );
 
   /* THIS IF WE WANT TO USE TWO 3voter INSTEAD OF THE GENERIC 3voter
   // instatiation of the the voter
-  cv32e40p__3voter #(6) voter_popcnt_i
+  cv32e40p_3voter #(6) voter_popcnt_i
   (
     .in_1_i        ( result_o_ft[0] ),
     .in_2_i        ( result_o_ft[1] ),
     .in_3_i        ( result_o_ft[2] ),
     .voted_o       ( result_o ),
-    .error_correct_o (error_correct_o),
-    .error_detected_o (error_detected_o)
+    .err_corrected_o (err_corrected_o),
+    .err_detected_o (err_detected_o)
   );
   */
 
