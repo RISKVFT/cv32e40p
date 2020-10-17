@@ -41,21 +41,24 @@ generate
 	//------------------------------------------------------------
 		if (in_1_i[k]!=in_2_i[k] && in_1_i[k]!=in_3_i[k] && in_2_i[k]!=in_3_i[k]) begin // the 3 outputs are all different
 			assign err_corrected_o[k] = 1'b0;
-			assign err_detected_o[k] = '1'b1;
+			assign err_detected_o[k] = 1'b1;
 			assign voted_o[k] = in_1_i[k]; //default output if the outputs are all different
-		else
+		end
+		else begin
 			if (in_2_i[k]!=in_3_i[k]) begin
 				assign voted_o[k] = in_1_i[k] ;
 				assign err_corrected_o[k] = 1'b1;
-				assign err_detected_o[k] = '1'b1;
-			else
+				assign err_detected_o[k] = 1'b1;
+			end
+			else begin
 				assign voted_o[k]=in_2_i[k];
 				if (in_2_i[k]!=in_1_i[k]) begin
 					assign err_corrected_o[k] = 1'b1;
-					assign err_detected_o[k] = '1'b1;
-				else // the 3 outputs are all equal
+					assign err_detected_o[k] = 1'b1;
+				end
+				else begin// the 3 outputs are all equal
 					assign err_corrected_o[k] = 1'b0;
-					assign err_detected_o[k] = '1'b0;
+					assign err_detected_o[k] = 1'b0;
 				end
 			end
 		end

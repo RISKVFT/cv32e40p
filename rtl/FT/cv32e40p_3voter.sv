@@ -38,35 +38,39 @@ module cv32e40p_voter
 always_comb
 begin	
 	if (in_1_i!=in_2_i && in_1_i!=in_3_i && in_2_i!=in_3_i) begin // the 3 outputs are all different
-		err_detected_1 = '1'b1;
-		err_detected_2 = '1'b1;
-		err_detected_3 = '1'b1;
+		err_detected_1 = 1'b1;
+		err_detected_2 = 1'b1;
+		err_detected_3 = 1'b1;
 		err_corrected_o = 1'b0;
 		voted_o = in_1_i; //default output if the outputs are all different
-	else
+	end
+	else begin
 		if (in_2_i!=in_3_i) begin
 			err_corrected_o = 1'b1;
 			voted_o = in_1_i;
 			if (in_2_i==in_1_i) begin
-				err_detected_1 = '1'b0;
-				err_detected_2 = '1'b0;
-				err_detected_3 = '1'b1;			
-			else
-				err_detected_1 = '1'b0;
-				err_detected_2 = '1'b1;
-				err_detected_3 = '1'b0;
+				err_detected_1 = 1'b0;
+				err_detected_2 = 1'b0;
+				err_detected_3 = 1'b1;			
 			end
-		else
+			else begin
+				err_detected_1 = 1'b0;
+				err_detected_2 = 1'b1;
+				err_detected_3 = 1'b0;
+			end
+		end 
+		else begin
 			voted_o=in_2_i;
 			if (in_2_i!=in_1_i) begin
-				err_detected_1 = '1'b1;
-				err_detected_2 = '1'b0;
-				err_detected_3 = '1'b0;
+				err_detected_1 = 1'b1;
+				err_detected_2 = 1'b0;
+				err_detected_3 = 1'b0;
 				err_corrected_o = 1'b1;
-			else // the 3 outputs are all equal
-				err_detected_1 = '1'b0;
-				err_detected_2 = '1'b0;
-				err_detected_3 = '1'b0;
+			end
+			else begin// the 3 outputs are all equal
+				err_detected_1 = 1'b0;
+				err_detected_2 = 1'b0;
+				err_detected_3 = 1'b0;
 				err_corrected_o = 1'b0;
 			end
 		end
