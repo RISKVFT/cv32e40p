@@ -4,7 +4,7 @@
 // Engineer:       Luca Fiore - luca.fiore@studenti.polito.it                 //
 //                                                                            //
 //                                                                            //                                                               
-// Design Name:    cv32e40p_popcnt_ft                                         //
+// Design Name:    cv32e40p_ID_EX_pipeline                                         //
 // Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //

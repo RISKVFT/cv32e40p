@@ -12,8 +12,9 @@
 // Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
-// Description:    performance counters to know if an alu is permanently      //
-//                 demaged                                                    //
+// Description:    Counters to know if an alu is permanently demaged          //
+//                 The performance counters related to the 4 alu are          //
+//                 activated here                                             //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////  
 
@@ -23,257 +24,342 @@ module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_c
 #(
 )
 (
-  input  logic       clock,
-  input  logic       rst_n,
-  input  logic       alu_enable_i,
-  input  logic       alu_operator_i,
-  input  logic       error_detected_i, 
-  output logic       alu_remove_o
+  input  logic            clk,
+  input  logic[3:0]       clock_en,
+  input  logic            rst_n,
+  input  logic            alu_enable_i,
+  input  logic            alu_operator_i,
+  input  logic            error_detected_i, 
+  output logic [3:0][8:0] permanent_faulty_alu_o,  // one for each fsm: 4 ALU and 9 subpart of ALU
+  output logic [3:0]      perf_counter_permanent_faulty_alu_o
 );
 
-logic [12:0][6:0]  count;
+logic [3:0][8:0] count_logic;
+logic [3:0][8:0] count_shift;
+logic [3:0][8:0] count_bit_man
+logic [3:0][8:0] count_bit_count;
+logic [3:0][8:0] count_comparison;
+logic [3:0][8:0] count_abs;
+logic [3:0][8:0] count_min_max;
+logic [3:0][8:0] count_div_rem;
+logic [3:0][8:0] count_shuf;
 
-always_ff @(posedge clk)
- if (~rst_n) begig
-    count_normal      = 'b0;
-    count_logic       = 'b0;
-    count_shift       = 'b0;
-    count_bit_man     = 'b0;
-    count_bit_count   = 'b0;
-    count_extension   = 'b0;
-    count_comparison  = 'b0;
-    count_setlowerto  = 'b0;
-    count_abs         = 'b0;
-    count_ins_ext     = 'b0;
-    count_min_max     = 'b0;
-    count_div_rem     = 'b0;
-    count_shuf        = 'b0;
-    count_pck         = 'b0;
-  end 
-  else if (alu_enable_i) begin
-    case (alu_operator_i)
+logic [3:0][8:0] permanent_faulty;  // one for each fsm: 4 ALU and 9 subpart of ALU
 
-      // arithmetic operations
-      ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR:  
-      if (error_detected_i) begin
-        count_normal=count_normal+1;
-      end
-      else begin
-        if (count_normal>2) begin
-          count_normal=count_normal-2;
-        end
-        else begin
-          count_normal=0;
-        end
-      end
+logic [3:0]      clock_gated;
 
+// CLOCK GATING for the counter that have already reached the end.
+cv32e40p_clock_gate CG_counter[3:0]
+(
+ .clk_i        ( clk            ),
+ .en_i         ( clock_en[3:0]  ),
+ .scan_cg_en_i ( 1'b0           ), // not used
+ .clk_o        ( clk_gated[3:0] )
+);
 
-      // Logic
-      ALU_XOR, ALU_OR, ALU_AND :  
-      if (error_detected_i) begin
-        count_logic=count_logic+1;
-      end
-      else begin
-        if (count_logic>2) begin
-          count_logic=count_logic-2;
-        end
-        else begin
-          count_logic=0;
-        end
-      end
+genvar i;
+generate
+  for (i=0; i < 4; i++) begin
+    always_ff @(posedge clk_gated[i])
+      if (~rst_n) begin
+        count_logic       <= 8'b0;
+        count_shift       <= 8'b0;
+        count_bit_man     <= 8'b0;
+        count_bit_count   <= 8'b0;
+        count_comparison  <= 8'b0;
+        count_abs         <= 8'b0;
+        count_min_max     <= 8'b0;
+        count_div_rem     <= 8'b0;
+        count_shuf        <= 8'b0;
+      end 
+      else if (alu_enable_i) begin
+        case (alu_operator_i)
 
-
-      // Shifts
-      ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL :  
-      if (error_detected_i) begin
-        count_shift=count_shift+1;
-      end
-      else begin
-        if (count_shift>2) begin
-          count_shift=count_shift-2;
-        end
-        else begin
-          count_shift=0;
-        end
-      end
+          // shift
+          ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
+          if (~permanent_faulty[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
+            if (error_detected_i) begin      // TUTTAVIA SE C'È LO STESSO ERRORE PERMANENTE IN DUE ALU ALLORA NE VERRÀ SCELTA UNA TRA LE DUE CHE NON SAPRÀ FARE L'OPERAZIONE 
+              count_shift<=count_shift+1;
+            end
+            else begin
+              if (count_shift>2) begin
+                count_shift<=count_shift-2;
+              end
+              else begin
+                count_shift<=8'b0;
+              end
+            end
+          end else begin
+            count_shift<=8'b0;
+          end
 
 
-      // Bit manipulation
-      ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV :  
-      if (error_detected_i) begin
-        count_bit_man=count_bit_man+1;
-      end
-      else begin
-        if (count_bit_man>2) begin
-          count_bit_man=count_bit_man-2;
-        end
-        else begin
-          count_bit_man=0;
-        end
-      end
+          // Logic
+          ALU_XOR, ALU_OR, ALU_AND:  
+          if (~permanent_faulty[i][1]) begin
+            if (error_detected_i) begin
+              count_logic<=count_logic+1;
+            end
+            else begin
+              if (count_logic>2) begin
+                count_logic<=count_logic-2;
+              end
+              else begin
+                count_logic<=8'b0;
+              end
+            end
+          end else begin
+            count_logic<=8'b0;
+          end
+     
 
 
-      // Bit counting
-      ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:  
-      if (error_detected_i) begin
-        count_bit_count=count_bit_count+1;
-      end
-      else begin
-        if (count_bit_count>2) begin
-          count_bit_count=count_bit_count-2;
-        end
-        else begin
-          count_bit_count=0;
-        end
-      end
+          // Bit manipulation
+          ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
+          if (~permanent_faulty[i][2]) begin
+            if (error_detected_i) begin
+              count_bit_man<=count_bit_man+1;
+            end
+            else begin
+              if (count_bit_man>2) begin
+                count_bit_man<=count_bit_man-2;
+              end
+              else begin
+                count_bit_man<=8'b0;
+              end
+            end 
+          end else begin
+            count_bit_man<=8'b0;
+          end
 
 
-      // Sign-/zero-extensions
-      ALU_EXTS, ALU_EXT:  
-      if (error_detected_i) begin
-        count_extension=count_extension+1;
-      end
-      else begin
-        if (count_extension>2) begin
-          count_extension=count_extension-2;
-        end
-        else begin
-          count_extension=0;
-        end
-      end
+          // Bit counting
+          ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
+          if (~permanent_faulty[i][3]) begin  
+            if (error_detected_i) begin
+              count_bit_count<=count_bit_count+1;
+            end
+            else begin
+              if (count_bit_count>2) begin
+                count_bit_count<=count_bit_count-2;
+              end
+              else begin
+                count_bit_count<=8'b0;
+              end
+            end 
+          end else begin
+            count_bit_count<=8'b0;
+          end
 
 
-      // Comparisons
-      ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE :  
-      if (error_detected_i) begin
-        count_comparison=count_comparison+1;
-      end
-      else begin
-        if (count_comparison>2) begin
-          count_comparison=count_comparison-2;
-        end
-        else begin
-          count_comparison=0;
-        end
-      end
+          // Shuffle
+          ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:  
+          if (~permanent_faulty[i][4]) begin
+            if (error_detected_i) begin
+              count_shuf<=count_shuf+1;
+            end
+            else begin
+              if (count_shuf>2) begin
+                count_shuf<=count_shuf-2;
+              end
+              else begin
+                count_shuf<=8'b0;
+              end
+            end
+          end else begin
+            count_shuf<=8'b0;
+          end
 
 
-      // Set Lower Than operations
-      ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-      if (error_detected_i) begin
-        count_setlowerto=count_setlowerto+1;
-      end
-      else begin
-        if (count_setlowerto>2) begin
-          count_setlowerto=count_setlowerto-2;
-        end
-        else begin
-          count_setlowerto=0;
-        end
-      end
+          // Comparisons
+          ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
+          if (~permanent_faulty[i][5]) begin
+            if (error_detected_i) begin
+              count_comparison<=count_comparison+1;
+            end
+            else begin
+              if (count_comparison>2) begin
+                count_comparison<=count_comparison-2;
+              end
+              else begin
+                count_comparison<=8'b0;
+              end
+            end
+          end else begin
+            count_comparison<=8'b0;
+          end
 
-      // Absolute value
-      ALU_ABS, ALU_CLIP, ALU_CLIPU:  
-      if (error_detected_i) begin
-        count_abs=count_abs+1;
-      end
-      else begin
-        if (count_abs>2) begin
-          count_abs=count_abs-2;
-        end
-        else begin
-          count_abs=0;
-        end
-      end
-
-      // Insert/extract
-      ALU_INS:  
-      if (error_detected_i) begin
-        count_ins_ext=count_ins_ext+1;
-      end
-      else begin
-        if (count_ins_ext>2) begin
-          count_ins_ext=count_ins_ext-2;
-        end
-        else begin
-          count_ins_ext=0;
-        end
-      end
-
-      // min/max
-      ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-      if (error_detected_i) begin
-        count_min_max=count_min_max+1;
-      end
-      else begin
-        if (count_min_max>2) begin
-          count_min_max=count_min_max-2;
-        end
-        else begin
-          count_min_max=0;
-        end
-      end
-
-      // div/rem
-      ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
-      if (error_detected_i) begin
-        count_div_rem=count_div_rem+1;
-      end
-      else begin
-        if (count_div_rem>2) begin
-          count_div_rem=count_div_rem-2;
-        end
-        else begin
-          count_div_rem=0;
-        end
-      end
-
-      // shuffle
-      ALU_SHUF, ALU_SHUF2:  
-      if (error_detected_i) begin
-        count_shuf=count_shuf+1;
-      end
-      else begin
-        if (count_shuf>2) begin
-          count_shuf=count_shuf-2;
-        end
-        else begin
-          count_shuf=0;
-        end
-      end
+          // Absolute value
+          ALU_ABS, ALU_CLIP, ALU_CLIPU: 
+          if (~permanent_faulty[i][6]) begin 
+            if (error_detected_i) begin
+              count_abs<=count_abs+1;
+            end
+            else begin
+              if (count_abs>2) begin
+                count_abs<=count_abs-2;
+              end
+              else begin
+                count_abs<=8'b0;
+              end
+            end
+          end else begin
+            count_abs<=8'b0;
+          end
 
 
-      // pack
-      ALU_PCKLO, ALU_PCKHI:  
-      if (error_detected_i) begin
-        count_pck=count_pck+1;
-      end
-      else begin
-        if (count_pck>2) begin
-          count_pck=count_pck-2;
-        end
-        else begin
-          count_pck=0;
-        end
-      end
+          // min/max
+          ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
+          if (~permanent_faulty[i][7]) begin
+            if (error_detected_i) begin
+              count_min_max<=count_min_max+1;
+            end
+            else begin
+              if (count_min_max>2) begin
+                count_min_max<=count_min_max-2;
+              end
+              else begin
+                count_min_max<=8'b0;
+              end
+            end
+          end else begin
+            count_min_max<=8'b0;
+          end
 
-      default:          
-        count_normal      = 'b0;
-        count_logic       = 'b0;
-        count_shift       = 'b0;
-        count_bit_man     = 'b0;
-        count_bit_count   = 'b0;
-        count_extension   = 'b0;
-        count_comparison  = 'b0;
-        count_setlowerto  = 'b0;
-        count_abs         = 'b0;
-        count_ins_ext     = 'b0;
-        count_min_max     = 'b0;
-        count_div_rem     = 'b0;
-        count_shuf        = 'b0;
-        count_pck         = 'b0;
+          // div/rem
+          ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
+          if (~permanent_faulty[i][8]) begin
+            if (error_detected_i) begin
+              count_div_rem<=count_div_rem+1;
+            end
+            else begin
+              if (count_div_rem>2) begin
+                count_div_rem<=count_div_rem-2;
+              end
+              else begin
+                count_div_rem<=8'b0;
+              end
+            end
+          end else begin
+            count_div_rem<=8'b0;
+          end
 
-    endcase; // case (alu_operator)
+
+          default:          
+            count_logic       <= 8'b0;
+            count_shift       <= 8'b0;
+            count_bit_man     <= 8'b0;
+            count_bit_count   <= 8'b0;
+            count_comparison  <= 8'b0;
+            count_abs         <= 8'b0;
+            count_min_max     <= 8'b0;
+            count_div_rem     <= 8'b0;
+            count_shuf        <= 8'b0;
+
+        endcase; // case (alu_operator)
+      end
+    end
   end
+
+
+
+  always_ff @(posedge clk) begin : permanent_error_threshold
+    if (~rst_n) begin
+      permanent_faulty[i]     <= 9'b0;
+    end 
+    else begin
+      case (alu_operator_i)
+
+        // shift
+         // Logic
+        ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:
+        if (permanent_faulty[0][0] != 1'b1) begin
+          if (count_shift>100) begin
+             permanent_faulty[0][0] <= 1'b1;
+          end
+        end
+
+        ALU_XOR, ALU_OR, ALU_AND:
+        if (permanent_faulty[0][1] != 1'b1) begin
+          if (count_logic>100) begin
+             permanent_faulty[0][1] <= 1'b1;
+          end
+        end
+          
+        // Bit manipulation
+        ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV: 
+        if (permanent_faulty[0][2] != 1'b1) begin
+          if (count_bit_man>100) begin
+             permanent_faulty[0][2] <= 1'b1;
+          end
+        end
+
+        // Bit counting
+        ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
+        if (permanent_faulty[0][3] != 1'b1) begin
+          if (count_bit_count>100) begin
+             permanent_faulty[0][3] <= 1'b1;
+          end
+        end
+
+        // Shuffle
+        ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:
+        if (permanent_faulty[0][4] != 1'b1) begin
+          if (count_shuf>100) begin
+             permanent_faulty[0][4] <= 1'b1;
+          end
+        end
+
+
+        // Comparisons
+        ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:
+        if (permanent_faulty[0][5] != 1'b1) begin
+          if (count_comparison>100) begin
+             permanent_faulty[0][5] <= 1'b1;
+          end
+        end
+
+        // Absolute value
+        ALU_ABS, ALU_CLIP, ALU_CLIPU:
+        if (permanent_faulty[0][6] != 1'b1) begin
+          if (count_abs>100) begin
+             permanent_faulty[0][6] <= 1'b1;
+          end
+        end
+
+        // min/max
+        ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:
+        if (permanent_faulty[0][7] != 1'b1) begin
+          if (count_min_max>100) begin
+             permanent_faulty[0][7] <= 1'b1;
+          end
+        end
+
+        // div/rem
+        ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM: 
+        if (permanent_faulty[0][8] != 1'b1) begin
+          if (count_div_rem>100) begin
+             permanent_faulty[0][8] <= 1'b1;
+          end
+        end
+      endcase
+    end
+  end
+
+
+  assign permanent_faulty_alu_o[0][8:0] = permanent_faulty[0][8:0];
+  assign permanent_faulty_alu_o[1][8:0] = permanent_faulty[1][8:0];
+  assign permanent_faulty_alu_o[2][8:0] = permanent_faulty[2][8:0];
+  assign permanent_faulty_alu_o[3][8:0] = permanent_faulty[3][8:0];
+
+
+  // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.  
+  assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_o[0];
+  assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_o[0];
+  assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_o[0];
+  assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_o[0];
+
+
+endgenerate
 
 endmodule

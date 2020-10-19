@@ -241,7 +241,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic        perf_jr_stall_o,      // jump-register-hazard
     output logic        perf_ld_stall_o,      // load-use-hazard
     output logic        perf_pipeline_stall_o,//extra cycles from elw
-    input  logic [31:0] mcounteren_i
+    input  logic [31:0] mcounteren_i,
+
+    input  logic [3:0][8:0] permanent_faulty_alu_i  // one for each fsm: 4 ALU and 9 subpart of ALU
 );
 
   // Source/Destination register instruction index
@@ -1436,70 +1438,81 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   always_comb begin: EX_dispatcher
     case (alu_operator_ex_o)
 
-        // arithmetic operations
-        ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR:  
+      // shift
+      ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][0]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
+
+      // Logic
+      ALU_XOR, ALU_OR, ALU_AND:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][1]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
 
-        // Logic
-        ALU_XOR, ALU_OR, ALU_AND :  
+      // Bit manipulation
+      ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][2]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
+
+      // Bit counting
+      ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][3]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
 
+      // Shuffle
+      ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][4]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
-        // Shifts
-        ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL :  
+      // Comparisons
+      ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][5]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
+      // Absolute value
+      ALU_ABS, ALU_CLIP, ALU_CLIPU: 
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][6]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
+      // min/max
+      ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][7]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
-        // Bit manipulation
-        ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV :  
+      // div/rem
+      ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
+      cv32e40p_decoder_faulty_alu decoder_shift 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][8]),
+        .clock_gate_pipe_replica_o  (clock_en)
+      );
 
-
-
-        // Bit counting
-        ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:  
-
-
-
-        // Sign-/zero-extensions
-        ALU_EXTS, ALU_EXT:  
-
-
-
-        // Comparisons
-        ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE :  
-
-
-
-        // Set Lower Than operations
-        ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-
-
-        // Absolute value
-        ALU_ABS, ALU_CLIP, ALU_CLIPU:  
-
-
-        // Insert/extract
-        ALU_INS:  
-
-
-        // min/max
-        ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-
-
-        // div/rem
-        ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
-
-
-        // shuffle
-        ALU_SHUF, ALU_SHUF2:  
-
-
-
-        // pack
-        ALU_PCKLO, ALU_PCKHI:  
-
-
-        default:          
+        default:  clock_en = 4'b0111;        
 
 
       endcase; // case (alu_operator)
