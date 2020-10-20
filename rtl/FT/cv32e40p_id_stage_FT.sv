@@ -20,12 +20,13 @@
 //                 Davide Schiavone - pschiavo@iis.ee.ethz.ch                 //
 //                                                                            //
 // Design Name:    Instruction Decode Stage                                   //
-// Project Name:   RI5CY                                                      //
+// Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    Decode stage of the core. It decodes the instructions      //
 //                 and hosts the register file. redundant pipeline is         //
 //                 introduced to support EX fault tolerant architecture       //
+//                 Fault tolerant version.                                    //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +55,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic        rst_n,
 
     input  logic        scan_cg_en_i,
-    input  logic [3:0]  clock_en;  // from EX stage: used for gating clock of one of the pipeline replicas for FT version
     input  logic        fetch_enable_i,
     output logic        ctrl_busy_o,
     output logic        is_decoding_o,
@@ -244,6 +244,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic [31:0] mcounteren_i,
 
     input  logic [3:0][8:0] permanent_faulty_alu_i  // one for each fsm: 4 ALU and 9 subpart of ALU
+    output logic [2:0]      sel_mux_ex_o // selector of the three mux to choose three of the four alu
 );
 
   // Source/Destination register instruction index
@@ -474,9 +475,11 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic        uret_dec;
   logic        dret_dec;
 
+  // Fault Tolerant
   // CLock gating on replicas of pipeline for FT versione
-  logic [3:0] clk_gated_ft;
-
+  logic [3:0]      clock_en  // used for gating clock of one of the pipeline replicas for FT version
+  logic [3:0]      clk_gated_ft;
+  logic [2:0]      sel_mux_ex_s;
 
   assign instr = instr_rdata_i;
 
@@ -1443,7 +1446,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][0]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // Logic
@@ -1451,7 +1455,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][1]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
 
@@ -1460,7 +1465,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][2]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // Bit counting
@@ -1468,7 +1474,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][3]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
 
@@ -1477,7 +1484,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][4]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // Comparisons
@@ -1485,7 +1493,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][5]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // Absolute value
@@ -1493,7 +1502,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][6]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // min/max
@@ -1501,7 +1511,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][7]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
       // div/rem
@@ -1509,17 +1520,18 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][8]),
-        .clock_gate_pipe_replica_o  (clock_en)
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
       );
 
         default:  clock_en = 4'b0111;        
 
 
-      endcase; // case (alu_operator)
+      endcase // case (alu_operator)
 
     end // end always_comb EX_dispatcher
 
-  // Clock gate to put one of the four ALU in standby 
+  // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
   cv32e40p_clock_gate[3:0]
   (
     .clk_i        ( clk ),
@@ -1530,9 +1542,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   cv32e40p_ID_EX_pipeline[3:0]
 #(
-  .APU_NARGS_CPU ( APU_NARGS_CPU ),
-  .APU_WOP_CPU ( APU_WOP_CPU ),
-  .APU_NDSFLAGS_CPU ( APU_NDSFLAGS_CPU )
+  .APU_NARGS_CPU    ( APU_NARGS_CPU     ),
+  .APU_WOP_CPU      ( APU_WOP_CPU       ),
+  .APU_NDSFLAGS_CPU ( APU_NDSFLAGS_CPU  )
 )
 (
   // INPUTS //
@@ -1619,6 +1631,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // Jumps and branches
   .branch_in_ex_o           ( branch_in_ex_o )
+
+  // Fault tolerant, select 3 of the 4 ALU in the EX stage
+  .sel_mux_ex_i             (sel_mux_ex_s),
+  .sel_mux_ex_o             (sel_mux_ex_o)
 
 );
 

@@ -103,7 +103,12 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   output logic [5:0]                  apu_waddr_ex_o,
 
   // Jumps and branches
-  output logic        branch_in_ex_o
+  output logic       branch_in_ex_o,
+
+  // Fault Tolerant
+  input  logic[2:0]  sel_mux_ex_i,
+  output logic[2:0]  sel_mux_ex_o
+
 
 
 );
@@ -185,6 +190,8 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
       branch_in_ex_o              <= 1'b0;
 
+      sel_mux_ex_o                <= 3'b0;
+
     end
     else if (data_misaligned_i) begin
       // misaligned data access case
@@ -227,6 +234,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
           alu_is_clpx_ex_o          <= is_clpx;
           alu_clpx_shift_ex_o       <= instr[14:13];
           alu_is_subrot_ex_o        <= is_subrot;
+          sel_mux_ex_o              <= sel_mux_ex_o; // SEE IF THIS LINE HAS TO BE PUT ALSO IN OTHER LINES
         end
 
         mult_en_ex_o                <= mult_en;

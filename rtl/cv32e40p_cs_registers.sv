@@ -1398,6 +1398,7 @@ end //PULP_SECURE
   assign hpm_events[13] = !APU ? 1'b0 : apu_contention_i;
   assign hpm_events[14] = !APU ? 1'b0 : apu_dep_i && !apu_contention_i;
   assign hpm_events[15] = !APU ? 1'b0 : apu_wb_i;
+  //assign hpm_events[16] = pipeline_stall_i;    
 
   // ------------------------
   // address decoder for performance counter registers
