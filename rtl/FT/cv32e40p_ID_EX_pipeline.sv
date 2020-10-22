@@ -34,12 +34,47 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   input logic         data_req_id           // Data Memory Control
   input logic [1:0]   ctrl_transfer_insn_in_id,
 
+  input logic [31:0]              operand_a_fw_id,
+  input logic [31:0]              operand_c_fw_id,
+  input logic [ALU_OP_WIDTH-1:0]  alu_operator,
+  input logic [31:0]              alu_operand_a,
+  input logic [31:0]              alu_operand_b,
+  input logic [31:0]              alu_operand_c,
+  input logic [ 4:0]              bmask_a_id,
+  input logic [ 4:0]              bmask_b_id,
+  input logic [ 1:0]              imm_vec_ext_id,
+  input logic [ 1:0]              alu_vec_mode,
+  input logic                     is_clpx,
+  input logic [31:0]              instr,
+  input logic                     is_subrot,
+  input logic                     mult_en,
+  input logic [ 2:0]              mult_operator,
+  input logic                     mult_sel_subword,
+  input logic [ 1:0]              mult_signed_mode,
+  input logic [ 4:0]              mult_imm_id,
+  input logic [ 1:0]              mult_dot_signed,
+  input logic [APU_WOP_CPU-1:0]   apu_op,
+  input logic [1:0]               apu_lat,
+  input logic [APU_NARGS_CPU-1:0][31:0]        apu_operands,
+  input logic [APU_NDSFLAGS_CPU-1:0]           apu_flags,
+  input logic [5:0]                            apu_waddr,
+  input logic [5:0]                            regfile_waddr_id,
+  input logic [5:0]                            regfile_alu_waddr_id,
+  input logic                     prepost_useincr,
+  input logic                     csr_access,
+  input logic [1:0]               csr_op,
+  input logic [1:0]               data_we_id,
+  input logic [1:0]               data_type_id,
+  input logic [1:0]               data_sign_ext_id,
+  input logic [1:0]               data_reg_offset_id,
+  input logic                     data_load_event_id,
+  input logic [5:0]               atop_id,
+  input logic [31:0]              pc_id_i,
 
   // OUTPUTS //
   // Pipeline ID/EX
   output logic [31:0] pc_ex_o,
-  output logic [31:0] pc_ex_o,
-
+  
   output logic [31:0] alu_operand_a_ex_o,
   output logic [31:0] alu_operand_b_ex_o,
   output logic [31:0] alu_operand_c_ex_o,
@@ -66,6 +101,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   output logic [1:0]  data_sign_ext_ex_o,
   output logic [1:0]  data_reg_offset_ex_o,
   output logic        data_load_event_ex_o,
+  output logic [5:0]  atop_ex_o,
 
   output logic        data_misaligned_ex_o,
 
@@ -234,7 +270,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
           alu_is_clpx_ex_o          <= is_clpx;
           alu_clpx_shift_ex_o       <= instr[14:13];
           alu_is_subrot_ex_o        <= is_subrot;
-          sel_mux_ex_o              <= sel_mux_ex_o; // SEE IF THIS LINE HAS TO BE PUT ALSO IN OTHER LINES
+          sel_mux_ex_o              <= sel_mux_ex_i; // SEE IF THIS LINE HAS TO BE PUT ALSO IN OTHER LINES
         end
 
         mult_en_ex_o                <= mult_en;
