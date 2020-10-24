@@ -44,36 +44,36 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic        rst_n,
 
   // ALU signals from ID stage
-  input  logic [ALU_OP_WIDTH-1:0] alu_operator_i,
-  input  logic [31:0] alu_operand_a_i,
-  input  logic [31:0] alu_operand_b_i,
-  input  logic [31:0] alu_operand_c_i,
-  input  logic        alu_en_i,
-  input  logic [ 4:0] bmask_a_i,
-  input  logic [ 4:0] bmask_b_i,
-  input  logic [ 1:0] imm_vec_ext_i,
-  input  logic [ 1:0] alu_vec_mode_i,
-  input  logic        alu_is_clpx_i,
-  input  logic        alu_is_subrot_i,
-  input  logic [ 1:0] alu_clpx_shift_i,
+  input  logic [3:0][ALU_OP_WIDTH-1:0] alu_operator_i,
+  input  logic [3:0][31:0] alu_operand_a_i,
+  input  logic [3:0][31:0] alu_operand_b_i,
+  input  logic [3:0][31:0] alu_operand_c_i,
+  input  logic [3:0]       alu_en_i,
+  input  logic [3:0][ 4:0] bmask_a_i,
+  input  logic [3:0][ 4:0] bmask_b_i,
+  input  logic [3:0][ 1:0] imm_vec_ext_i,
+  input  logic [3:0][ 1:0] alu_vec_mode_i,
+  input  logic [3:0]       alu_is_clpx_i,
+  input  logic [3:0]       alu_is_subrot_i,
+  input  logic [3:0][ 1:0] alu_clpx_shift_i,
 
   // Multiplier signals
-  input  logic [ 2:0] mult_operator_i,
-  input  logic [31:0] mult_operand_a_i,
-  input  logic [31:0] mult_operand_b_i,
-  input  logic [31:0] mult_operand_c_i,
-  input  logic        mult_en_i,
-  input  logic        mult_sel_subword_i,
-  input  logic [ 1:0] mult_signed_mode_i,
-  input  logic [ 4:0] mult_imm_i,
+  input  logic [3:0][ 2:0] mult_operator_i,
+  input  logic [3:0][31:0] mult_operand_a_i,
+  input  logic [3:0][31:0] mult_operand_b_i,
+  input  logic [3:0][31:0] mult_operand_c_i,
+  input  logic [3:0]       mult_en_i,
+  input  logic [3:0]       mult_sel_subword_i,
+  input  logic [3:0][ 1:0] mult_signed_mode_i,
+  input  logic [3:0][ 4:0] mult_imm_i,
 
-  input  logic [31:0] mult_dot_op_a_i,
-  input  logic [31:0] mult_dot_op_b_i,
-  input  logic [31:0] mult_dot_op_c_i,
-  input  logic [ 1:0] mult_dot_signed_i,
-  input  logic        mult_is_clpx_i,
-  input  logic [ 1:0] mult_clpx_shift_i,
-  input  logic        mult_clpx_img_i,
+  input  logic [3:0][31:0] mult_dot_op_a_i,
+  input  logic [3:0][31:0] mult_dot_op_b_i,
+  input  logic [3:0][31:0] mult_dot_op_c_i,
+  input  logic [3:0][ 1:0] mult_dot_signed_i,
+  input  logic [3:0]       mult_is_clpx_i,
+  input  logic [3:0][ 1:0] mult_clpx_shift_i,
+  input  logic [3:0]      mult_clpx_img_i,
 
   output logic        mult_multicycle_o,
 
@@ -82,12 +82,12 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic                        fpu_fflags_we_o,
 
   // APU signals
-  input  logic                        apu_en_i,
-  input  logic [APU_WOP_CPU-1:0]      apu_op_i,
-  input  logic [1:0]                  apu_lat_i,
-  input  logic [APU_NARGS_CPU-1:0][31:0] apu_operands_i,
-  input  logic [5:0]                  apu_waddr_i,
-  input  logic [APU_NDSFLAGS_CPU-1:0] apu_flags_i,
+  input  logic [3:0]                       apu_en_i,
+  input  logic [3:0][APU_WOP_CPU-1:0]      apu_op_i,
+  input  logic [3:0][1:0]                  apu_lat_i,
+  input  logic [3:0][APU_NARGS_CPU-1:0][31:0] apu_operands_i,
+  input  logic [3:0][5:0]                  apu_waddr_i,
+  input  logic [3:0][APU_NDSFLAGS_CPU-1:0] apu_flags_i,
 
   input  logic [2:0][5:0]             apu_read_regs_i,
   input  logic [2:0]                  apu_read_regs_valid_i,
@@ -119,16 +119,16 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [31:0] lsu_rdata_i,
 
   // input from ID stage
-  input  logic        branch_in_ex_i,
-  input  logic [5:0]  regfile_alu_waddr_i,
-  input  logic        regfile_alu_we_i,
+  input  logic [3:0]       branch_in_ex_i,
+  input  logic [3:0][5:0]  regfile_alu_waddr_i,
+  input  logic [3:0]       regfile_alu_we_i,
 
   // directly passed through to WB stage, not used in EX
-  input  logic        regfile_we_i,
-  input  logic [5:0]  regfile_waddr_i,
+  input  logic [3:0]       regfile_we_i,
+  input  logic [3:0][5:0]  regfile_waddr_i,
 
   // CSR access
-  input  logic        csr_access_i,
+  input  logic [3:0]       csr_access_i,
   input  logic [31:0] csr_rdata_i,
 
   // Output of EX stage pipeline
@@ -155,7 +155,12 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic        wb_ready_i  // WB stage ready for new data
 
   // ft
-  input  logic [2:0]  sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  input  logic [3:0][2:0]  sel_mux_ex_i, // selector of the three mux to choose three of the four alu
+  output logic             err_corrected_o,
+  output logic             err_detected_o,
+  output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
+  output logic [3:0]       perf_counter_permanent_faulty_alu_o // trigger the performance counter relative to the specif ALU
+  input  logic [3:0]       clock_enable_alu_i
 );
 
   logic [31:0]    alu_result;
@@ -270,8 +275,17 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .comparison_result_o ( alu_cmp_result  ),
 
     .ready_o             ( alu_ready       ),
-    .ex_ready_i          ( ex_ready_o      )
+    .ex_ready_i          ( ex_ready_o      ),
+
+    .clock_en_i          (clock_enable_alu_i),
+    .err_corrected_o     (err_corrected_o),
+    .err_detected_o      (err_detected_o),
+    .permanent_faulty_alu_o                 (permanent_faulty_alu_o),
+    .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
+    .sel_mux_ex_i        (sel_mux_ex_i),
   );
+
+
 
 
   ////////////////////////////////////////////////////////////////

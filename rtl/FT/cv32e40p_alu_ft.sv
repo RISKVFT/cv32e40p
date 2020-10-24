@@ -21,20 +21,20 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 (
   input  logic                     clk,
   input  logic                     rst_n,
-  input  logic                     enable_i,
-  input  logic [ALU_OP_WIDTH-1:0]  operator_i,
-  input  logic [31:0]              operand_a_i,
-  input  logic [31:0]              operand_b_i,
-  input  logic [31:0]              operand_c_i,
+  input  logic [3:0]                    enable_i,
+  input  logic [3:0][ALU_OP_WIDTH-1:0]  operator_i,
+  input  logic [3:0][31:0]              operand_a_i,
+  input  logic [3:0][31:0]              operand_b_i,
+  input  logic [3:0][31:0]              operand_c_i,
 
-  input  logic [ 1:0]              vector_mode_i,
-  input  logic [ 4:0]              bmask_a_i,
-  input  logic [ 4:0]              bmask_b_i,
-  input  logic [ 1:0]              imm_vec_ext_i,
+  input  logic [3:0][ 1:0]              vector_mode_i,
+  input  logic [3:0][ 4:0]              bmask_a_i,
+  input  logic [3:0][ 4:0]              bmask_b_i,
+  input  logic [3:0][ 1:0]              imm_vec_ext_i,
 
-  input  logic                     is_clpx_i,
-  input  logic                     is_subrot_i,
-  input  logic [ 1:0]              clpx_shift_i,
+  input  logic [3:0]                    is_clpx_i,
+  input  logic [3:0]                    is_subrot_i,
+  input  logic [3:0][ 1:0]              clpx_shift_i,
 
   output logic [31:0]              result_o,
   output logic                     comparison_result_o,
@@ -42,12 +42,12 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     ready_o,
   input  logic                     ex_ready_i,
 
-  output logic [3:0]			   clock_en, //enable/disable clock through clock gating on input pipe registers
+  input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o // trigger the performance counter relative to the specif ALU
-  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  input  logic [3:0][2:0]          sel_mux_ex_i // selector of the three mux to choose three of the four alu
 );
 
 
@@ -308,7 +308,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
 			  .clk 									clock,
-			  .clock_en 							//NONSO,
+			  .clock_en 							clock_en_i,
 			  .rst_n								rst_n,
 			  .alu_enable_i 						enable_i,
 			  .alu_operator_i 						operator_i,
@@ -317,41 +317,11 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .perf_counter_permanent_faulty_alu_o
 			);
 
-
-  input  logic [3:0]      clock_en,
-
-
-  input  logic [3:0]      error_detected_i, 
-  output logic [3:0][8:0] permanent_faulty_alu_o,  // one for each fsm: 4 ALU and 9 subpart of ALU
-  output logic [3:0]      perf_counter_permanent_faulty_alu_o
-
 	        assign err_detected_o = (err_detected_res || err_detected_comb || err_detected_ready);
 	        assign err_corrected_o = (err_corrected_res || err_corrected_comb || err_corrected_ready);
 
 	        //assign err_corrected_o = err_corrected_res_master || err_corrected_comp_master || err_corrected_ready_master;
 	        //assign err_detected_o = err_detected_res_master || err_detected_comp_master || err_detected_ready_master;
-
-
-	        // latch enable and mux selector to switch between the ALUs
-	        // give priority to 1st ALU then to 2nd ALU and then to 3rd ALU --> non è completa questa parte perchè se poi dovesse rompersi un'altra alu non andrebbe bene questo meccanismo
-	        always_comb begin // SVEDERE SE DI DEVE INSERIRE LA SENSITIVITY LIST
-	        	if (alu_remove_res_1_master==1 || alu_remove_comp_1_master==1 || alu_remove_ready_1_master==1 )begin
-	        		sel=3'b001;
-	         		clock_en=4'b1110;
-	         	end
-	         	else if (alu_remove_res_2_master==1 || alu_remove_comp_2_master==1 || alu_remove_ready_2_master==1 )begin
-	         			sel=3'b010;
-	         			clock_en=4'b1101;
-	         	end
-	         	else if (alu_remove_res_3_master==1 || alu_remove_comp_3_master==1 || alu_remove_ready_3_master==1 )begin
-	         			sel=3'b100;
-	         			clock_en=4'b1011;
-	         	end
-	         	else begin
-	         		sel=3'b000;
-	         		clock_en=4'b0111;
-	         	end
-	        end
 
 
         end
