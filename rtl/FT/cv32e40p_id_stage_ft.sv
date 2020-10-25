@@ -243,6 +243,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic        perf_pipeline_stall_o,//extra cycles from elw
     input  logic [31:0] mcounteren_i,
 
+    // FT
     input  logic [3:0][8:0] 	permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
     output logic [2:0][3:0]   sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     output logic [3:0]        clock_enable_alu_o

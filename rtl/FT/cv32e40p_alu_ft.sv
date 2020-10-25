@@ -222,7 +222,8 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        );
 
 
-// assegnare i 3 err_detected_()_1, err_detected_()_2 e err_detected_()_3 a 3 dei 4 err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 o err_detected_()_alu2.
+			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
+			// In this way the counter associated to the standby ALU does not increment. --> This is obtained also with clock gatin but for security we provide also this approach.
 			always_comb begin : assign_err_count_to_3_used_alu
 				case (used_alu_i)
 					4'b0111: 
@@ -319,9 +320,6 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        assign err_detected_o = (err_detected_res || err_detected_comb || err_detected_ready);
 	        assign err_corrected_o = (err_corrected_res || err_corrected_comb || err_corrected_ready);
-
-	        //assign err_corrected_o = err_corrected_res_master || err_corrected_comp_master || err_corrected_ready_master;
-	        //assign err_detected_o = err_detected_res_master || err_detected_comp_master || err_detected_ready_master;
 
 
         end

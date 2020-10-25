@@ -159,7 +159,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic             err_corrected_o,
   output logic             err_detected_o,
   output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
-  output logic [3:0]       perf_counter_permanent_faulty_alu_o // trigger the performance counter relative to the specif ALU
+  output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
   input  logic [3:0]       clock_enable_alu_i
 );
 

@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////  
 
 
-ATTENZIONE: BISOGNA ABILITARE I COUNTER SOLO DELLE TRE ALU USATE: POSSO FAR USCIRE IL CLOCK GATING DALL'ID STAGE SENZA PASSARE PER LA PIPE COSÌ COME I SELETTORI DEI MUX POTREBBERO USCIRE DALL'ID STAGE SENZA PASSARE PER LA PIPE
+//ATTENZIONE: BISOGNA ABILITARE I COUNTER SOLO DELLE TRE ALU USATE: POSSO FAR USCIRE IL CLOCK GATING DALL'ID STAGE SENZA PASSARE PER LA PIPE COSÌ COME I SELETTORI DEI MUX POTREBBERO USCIRE DALL'ID STAGE SENZA PASSARE PER LA PIPE
 
 //-----------------------------------------------------
 module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
@@ -27,11 +27,11 @@ module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_c
   input  logic            clk,
   input  logic [3:0]      clock_en,
   input  logic            rst_n,
-  input  logic            alu_enable_i,
-  input  logic            alu_operator_i,
+  input  logic [3:0]      alu_enable_i,
+  input  logic [3:0]      alu_operator_i,
   input  logic [3:0]      error_detected_i, 
   output logic [3:0][8:0] permanent_faulty_alu_o,  // one for each fsm: 4 ALU and 9 subpart of ALU
-  output logic [3:0]      perf_counter_permanent_faulty_alu_o
+  output logic [3:0]      perf_counter_permanent_faulty_alu_o // decided to use only four performance counters, one for each ALU and increment them only if there is a permanent error (in any of the subset of istructions) into the corresponding ALU.
 );
 
 logic [3:0][8:0] count_logic;
@@ -72,8 +72,8 @@ generate
         count_div_rem     <= 8'b0;
         count_shuf        <= 8'b0;
       end 
-      else if (alu_enable_i) begin
-        case (alu_operator_i)
+      else if (alu_enable_i[i]) begin
+        case (alu_operator_i[i])
 
           // shift
           ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
@@ -268,7 +268,7 @@ generate
       permanent_faulty[i]     <= 9'b0;
     end 
     else begin
-      case (alu_operator_i)
+      case (alu_operator_i[i])
 
         // shift
          // Logic
@@ -353,7 +353,9 @@ generate
   assign permanent_faulty_alu_o[3][8:0] = permanent_faulty[3][8:0];
 
 
-  // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.  
+  // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.
+  // Because this output signals are combinatorially obtained from the output of the registers of the internal counters, the performance caunter will be incremented one clock cycle after the internal counter increment. 
+  // To CS-Registers
   assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_o[0];
   assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_o[0];
   assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_o[0];
