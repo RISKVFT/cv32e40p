@@ -94,55 +94,55 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic        ex_valid_i,     // EX stage is done
 
     // Pipeline ID/EX
-    output logic [31:0][3:0] pc_ex_o,             // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] pc_ex_o,             // FT: output of quadruplicated pipe
 
-    output logic [31:0][3:0] alu_operand_a_ex_o,  // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] alu_operand_b_ex_o,  // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] alu_operand_c_ex_o,  // FT: output of quadruplicated pipe
-    output logic [ 4:0][3:0] bmask_a_ex_o,        // FT: output of quadruplicated pipe
-    output logic [ 4:0][3:0] bmask_b_ex_o,        // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] imm_vec_ext_ex_o,    // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] alu_vec_mode_ex_o,   // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] alu_operand_a_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] alu_operand_b_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] alu_operand_c_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][ 4:0] bmask_a_ex_o,        // FT: output of quadruplicated pipe
+    output logic [3:0][ 4:0] bmask_b_ex_o,        // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] imm_vec_ext_ex_o,    // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] alu_vec_mode_ex_o,   // FT: output of quadruplicated pipe
 
-    output logic [5:0][3:0]  regfile_waddr_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][5:0]  regfile_waddr_ex_o,  // FT: output of quadruplicated pipe
     output logic [3:0]       regfile_we_ex_o,     // FT: output of quadruplicated pipe
 
-    output logic [5:0][3:0]  regfile_alu_waddr_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][5:0]  regfile_alu_waddr_ex_o,  // FT: output of quadruplicated pipe
     output logic [3:0]       regfile_alu_we_ex_o,     // FT: output of quadruplicated pipe
 
     // ALU
     output logic [3:0]       alu_en_ex_o,                   // FT: output of quadruplicated pipe
-    output logic [ALU_OP_WIDTH-1:0][3:0] alu_operator_ex_o, // FT: output of quadruplicated pipe
+    output logic [3:0][ALU_OP_WIDTH-1:0] alu_operator_ex_o, // FT: output of quadruplicated pipe
     output logic [3:0]       alu_is_clpx_ex_o,              // FT: output of quadruplicated pipe
     output logic [3:0]       alu_is_subrot_ex_o,            // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] alu_clpx_shift_ex_o,           // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] alu_clpx_shift_ex_o,           // FT: output of quadruplicated pipe
 
 
     // MUL
-    output logic [ 2:0][3:0] mult_operator_ex_o,      // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] mult_operand_a_ex_o,     // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] mult_operand_b_ex_o,     // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] mult_operand_c_ex_o,     // FT: output of quadruplicated pipe
+    output logic [3:0][ 2:0] mult_operator_ex_o,      // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_operand_a_ex_o,     // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_operand_b_ex_o,     // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_operand_c_ex_o,     // FT: output of quadruplicated pipe
     output logic [3:0]       mult_en_ex_o,            // FT: output of quadruplicated pipe
     output logic [3:0]       mult_sel_subword_ex_o,   // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] mult_signed_mode_ex_o,   // FT: output of quadruplicated pipe
-    output logic [ 4:0][3:0] mult_imm_ex_o,           // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] mult_signed_mode_ex_o,   // FT: output of quadruplicated pipe
+    output logic [3:0][ 4:0] mult_imm_ex_o,           // FT: output of quadruplicated pipe
 
-    output logic [31:0][3:0] mult_dot_op_a_ex_o,      // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] mult_dot_op_b_ex_o,      // FT: output of quadruplicated pipe
-    output logic [31:0][3:0] mult_dot_op_c_ex_o,      // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] mult_dot_signed_ex_o,    // FT: output of quadruplicated pipe
-    output logic [ 3:0]      mult_is_clpx_ex_o,       // FT: output of quadruplicated pipe
-    output logic [ 1:0][3:0] mult_clpx_shift_ex_o,    // FT: output of quadruplicated pipe
-    output logic [ 3:0]      mult_clpx_img_ex_o,      // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_dot_op_a_ex_o,      // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_dot_op_b_ex_o,      // FT: output of quadruplicated pipe
+    output logic [3:0][31:0] mult_dot_op_c_ex_o,      // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] mult_dot_signed_ex_o,    // FT: output of quadruplicated pipe
+    output logic [3:0]       mult_is_clpx_ex_o,       // FT: output of quadruplicated pipe
+    output logic [3:0][ 1:0] mult_clpx_shift_ex_o,    // FT: output of quadruplicated pipe
+    output logic [3:0]       mult_clpx_img_ex_o,      // FT: output of quadruplicated pipe
 
     // APU
     output logic [3:0]                          apu_en_ex_o,        // FT: output of quadruplicated pipe
-    output logic [APU_WOP_CPU-1:0][3:0]         apu_op_ex_o,        // FT: output of quadruplicated pipe
-    output logic [1:0][3:0]                     apu_lat_ex_o,       // FT: output of quadruplicated pipe
-    output logic [APU_NARGS_CPU-1:0][31:0][3:0] apu_operands_ex_o,  // FT: output of quadruplicated pipe
-    output logic [APU_NDSFLAGS_CPU-1:0][3:0]    apu_flags_ex_o,     // FT: output of quadruplicated pipe
-    output logic [5:0][3:0]                     apu_waddr_ex_o,     // FT: output of quadruplicated pipe
+    output logic [3:0][APU_WOP_CPU-1:0]         apu_op_ex_o,        // FT: output of quadruplicated pipe
+    output logic [3:0][1:0]                     apu_lat_ex_o,       // FT: output of quadruplicated pipe
+    output logic [3:0][APU_NARGS_CPU-1:0][31:0] apu_operands_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][APU_NDSFLAGS_CPU-1:0]    apu_flags_ex_o,     // FT: output of quadruplicated pipe
+    output logic [3:0][5:0]                     apu_waddr_ex_o,     // FT: output of quadruplicated pipe
 
     output logic [2:0][5:0]            apu_read_regs_o,
     output logic [2:0]                 apu_read_regs_valid_o,
@@ -156,7 +156,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
     // CSR ID/EX
     output logic [3:0]       csr_access_ex_o,   // FT: output of quadruplicated pipe
-    output logic [1:0][3:0]  csr_op_ex_o,       // FT: output of quadruplicated pipe
+    output logic [3:0][1:0]  csr_op_ex_o,       // FT: output of quadruplicated pipe
     input  PrivLvl_t    current_priv_lvl_i,
     output logic        csr_irq_sec_o,
     output logic [5:0]  csr_cause_o,
@@ -185,9 +185,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     // Interface to load store unit
     output logic [3:0]       data_req_ex_o,         // FT: output of quadruplicated pipe
     output logic [3:0]       data_we_ex_o,          // FT: output of quadruplicated pipe
-    output logic [1:0][3:0]  data_type_ex_o,        // FT: output of quadruplicated pipe
-    output logic [1:0][3:0]  data_sign_ext_ex_o,    // FT: output of quadruplicated pipe
-    output logic [1:0][3:0]  data_reg_offset_ex_o,  // FT: output of quadruplicated pipe
+    output logic [3:0][1:0]  data_type_ex_o,        // FT: output of quadruplicated pipe
+    output logic [3:0][1:0]  data_sign_ext_ex_o,    // FT: output of quadruplicated pipe
+    output logic [3:0][1:0]  data_reg_offset_ex_o,  // FT: output of quadruplicated pipe
     output logic [3:0]       data_load_event_ex_o,  // FT: output of quadruplicated pipe
 
     output logic [3:0]       data_misaligned_ex_o,  // FT: output of quadruplicated pipe
@@ -197,7 +197,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic        data_err_i,
     output logic        data_err_ack_o,
 
-    output logic [5:0][3:0]  atop_ex_o,             // FT: output of quadruplicated pipe
+    output logic [3:0][5:0]  atop_ex_o,             // FT: output of quadruplicated pipe
 
     // Interrupt signals
     input  logic [31:0] irq_i,
@@ -245,7 +245,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
     // FT
     input  logic [3:0][8:0] 	permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
-    output logic [2:0][3:0]   sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
+    output logic [3:0][2:0]   sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     output logic [3:0]        clock_enable_alu_o
 
 );
@@ -481,8 +481,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // Fault Tolerant
   // CLock gating on replicas of pipeline for FT versione
   logic [3:0]      clock_en  // used for gating clock of one of the pipeline replicas for FT version
-  logic [3:0]      clk_gated_ft;
-  logic [2:0]      sel_mux_ex_s;
+  logic [3:0]      clk_enable_ft;
+  logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
+  logic [2:0]      sel_mux_ex_ff; // mux selectors after one clock cycle
   // signals input to the voters for he outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
   logic [2:0][5:0]      regfile_waddr_ex_voter_in;
@@ -1699,8 +1700,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // Fault tolerant, select 3 of the 4 ALU in the EX stage
   .sel_mux_ex_i             (sel_mux_ex_s),
   .sel_mux_ex_o             (sel_mux_ex_o),
-  .clock_gated_alu_i        (clk_gated_ft),
-  .clock_gated_alu_o        (clock_enable_alu_o)
+  .clock_enable_alu_i        (clk_enable_ft),
+  .clock_enable_alu_o        (clock_enable_alu_o)
 
 );
 
@@ -1710,50 +1711,59 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // FOR THIS REASON WE HAVE TO USE SOME MUXs TO DECIDE WHICH TRIPLET OF THE 4 PIPER REGISTER OUTPUT USE A INPUTS FOR THE VOTER.
   // WE USE THE SEL_MUX_EX_O (NEEDED FOR EX_STAGE MUXs TO FEED ID_STAGE MUXs TOO)
 
+  // WE NEED A VOTER OF SEL_MUX_EX BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
+  always_ff @(posedge clk, negedge rst_n) begin : proc_
+    if(~rst_n) begin
+      sel_mux_ex_ff <= 3'b0;
+    end else begin
+      sel_mux_ex_ff <= sel_mux_ex_s;
+    end
+  end
+
   // MUXs
-  assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_b_ex_o[0] : alu_operand_b_ex_o[3];
-  assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_b_ex_o[1] : alu_operand_b_ex_o[3];
-  assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_b_ex_o[2] : alu_operand_b_ex_o[3];
+  assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_ff[0] ? alu_operand_b_ex_o[0] : alu_operand_b_ex_o[3];
+  assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_ff[1] ? alu_operand_b_ex_o[1] : alu_operand_b_ex_o[3];
+  assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_ff[2] ? alu_operand_b_ex_o[2] : alu_operand_b_ex_o[3];
 
-  assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_waddr_ex_o[0] : regfile_waddr_ex_o[3];
-  assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_waddr_ex_o[1] : regfile_waddr_ex_o[3];
-  assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_waddr_ex_o[2] : regfile_waddr_ex_o[3];
+  assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_ff[0] ? regfile_waddr_ex_o[0] : regfile_waddr_ex_o[3];
+  assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_ff[1] ? regfile_waddr_ex_o[1] : regfile_waddr_ex_o[3];
+  assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_ff[2] ? regfile_waddr_ex_o[2] : regfile_waddr_ex_o[3];
 
-  assign regfile_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_we_ex_o[0] : regfile_we_ex_o[3];
-  assign regfile_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_we_ex_o[1] : regfile_we_ex_o[3];
-  assign regfile_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_we_ex_o[2] : regfile_we_ex_o[3];
+  assign regfile_we_ex_voter_in[0] = sel_mux_ex_ff[0] ? regfile_we_ex_o[0] : regfile_we_ex_o[3];
+  assign regfile_we_ex_voter_in[1] = sel_mux_ex_ff[1] ? regfile_we_ex_o[1] : regfile_we_ex_o[3];
+  assign regfile_we_ex_voter_in[2] = sel_mux_ex_ff[2] ? regfile_we_ex_o[2] : regfile_we_ex_o[3];
 
-  assign csr_access_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_access_ex_o[0] : csr_access_ex_o[3];
-  assign csr_access_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_access_ex_o[1] : csr_access_ex_o[3];
-  assign csr_access_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_access_ex_o[2] : csr_access_ex_o[3];
+  assign csr_access_ex_voter_in[0] = sel_mux_ex_ff[0] ? csr_access_ex_o[0] : csr_access_ex_o[3];
+  assign csr_access_ex_voter_in[1] = sel_mux_ex_ff[1] ? csr_access_ex_o[1] : csr_access_ex_o[3];
+  assign csr_access_ex_voter_in[2] = sel_mux_ex_ff[2] ? csr_access_ex_o[2] : csr_access_ex_o[3];
 
-  assign csr_op_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_op_ex_o[0] : csr_op_ex_o[3];
-  assign csr_op_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_op_ex_o[1] : csr_op_ex_o[3];
-  assign csr_op_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_op_ex_o[2] : csr_op_ex_o[3];
+  assign csr_op_ex_voter_in[0] = sel_mux_ex_ff[0] ? csr_op_ex_o[0] : csr_op_ex_o[3];
+  assign csr_op_ex_voter_in[1] = sel_mux_ex_ff[1] ? csr_op_ex_o[1] : csr_op_ex_o[3];
+  assign csr_op_ex_voter_in[2] = sel_mux_ex_ff[2] ? csr_op_ex_o[2] : csr_op_ex_o[3];
 
-  assign data_req_ex_voter_in[0] = sel_mux_ex_o[0] ? data_req_ex_o[0] : data_req_ex_o[3];
-  assign data_req_ex_voter_in[1] = sel_mux_ex_o[1] ? data_req_ex_o[1] : data_req_ex_o[3];
-  assign data_req_ex_voter_in[2] = sel_mux_ex_o[2] ? data_req_ex_o[2] : data_req_ex_o[3];
+  assign data_req_ex_voter_in[0] = sel_mux_ex_ff[0] ? data_req_ex_o[0] : data_req_ex_o[3];
+  assign data_req_ex_voter_in[1] = sel_mux_ex_ff[1] ? data_req_ex_o[1] : data_req_ex_o[3];
+  assign data_req_ex_voter_in[2] = sel_mux_ex_ff[2] ? data_req_ex_o[2] : data_req_ex_o[3];
 
-  assign data_we_ex_voter_in[0] = sel_mux_ex_o[0] ? data_we_ex_o[0] : data_we_ex_o[3];
-  assign data_we_ex_voter_in[1] = sel_mux_ex_o[1] ? data_we_ex_o[1] : data_we_ex_o[3];
-  assign data_we_ex_voter_in[2] = sel_mux_ex_o[2] ? data_we_ex_o[2] : data_we_ex_o[3];
+  assign data_we_ex_voter_in[0] = sel_mux_ex_ff[0] ? data_we_ex_o[0] : data_we_ex_o[3];
+  assign data_we_ex_voter_in[1] = sel_mux_ex_ff[1] ? data_we_ex_o[1] : data_we_ex_o[3];
+  assign data_we_ex_voter_in[2] = sel_mux_ex_ff[2] ? data_we_ex_o[2] : data_we_ex_o[3];
 
-  assign alu_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
-  assign alu_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
-  assign alu_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
+  assign alu_operator_ex_voter_in[0] = sel_mux_ex_ff[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
+  assign alu_operator_ex_voter_in[1] = sel_mux_ex_ff[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
+  assign alu_operator_ex_voter_in[2] = sel_mux_ex_ff[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
 
-  assign apu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
-  assign apu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
-  assign apu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_en_ex_o[2] : apu_en_ex_o[3];
+  assign apu_en_ex_voter_in[0] = sel_mux_ex_ff[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
+  assign apu_en_ex_voter_in[1] = sel_mux_ex_ff[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
+  assign apu_en_ex_voter_in[2] = sel_mux_ex_ff[2] ? apu_en_ex_o[2] : apu_en_ex_o[3];
 
-  assign apu_lat_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_lat_ex_o[0] : apu_lat_ex_o[3];
-  assign apu_lat_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_lat_ex_o[1] : apu_lat_ex_o[3];
-  assign apu_lat_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_lat_ex_o[2] : apu_lat_ex_o[3];
+  assign apu_lat_ex_voter_in[0] = sel_mux_ex_ff[0] ? apu_lat_ex_o[0] : apu_lat_ex_o[3];
+  assign apu_lat_ex_voter_in[1] = sel_mux_ex_ff[1] ? apu_lat_ex_o[1] : apu_lat_ex_o[3];
+  assign apu_lat_ex_voter_in[2] = sel_mux_ex_ff[2] ? apu_lat_ex_o[2] : apu_lat_ex_o[3];
 
-  assign branch_in_ex_voter_in[0] = sel_mux_ex_o[0] ? branch_in_ex_o[0] : branch_in_ex_o[3];
-  assign branch_in_ex_voter_in[1] = sel_mux_ex_o[1] ? branch_in_ex_o[1] : branch_in_ex_o[3];
-  assign branch_in_ex_voter_in[2] = sel_mux_ex_o[2] ? branch_in_ex_o[2] : branch_in_ex_o[3];
+  assign branch_in_ex_voter_in[0] = sel_mux_ex_ff[0] ? branch_in_ex_o[0] : branch_in_ex_o[3];
+  assign branch_in_ex_voter_in[1] = sel_mux_ex_ff[1] ? branch_in_ex_o[1] : branch_in_ex_o[3];
+  assign branch_in_ex_voter_in[2] = sel_mux_ex_ff[2] ? branch_in_ex_o[2] : branch_in_ex_o[3];
 
 
   // VOTERS

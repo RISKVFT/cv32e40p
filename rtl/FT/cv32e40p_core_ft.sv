@@ -147,16 +147,16 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]       pc_id;             // Program counter in ID stage
 
   // ID performance counter signals
-  logic        is_decoding;
+  logic        		is_decoding;
 
-  logic        useincr_addr_ex;   // Active when post increment
-  logic        data_misaligned;
+  logic [3:0]       useincr_addr_ex;   // Active when post increment  // FT: output of quadruplicated pipe
+  logic        		data_misaligned;
 
   logic        mult_multicycle;
 
   // Jump and branch target and decision (EX->IF)
   logic [31:0] jump_target_id, jump_target_ex;
-  logic [3:0]  branch_in_ex;    // FT: output of quadruplicated pipe
+  logic [3:0]  branch_in_ex;    	// FT: output of quadruplicated pipe
   logic        branch_decision;
 
   logic        ctrl_busy;
@@ -164,37 +164,37 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic        lsu_busy;
   logic        apu_busy;
 
-  logic [31:0] pc_ex; // PC of last executed branch or p.elw
+  logic [3:0][31:0] pc_ex; // PC of last executed branch or p.elw // FT: output of quadruplicated pipe
 
   // ALU Control
-  logic        alu_en_ex;
-  logic [ALU_OP_WIDTH-1:0] alu_operator_ex;
-  logic [31:0] alu_operand_a_ex;
-  logic [31:0] alu_operand_b_ex;
-  logic [31:0] alu_operand_c_ex;
-  logic [ 4:0] bmask_a_ex;
-  logic [ 4:0] bmask_b_ex;
-  logic [ 1:0] imm_vec_ext_ex;
-  logic [ 1:0] alu_vec_mode_ex;
-  logic        alu_is_clpx_ex, alu_is_subrot_ex;
-  logic [ 1:0] alu_clpx_shift_ex;
+  logic [3:0]       alu_en_ex;							// FT: output of quadruplicated pipe
+  logic [3:0][ALU_OP_WIDTH-1:0] alu_operator_ex;		// FT: output of quadruplicated pipe
+  logic [3:0][31:0] alu_operand_a_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] alu_operand_b_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] alu_operand_c_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][ 4:0] bmask_a_ex;							// FT: output of quadruplicated pipe
+  logic [3:0][ 4:0] bmask_b_ex;							// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] imm_vec_ext_ex;						// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] alu_vec_mode_ex;					// FT: output of quadruplicated pipe
+  logic [3:0]       alu_is_clpx_ex, alu_is_subrot_ex;	// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] alu_clpx_shift_ex;					// FT: output of quadruplicated pipe
 
   // Multiplier Control
-  logic [ 2:0] mult_operator_ex;
-  logic [31:0] mult_operand_a_ex;
-  logic [31:0] mult_operand_b_ex;
-  logic [31:0] mult_operand_c_ex;
-  logic        mult_en_ex;
-  logic        mult_sel_subword_ex;
-  logic [ 1:0] mult_signed_mode_ex;
-  logic [ 4:0] mult_imm_ex;
-  logic [31:0] mult_dot_op_a_ex;
-  logic [31:0] mult_dot_op_b_ex;
-  logic [31:0] mult_dot_op_c_ex;
-  logic [ 1:0] mult_dot_signed_ex;
-  logic        mult_is_clpx_ex;
-  logic [ 1:0] mult_clpx_shift_ex;
-  logic        mult_clpx_img_ex;
+  logic [3:0][ 2:0] mult_operator_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_operand_a_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_operand_b_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_operand_c_ex;					// FT: output of quadruplicated pipe
+  logic [3:0]       mult_en_ex;							// FT: output of quadruplicated pipe
+  logic [3:0]       mult_sel_subword_ex;				// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] mult_signed_mode_ex;				// FT: output of quadruplicated pipe
+  logic [3:0][ 4:0] mult_imm_ex;						// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_dot_op_a_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_dot_op_b_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][31:0] mult_dot_op_c_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] mult_dot_signed_ex;					// FT: output of quadruplicated pipe
+  logic [3:0]       mult_is_clpx_ex;					// FT: output of quadruplicated pipe
+  logic [3:0][ 1:0] mult_clpx_shift_ex;					// FT: output of quadruplicated pipe
+  logic [3:0]       mult_clpx_img_ex;					// FT: output of quadruplicated pipe
 
   // FPU
   logic [C_PC-1:0]            fprec_csr;
@@ -203,12 +203,12 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic                       fflags_we;
 
   // APU
-  logic                        apu_en_ex;
-  logic [APU_NDSFLAGS_CPU-1:0] apu_flags_ex;
-  logic [APU_WOP_CPU-1:0]      apu_op_ex;
-  logic [1:0]                  apu_lat_ex;
-  logic [APU_NARGS_CPU-1:0][31:0]                 apu_operands_ex;
-  logic [5:0]                  apu_waddr_ex;
+  logic [3:0]                       	apu_en_ex;			// FT: output of quadruplicated pipe
+  logic [3:0][APU_NDSFLAGS_CPU-1:0] 	apu_flags_ex;		// FT: output of quadruplicated pipe
+  logic [3:0][APU_WOP_CPU-1:0]     		apu_op_ex;			// FT: output of quadruplicated pipe
+  logic [3:0][1:0]                  	apu_lat_ex;			// FT: output of quadruplicated pipe
+  logic [3:0][APU_NARGS_CPU-1:0][31:0]	apu_operands_ex;	// FT: output of quadruplicated pipe
+  logic [3:0][5:0]                		apu_waddr_ex;		// FT: output of quadruplicated pipe
 
   logic [2:0][5:0]             apu_read_regs;
   logic [2:0]                  apu_read_regs_valid;
@@ -223,22 +223,22 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic                        perf_apu_wb;
 
   // Register Write Control
-  logic [5:0]  regfile_waddr_ex;
-  logic        regfile_we_ex;
-  logic [5:0]  regfile_waddr_fw_wb_o;        // From WB to ID
+  logic [3:0][5:0]  regfile_waddr_ex;			// FT: output of quadruplicated pipe
+  logic [3:0]       regfile_we_ex;				// FT: output of quadruplicated pipe
+  logic [5:0]  regfile_waddr_fw_wb_o;           // From WB to ID
   logic        regfile_we_wb;
   logic [31:0] regfile_wdata;
 
-  logic [5:0]  regfile_alu_waddr_ex;
-  logic        regfile_alu_we_ex;
+  logic [3:0][5:0]  regfile_alu_waddr_ex;		// FT: output of quadruplicated pipe
+  logic [3:0]       regfile_alu_we_ex;			// FT: output of quadruplicated pipe
 
   logic [5:0]  regfile_alu_waddr_fw;
   logic        regfile_alu_we_fw;
   logic [31:0] regfile_alu_wdata_fw;
 
   // CSR control
-  logic        csr_access_ex;
-  logic [1:0]  csr_op_ex;
+  logic [3:0]       csr_access_ex;				// FT: output of quadruplicated pipe
+  logic [3:0][1:0]  csr_op_ex;					// FT: output of quadruplicated pipe
   logic [23:0] mtvec, utvec;
   logic [1:0]  mtvec_mode;
   logic [1:0]  utvec_mode;
@@ -251,14 +251,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   PrivLvl_t    current_priv_lvl;
 
   // Data Memory Control:  From ID stage (id-ex pipe) <--> load store unit
-  logic        data_we_ex;
-  logic [5:0]  data_atop_ex;
-  logic [1:0]  data_type_ex;
-  logic [1:0]  data_sign_ext_ex;
-  logic [1:0]  data_reg_offset_ex;
-  logic        data_req_ex;
-  logic        data_load_event_ex;
-  logic        data_misaligned_ex;
+  logic [3:0]       data_we_ex;				// FT: output of quadruplicated pipe
+  logic [3:0][5:0]  data_atop_ex;			// FT: output of quadruplicated pipe
+  logic [3:0][1:0]  data_type_ex;			// FT: output of quadruplicated pipe
+  logic [3:0][1:0]  data_sign_ext_ex;		// FT: output of quadruplicated pipe	
+  logic [3:0][1:0]  data_reg_offset_ex;		// FT: output of quadruplicated pipe
+  logic [3:0]       data_req_ex;			// FT: output of quadruplicated pipe
+  logic [3:0]       data_load_event_ex;		// FT: output of quadruplicated pipe
+  logic [3:0]       data_misaligned_ex;		// FT: output of quadruplicated pipe
 
   logic        p_elw_start;             // Start of p.elw load (when data_req_o is sent)
   logic        p_elw_finish;            // Finish of p.elw load (when data_rvalid_i is received)
@@ -351,8 +351,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   // FT - ID stage
   logic [3:0][8:0]   permanent_faulty_alu;  // one for each fsm: 4 ALU and 9 subpart of ALU
-  logic [2:0][3:0]   sel_mux_ex;            // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-  logic [3:0]        clock_enable_alu;
+  logic [3:0][2:0]   sel_mux_ex;            // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
+  logic [3:0]        clock_enable_alu;		// FT: output of quadruplicated pipe
 
   // FT - EX stage
   logic             err_corrected_alu;

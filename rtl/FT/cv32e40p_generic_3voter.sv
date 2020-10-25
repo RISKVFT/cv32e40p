@@ -19,8 +19,8 @@
 
 module cv32e40p_generic_voter
 #(
-  parameter LEN = 32;
-  parameter N_IN = 1 //Number of inputs triplets
+  parameter LEN = 32,
+  parameter N_IN = 2 //Number of inputs triplets
 )
 (
   input  logic [N_IN-1:0][LEN-1:0]          in_1_i,
