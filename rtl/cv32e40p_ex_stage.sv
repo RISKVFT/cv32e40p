@@ -37,7 +37,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   parameter APU_NARGS_CPU    =  3,
   parameter APU_WOP_CPU      =  6,
   parameter APU_NDSFLAGS_CPU = 15,
-  parameter APU_NUSFLAGS_CPU =  5
+  parameter APU_NUSFLAGS_CPU =  5,
+  parameter FT 		     =  0
 )
 (
   input  logic        clk,
@@ -281,7 +282,10 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   //                        //
   ////////////////////////////
 
-  cv32e40p_alu alu_i
+  cv32e40p_alu_ft
+  #(
+    .FT (FT)
+   )
   (
     .clk                 ( clk             ),
     .rst_n               ( rst_n           ),
