@@ -478,7 +478,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // depend on ex_ready.
   assign ex_ready_o = (~apu_stall & alu_ready & mult_ready & lsu_ready_ex_i
                        & wb_ready_i & ~wb_contention) | (branch_in_ex_voted_i);
-  assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted_i | csr_access_e | lsu_en_i)
+  assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted_i | csr_access_ex_voted | lsu_en_i)
                        & (alu_ready & mult_ready & lsu_ready_ex_i & wb_ready_i);
 
 endmodule

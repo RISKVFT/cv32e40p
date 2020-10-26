@@ -605,6 +605,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][ 5:0]           regfile_alu_waddr_ex_voter_in;
   logic [2:0]                 regfile_alu_we_ex_voter_in;
 
+  logic [3:0]				  permanent_faulty_alu_in_decoder;
+
   assign instr = instr_rdata_i;
 
 
@@ -1566,87 +1568,96 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     case (alu_operator_ex_voted)
 
       // shift
-      ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL: 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][0]; 
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][0]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // Logic
-      ALU_XOR, ALU_OR, ALU_AND:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      ALU_XOR, ALU_OR, ALU_AND:
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][1];  
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][1]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
 
       // Bit manipulation
       ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][2];
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][2]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // Bit counting
       ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][3];
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][3]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
 
       // Shuffle
-      ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS: 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][4]; 
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][4]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // Comparisons
       ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][5];
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][5]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // Absolute value
-      ALU_ABS, ALU_CLIP, ALU_CLIPU: 
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      ALU_ABS, ALU_CLIP, ALU_CLIPU:
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][6]; 
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][6]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // min/max
       ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][7];
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][7]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
       // div/rem
-      ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
-      cv32e40p_decoder_faulty_alu decoder_shift 
+      ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:
+      permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3:0][8];  
+      /*cv32e40p_decoder_faulty_alu decoder_shift 
       ( 
         .permanent_faulty_alu_i     (permanent_faulty_alu_i[3:0][8]),
         .clock_gate_pipe_replica_o  (clock_en),
         .sel_mux_ex_o               (sel_mux_ex_s)
-      );
+      );*/
 
         default:  clock_en = 4'b0111;        
 
@@ -1654,6 +1665,14 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       endcase // case (alu_operator)
 
     end // end always_comb EX_dispatcher
+
+
+    cv32e40p_decoder_faulty_alu decoder_faulty_alu 
+      ( 
+        .permanent_faulty_alu_i     (permanent_faulty_alu_in_decoder),
+        .clock_gate_pipe_replica_o  (clock_en),
+        .sel_mux_ex_o               (sel_mux_ex_s)
+      );
 
   // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
   cv32e40p_clock_gate[3:0]
