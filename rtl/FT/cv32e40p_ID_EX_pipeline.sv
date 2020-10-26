@@ -228,7 +228,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       branch_in_ex_o              <= 1'b0;
 
       sel_mux_ex_o                <= 3'b0;
-      clock_enable_alu_i           <= 3'b0;
+      clock_enable_alu_i          <= 3'b0;
 
     end
     else if (data_misaligned_i) begin

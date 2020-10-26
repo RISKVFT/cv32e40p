@@ -18,19 +18,20 @@
 
 module cv32e40p_voter
 #(
-  parameter LEN = 32
+  parameter L1 = 32,
+  parameter L2 = 1
 )
 (
-  input  logic [LEN-1:0]         in_1_i,
-  input  logic [LEN-1:0]         in_2_i,
-  input  logic [LEN-1:0]         in_3_i,
+  input  logic [L1-1:0][L2-1:0]   	in_1_i,
+  input  logic [L1-1:0][L2-1:0]   	in_2_i,
+  input  logic [L1-1:0][L2-1:0]   	in_3_i,
 
-  output logic [LEN-1:0]		 voted_o,
-  output logic					 err_detected_1,
-  output logic					 err_detected_2,
-  output logic					 err_detected_3,
-  output logic                   err_corrected_o,
-  output logic					 err_detected_o
+  output logic [L1-1:0][L2-1:0]		voted_o,
+  output logic						err_detected_1,
+  output logic						err_detected_2,
+  output logic						err_detected_3,
+  output logic                  	err_corrected_o,
+  output logic						err_detected_o
 );
 
 //structural description of majority voter of 3

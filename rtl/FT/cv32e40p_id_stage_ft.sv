@@ -245,9 +245,55 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
     // FT
     input  logic [3:0][8:0] 	permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
-    output logic [3:0][2:0]   sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-    output logic [3:0]        clock_enable_alu_o
+    output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
+    output logic [3:0]        clock_enable_alu_o,
 
+    // signal output of the voters for the outputs of the id_stage that are used into the core
+    output logic [31:0]          pc_ex_voted,
+    output logic [31:0]          alu_operand_a_ex_voted,
+    output logic [31:0]          alu_operand_c_ex_voted,
+    output logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted,
+    output logic [1:0]           data_type_ex_voted,
+    output logic [1:0]           data_sign_ext_ex_voted,
+    output logic [1:0]           data_load_event_ex_voted,
+    output logic [1:0]           data_reg_offset_ex_voted,
+    output logic                 data_misaligned_ex_voted,
+    output logic                 useincr_addr_ex_voted,
+    output logic [5:0]           atop_ex_voted,
+
+    output logic                 csr_access_ex_voted,
+    output logic                 data_req_ex_voted,   
+    output logic                 data_we_ex_voted, 
+    output logic                 branch_in_ex_voted,
+    output logic [31:0]          alu_operand_b_ex_voted,
+    output logic                 apu_en_ex_voted,
+    output logic [1:0]           apu_lat_ex_voted,
+    output logic [5:0]           regfile_waddr_ex_voted,
+    output logic                 regfile_we_ex_voted,
+
+    // signal output of the voters for the outputs of id_stage that are used into the ex_stage
+    output logic                 alu_en_ex_voted,
+    output logic [2:0]           mult_operator_ex_voted,   
+    output logic [31:0]          mult_operand_a_ex_voted, 
+    output logic [31:0]          mult_operand_b_ex_voted,
+    output logic [31:0]          mult_operand_c_ex_voted,
+    output logic                 mult_en_ex_voted,
+    output logic                 mult_sel_subword_ex_voted,   
+    output logic [ 1:0]          mult_signed_mode_voted, 
+    output logic [ 4:0]          mult_imm_ex_voted,
+    output logic [31:0]          mult_dot_op_a_ex_voted,
+    output logic [31:0]          mult_dot_op_b_ex_voted,
+    output logic [31:0]          mult_dot_op_c_ex_voted,
+    output logic [ 1:0]          mult_dot_signed_ex_voted,
+    output logic                 mult_is_clpx_ex_voted,
+    output logic [ 1:0]          mult_clpx_shift_ex_voted,
+    output logic                 mult_clpx_img_ex_voted,
+    output logic [APU_WOP_CPU-1:0]              apu_op_ex_voted,
+    output logic [APU_NARGS_CPU][32:0]          apu_operands_ex_voted,
+    output logic [ 5:0]          apu_waddr_ex_voted,
+    output logic [ 5:0]          regfile_alu_waddr_ex_voted,
+    output logic                 regfile_alu_we_ex_voted
+  
 );
 
   // Source/Destination register instruction index
@@ -483,8 +529,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [3:0]      clock_en  // used for gating clock of one of the pipeline replicas for FT version
   logic [3:0]      clk_enable_ft;
   logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
-  logic [2:0]      sel_mux_ex_ff; // mux selectors after one clock cycle
-  // signals input to the voters for he outputs of the module that are still used in Id_stage module
+  // signals input to the voters for the outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
   logic [2:0][5:0]      regfile_waddr_ex_voter_in;
   logic [2:0]           regfile_we_ex_voter_in;
@@ -496,18 +541,69 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0]           apu_en_ex_voter_in;
   logic [2:0][1:0]      apu_lat_ex_voter_in,
   logic [2:0]           branch_in_ex_voter_in;
-  // signals output of the voters for he outputs of the module that are still used in Id_stage module
-  logic [31:0]     alu_operand_b_ex_voted;
-  logic [5:0]      regfile_waddr_ex_voted;
-  logic            regfile_we_ex_voted;
-  logic            csr_access_ex_voted;
-  logic [1:0]      csr_op_ex_voted;
-  logic            data_req_ex_voted;
-  logic            data_we_ex_voted;
-  logic [6:0]      alu_operator_ex_voted;
-  logic            apu_en_ex_voted;
-  logic [1:0]      apu_lat_ex_voted,
-  logic            branch_in_ex_voted;
+  // signal input to the voters for the outputs of the module that are used into the core
+  logic [2:0][31:0]     pc_ex_voter_in;
+  logic [2:0][31:0]     alu_operand_a_ex_voter_in;
+  logic [2:0][31:0]     alu_operand_c_ex_voter_in;
+  logic [2:0][APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voter_in;
+  logic [2:0][1:0]      data_type_ex_voter_in;
+  logic [2:0][1:0]      data_sign_ext_ex_voter_in;
+  logic [2:0][1:0]      data_load_event_ex_voter_in;
+  logic [2:0][1:0]      data_reg_offset_ex_voter_in;
+  logic [2:0]           data_misaligned_ex_voter_in;
+  logic [2:0]           useincr_addr_ex_voter_in;
+  logic [2:0][5:0]      atop_ex_voter_in;
+
+  // signals output of the voters for the outputs of the module that are still used in Id_stage module
+  //logic [31:0]          alu_operand_b_ex_voted; // is actually an output
+  //logic [5:0]           regfile_waddr_ex_voted;
+  //logic                 regfile_we_ex_voted;
+  //logic                 csr_access_ex_voted;  // is actually an output
+  logic [1:0]           csr_op_ex_voted;
+  //logic                 data_req_ex_voted;    // is actually an output
+  //logic                 data_we_ex_voted;     // is actually an output
+  logic [6:0]           alu_operator_ex_voted;
+  //logic                 apu_en_ex_voted;
+  //logic [1:0]           apu_lat_ex_voted;
+  //logic                 branch_in_ex_voted; // is actually an output
+
+  /* // this signals are actually outputs 
+  // signal output of the voters for the outputs of the module that are used into the core
+  logic [31:0]          pc_ex_voted;
+  logic [31:0]          alu_operand_a_ex_voted;
+  logic [31:0]          alu_operand_c_ex_voted;
+  logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted;
+  logic [1:0]           data_type_ex_voted;
+  logic [1:0]           data_sign_ext_ex_voted;
+  logic [1:0]           data_load_event_ex_voted;
+  logic [1:0]           data_reg_offset_ex_voted;
+  logic                 data_misaligned_ex_voted;
+  logic                 useincr_addr_ex_voted;
+  logic [5:0]           atop_ex_voted;
+  */
+
+  // signals input to the voters for the outputs of id_stage pipeline that are used in ex_stage 
+  logic [2:0]                 alu_en_ex_voter_in;
+  logic [2:0][2:0]            mult_operator_ex_voter_in;   
+  logic [2:0][31:0]           mult_operand_a_ex_voter_in; 
+  logic [2:0][31:0]           mult_operand_b_ex_voter_in;
+  logic [2:0][31:0]           mult_operand_c_ex_voter_in;
+  logic [2:0]                 mult_en_ex_voter_in;
+  logic [2:0]                 mult_sel_subword_ex_voter_in;   
+  logic [2:0][ 1:0]           mult_signed_mode_voter_in; 
+  logic [2:0][ 4:0]           mult_imm_ex_voter_in;
+  logic [2:0][31:0]           mult_dot_op_a_ex_voter_in;
+  logic [2:0][31:0]           mult_dot_op_b_ex_voter_in;
+  logic [2:0][31:0]           mult_dot_op_c_ex_voter_in;
+  logic [2:0][ 1:0]           mult_dot_signed_ex_voter_in;
+  logic [2:0]                 mult_is_clpx_ex_voter_in;
+  logic [2:0][ 1:0]           mult_clpx_shift_ex_voter_in;
+  logic [2:0]                 mult_clpx_img_ex_voter_in;
+  logic [2:0][APU_WOP_CPU-1:0]              apu_op_ex_voter_in;
+  logic [2:0][APU_NARGS_CPU][32:0]          apu_operands_ex_voter_in;
+  logic [2:0][ 5:0]           apu_waddr_ex_voter_in;
+  logic [2:0][ 5:0]           regfile_alu_waddr_ex_voter_in;
+  logic [2:0]                 regfile_alu_we_ex_voter_in;
 
   assign instr = instr_rdata_i;
 
@@ -1698,8 +1794,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   .branch_in_ex_o           ( branch_in_ex_o )
 
   // Fault tolerant, select 3 of the 4 ALU in the EX stage
-  .sel_mux_ex_i             (sel_mux_ex_s),
-  .sel_mux_ex_o             (sel_mux_ex_o),
   .clock_enable_alu_i        (clk_enable_ft),
   .clock_enable_alu_o        (clock_enable_alu_o)
 
@@ -1712,62 +1806,199 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // WE USE THE SEL_MUX_EX_O (NEEDED FOR EX_STAGE MUXs TO FEED ID_STAGE MUXs TOO)
 
   // WE NEED A VOTER OF SEL_MUX_EX BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
-  always_ff @(posedge clk, negedge rst_n) begin : proc_
+  always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
     if(~rst_n) begin
-      sel_mux_ex_ff <= 3'b0;
+      sel_mux_ex_o <= 3'b0;
     end else begin
-      sel_mux_ex_ff <= sel_mux_ex_s;
+      sel_mux_ex_o <= sel_mux_ex_s;
     end
   end
 
   // MUXs
-  assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_ff[0] ? alu_operand_b_ex_o[0] : alu_operand_b_ex_o[3];
-  assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_ff[1] ? alu_operand_b_ex_o[1] : alu_operand_b_ex_o[3];
-  assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_ff[2] ? alu_operand_b_ex_o[2] : alu_operand_b_ex_o[3];
 
-  assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_ff[0] ? regfile_waddr_ex_o[0] : regfile_waddr_ex_o[3];
-  assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_ff[1] ? regfile_waddr_ex_o[1] : regfile_waddr_ex_o[3];
-  assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_ff[2] ? regfile_waddr_ex_o[2] : regfile_waddr_ex_o[3];
+  // output signals used inside ID_stage itself
+  assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_b_ex_o[0] : alu_operand_b_ex_o[3];
+  assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_b_ex_o[1] : alu_operand_b_ex_o[3];
+  assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_b_ex_o[2] : alu_operand_b_ex_o[3];
 
-  assign regfile_we_ex_voter_in[0] = sel_mux_ex_ff[0] ? regfile_we_ex_o[0] : regfile_we_ex_o[3];
-  assign regfile_we_ex_voter_in[1] = sel_mux_ex_ff[1] ? regfile_we_ex_o[1] : regfile_we_ex_o[3];
-  assign regfile_we_ex_voter_in[2] = sel_mux_ex_ff[2] ? regfile_we_ex_o[2] : regfile_we_ex_o[3];
+  assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_waddr_ex_o[0] : regfile_waddr_ex_o[3];
+  assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_waddr_ex_o[1] : regfile_waddr_ex_o[3];
+  assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_waddr_ex_o[2] : regfile_waddr_ex_o[3];
 
-  assign csr_access_ex_voter_in[0] = sel_mux_ex_ff[0] ? csr_access_ex_o[0] : csr_access_ex_o[3];
-  assign csr_access_ex_voter_in[1] = sel_mux_ex_ff[1] ? csr_access_ex_o[1] : csr_access_ex_o[3];
-  assign csr_access_ex_voter_in[2] = sel_mux_ex_ff[2] ? csr_access_ex_o[2] : csr_access_ex_o[3];
+  assign regfile_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_we_ex_o[0] : regfile_we_ex_o[3];
+  assign regfile_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_we_ex_o[1] : regfile_we_ex_o[3];
+  assign regfile_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_we_ex_o[2] : regfile_we_ex_o[3];
 
-  assign csr_op_ex_voter_in[0] = sel_mux_ex_ff[0] ? csr_op_ex_o[0] : csr_op_ex_o[3];
-  assign csr_op_ex_voter_in[1] = sel_mux_ex_ff[1] ? csr_op_ex_o[1] : csr_op_ex_o[3];
-  assign csr_op_ex_voter_in[2] = sel_mux_ex_ff[2] ? csr_op_ex_o[2] : csr_op_ex_o[3];
+  assign csr_access_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_access_ex_o[0] : csr_access_ex_o[3];
+  assign csr_access_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_access_ex_o[1] : csr_access_ex_o[3];
+  assign csr_access_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_access_ex_o[2] : csr_access_ex_o[3];
 
-  assign data_req_ex_voter_in[0] = sel_mux_ex_ff[0] ? data_req_ex_o[0] : data_req_ex_o[3];
-  assign data_req_ex_voter_in[1] = sel_mux_ex_ff[1] ? data_req_ex_o[1] : data_req_ex_o[3];
-  assign data_req_ex_voter_in[2] = sel_mux_ex_ff[2] ? data_req_ex_o[2] : data_req_ex_o[3];
+  assign csr_op_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_op_ex_o[0] : csr_op_ex_o[3];
+  assign csr_op_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_op_ex_o[1] : csr_op_ex_o[3];
+  assign csr_op_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_op_ex_o[2] : csr_op_ex_o[3];
 
-  assign data_we_ex_voter_in[0] = sel_mux_ex_ff[0] ? data_we_ex_o[0] : data_we_ex_o[3];
-  assign data_we_ex_voter_in[1] = sel_mux_ex_ff[1] ? data_we_ex_o[1] : data_we_ex_o[3];
-  assign data_we_ex_voter_in[2] = sel_mux_ex_ff[2] ? data_we_ex_o[2] : data_we_ex_o[3];
+  assign data_req_ex_voter_in[0] = sel_mux_ex_o[0] ? data_req_ex_o[0] : data_req_ex_o[3];
+  assign data_req_ex_voter_in[1] = sel_mux_ex_o[1] ? data_req_ex_o[1] : data_req_ex_o[3];
+  assign data_req_ex_voter_in[2] = sel_mux_ex_o[2] ? data_req_ex_o[2] : data_req_ex_o[3];
 
-  assign alu_operator_ex_voter_in[0] = sel_mux_ex_ff[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
-  assign alu_operator_ex_voter_in[1] = sel_mux_ex_ff[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
-  assign alu_operator_ex_voter_in[2] = sel_mux_ex_ff[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
+  assign data_we_ex_voter_in[0] = sel_mux_ex_o[0] ? data_we_ex_o[0] : data_we_ex_o[3];
+  assign data_we_ex_voter_in[1] = sel_mux_ex_o[1] ? data_we_ex_o[1] : data_we_ex_o[3];
+  assign data_we_ex_voter_in[2] = sel_mux_ex_o[2] ? data_we_ex_o[2] : data_we_ex_o[3];
 
-  assign apu_en_ex_voter_in[0] = sel_mux_ex_ff[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
-  assign apu_en_ex_voter_in[1] = sel_mux_ex_ff[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
-  assign apu_en_ex_voter_in[2] = sel_mux_ex_ff[2] ? apu_en_ex_o[2] : apu_en_ex_o[3];
+  assign alu_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
+  assign alu_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
+  assign alu_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
 
-  assign apu_lat_ex_voter_in[0] = sel_mux_ex_ff[0] ? apu_lat_ex_o[0] : apu_lat_ex_o[3];
-  assign apu_lat_ex_voter_in[1] = sel_mux_ex_ff[1] ? apu_lat_ex_o[1] : apu_lat_ex_o[3];
-  assign apu_lat_ex_voter_in[2] = sel_mux_ex_ff[2] ? apu_lat_ex_o[2] : apu_lat_ex_o[3];
+  assign apu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
+  assign apu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
+  assign apu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_en_ex_o[2] : apu_en_ex_o[3];
 
-  assign branch_in_ex_voter_in[0] = sel_mux_ex_ff[0] ? branch_in_ex_o[0] : branch_in_ex_o[3];
-  assign branch_in_ex_voter_in[1] = sel_mux_ex_ff[1] ? branch_in_ex_o[1] : branch_in_ex_o[3];
-  assign branch_in_ex_voter_in[2] = sel_mux_ex_ff[2] ? branch_in_ex_o[2] : branch_in_ex_o[3];
+  assign apu_lat_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_lat_ex_o[0] : apu_lat_ex_o[3];
+  assign apu_lat_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_lat_ex_o[1] : apu_lat_ex_o[3];
+  assign apu_lat_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_lat_ex_o[2] : apu_lat_ex_o[3];
+
+  assign branch_in_ex_voter_in[0] = sel_mux_ex_o[0] ? branch_in_ex_o[0] : branch_in_ex_o[3];
+  assign branch_in_ex_voter_in[1] = sel_mux_ex_o[1] ? branch_in_ex_o[1] : branch_in_ex_o[3];
+  assign branch_in_ex_voter_in[2] = sel_mux_ex_o[2] ? branch_in_ex_o[2] : branch_in_ex_o[3];
+
+
+  // output signals used inside core
+
+  assign pc_ex_voter_in[0] = sel_mux_ex_o[0] ? pc_ex_o[0] : pc_ex_o[3];
+  assign pc_ex_voter_in[1] = sel_mux_ex_o[1] ? pc_ex_o[1] : pc_ex_o[3];
+  assign pc_ex_voter_in[2] = sel_mux_ex_o[2] ? pc_ex_o[2] : pc_ex_o[3];
+
+  assign alu_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_a_ex_o[0] : alu_operand_a_ex_o[3];
+  assign alu_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_a_ex_o[1] : alu_operand_a_ex_o[3];
+  assign alu_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_a_ex_o[2] : alu_operand_a_ex_o[3];
+
+  assign alu_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_c_ex_o[0] : alu_operand_c_ex_o[3];
+  assign alu_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_c_ex_o[1] : alu_operand_c_ex_o[3];
+  assign alu_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_c_ex_o[2] : alu_operand_c_ex_o[3];
+
+  assign apu_flags_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_flags_ex_o[0] : apu_flags_ex_o[3];
+  assign apu_flags_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_flags_ex_o[1] : apu_flags_ex_o[3];
+  assign apu_flags_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_flags_ex_o[2] : apu_flags_ex_o[3];
+
+  assign data_type_ex_voter_in[0] = sel_mux_ex_o[0] ? data_type_ex_o[0] : data_type_ex_o[3];
+  assign data_type_ex_voter_in[1] = sel_mux_ex_o[1] ? data_type_ex_o[1] : data_type_ex_o[3];
+  assign data_type_ex_voter_in[2] = sel_mux_ex_o[2] ? data_type_ex_o[2] : data_type_ex_o[3];
+
+  assign data_sign_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? data_sign_ext_ex_o[0] : data_sign_ext_ex_o[3];
+  assign data_sign_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? data_sign_ext_ex_o[1] : data_sign_ext_ex_o[3];
+  assign data_sign_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? data_sign_ext_ex_o[2] : data_sign_ext_ex_o[3];
+
+  assign data_load_event_ex_voter_in[0] = sel_mux_ex_o[0] ? data_load_event_ex_o[0] : data_load_event_ex_o[3];
+  assign data_load_event_ex_voter_in[1] = sel_mux_ex_o[1] ? data_load_event_ex_o[1] : data_load_event_ex_o[3];
+  assign data_load_event_ex_voter_in[2] = sel_mux_ex_o[2] ? data_load_event_ex_o[2] : data_load_event_ex_o[3];
+
+  assign data_reg_offset_ex_voter_in[0] = sel_mux_ex_o[0] ? data_reg_offset_ex_o[0] : data_reg_offset_ex_o[3];
+  assign data_reg_offset_ex_voter_in[1] = sel_mux_ex_o[1] ? data_reg_offset_ex_o[1] : data_reg_offset_ex_o[3];
+  assign data_reg_offset_ex_voter_in[2] = sel_mux_ex_o[2] ? data_reg_offset_ex_o[2] : data_reg_offset_ex_o[3];
+
+  assign data_misaligned_ex_voter_in[0] = sel_mux_ex_o[0] ? data_misaligned_ex_o[0] : data_misaligned_ex_o[3];
+  assign data_misaligned_ex_voter_in[1] = sel_mux_ex_o[1] ? data_misaligned_ex_o[1] : data_misaligned_ex_o[3];
+  assign data_misaligned_ex_voter_in[2] = sel_mux_ex_o[2] ? data_misaligned_ex_o[2] : data_misaligned_ex_o[3];
+
+  assign useincr_addr_ex_voter_in[0] = sel_mux_ex_o[0] ? useincr_addr_ex_o[0] : useincr_addr_ex_o[3];
+  assign useincr_addr_ex_voter_in[1] = sel_mux_ex_o[1] ? useincr_addr_ex_o[1] : useincr_addr_ex_o[3];
+  assign useincr_addr_ex_voter_in[2] = sel_mux_ex_o[2] ? useincr_addr_ex_o[2] : useincr_addr_ex_o[3];
+
+  assign atop_ex_voter_in[0] = sel_mux_ex_o[0] ? atop_ex_o[0] : atop_ex_o[3];
+  assign atop_ex_voter_in[1] = sel_mux_ex_o[1] ? atop_ex_o[1] : atop_ex_o[3];
+  assign atop_ex_voter_in[2] = sel_mux_ex_o[2] ? atop_ex_o[2] : atop_ex_o[3];
+
+  // output signals used inside ex_stage but not in the ALU
+
+  assign alu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_en_ex_o[0] : alu_en_ex_o[3];
+  assign alu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_en_ex_o[1] : alu_en_ex_o[3];
+  assign alu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_en_ex_o[2] : alu_en_ex_o[3];
+
+  assign mult_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operator_ex_o[0] : mult_operator_ex_o[3];
+  assign mult_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operator_ex_o[1] : mult_operator_ex_o[3];
+  assign mult_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operator_ex_o[2] : mult_operator_ex_o[3];
+
+  assign mult_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_a_ex_o[0] : mult_operand_a_ex_o[3];
+  assign mult_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_a_ex_o[1] : mult_operand_a_ex_o[3];
+  assign mult_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_a_ex_o[2] : mult_operand_a_ex_o[3];
+
+  assign mult_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_b_ex_o[0] : mult_operand_b_ex_o[3];
+  assign mult_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_b_ex_o[1] : mult_operand_b_ex_o[3];
+  assign mult_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_b_ex_o[2] : mult_operand_b_ex_o[3];
+
+  assign mult_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_c_ex_o[0] : mult_operand_c_ex_o[3];
+  assign mult_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_c_ex_o[1] : mult_operand_c_ex_o[3];
+  assign mult_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_c_ex_o[2] : mult_operand_c_ex_o[3];
+
+  assign mult_en_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_en_ex_o[0] : mult_en_ex_o[3];
+  assign mult_en_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_en_ex_o[1] : mult_en_ex_o[3];
+  assign mult_en_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_en_ex_o[2] : mult_en_ex_o[3];
+
+  assign mult_sel_subword_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_sel_subword_ex_o[0] : mult_sel_subword_ex_o[3];
+  assign mult_sel_subword_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_sel_subword_ex_o[1] : mult_sel_subword_ex_o[3];
+  assign mult_sel_subword_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_sel_subword_ex_o[2] : mult_sel_subword_ex_o[3];
+
+  assign mult_signed_mode_voter_in[0] = sel_mux_ex_o[0] ? mult_signed_mode_ex_o[0] : mult_signed_mode_ex_o[3];
+  assign mult_signed_mode_voter_in[1] = sel_mux_ex_o[1] ? mult_signed_mode_ex_o[1] : mult_signed_mode_ex_o[3];
+  assign mult_signed_mode_voter_in[2] = sel_mux_ex_o[2] ? mult_signed_mode_ex_o[2] : mult_signed_mode_ex_o[3];
+
+  assign mult_imm_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_imm_ex_o[0] : mult_imm_ex_o[3];
+  assign mult_imm_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_imm_ex_o[1] : mult_imm_ex_o[3];
+  assign mult_imm_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_imm_ex_o[2] : mult_imm_ex_o[3];
+
+  assign mult_dot_op_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_a_ex_o[0] : mult_dot_op_a_ex_o[3];
+  assign mult_dot_op_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_a_ex_o[1] : mult_dot_op_a_ex_o[3];
+  assign mult_dot_op_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_a_ex_o[2] : mult_dot_op_a_ex_o[3];
+
+  assign mult_dot_op_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_b_ex_o[0] : mult_dot_op_b_ex_o[3];
+  assign mult_dot_op_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_b_ex_o[1] : mult_dot_op_b_ex_o[3];
+  assign mult_dot_op_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_b_ex_o[2] : mult_dot_op_b_ex_o[3];
+
+  assign mult_dot_op_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_c_ex_o[0] : mult_dot_op_c_ex_o[3];
+  assign mult_dot_op_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_c_ex_o[1] : mult_dot_op_c_ex_o[3];
+  assign mult_dot_op_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_c_ex_o[2] : mult_dot_op_c_ex_o[3];
+
+  assign mult_dot_signed_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_signed_ex_o[0] : mult_dot_signed_ex_o[3];
+  assign mult_dot_signed_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_signed_ex_o[1] : mult_dot_signed_ex_o[3];
+  assign mult_dot_signed_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_signed_ex_o[2] : mult_dot_signed_ex_o[3];
+
+  assign mult_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_is_clpx_ex_o[0] : mult_is_clpx_ex_o[3];
+  assign mult_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_is_clpx_ex_o[1] : mult_is_clpx_ex_o[3];
+  assign mult_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_is_clpx_ex_o[2] : mult_is_clpx_ex_o[3];
+
+  assign mult_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_shift_ex_o[0] : mult_clpx_shift_ex_o[3];
+  assign mult_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_shift_ex_o[1] : mult_clpx_shift_ex_o[3];
+  assign mult_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_shift_ex_o[2] : mult_clpx_shift_ex_o[3];
+
+  assign mult_clpx_img_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_img_ex_o[0] : mult_clpx_img_ex_o[3];
+  assign mult_clpx_img_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_img_ex_o[1] : mult_clpx_img_ex_o[3];
+  assign mult_clpx_img_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_img_ex_o[2] : mult_clpx_img_ex_o[3];
+
+  assign apu_op_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_op_ex_o[0] : apu_op_ex_o[3];
+  assign apu_op_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_op_ex_o[1] : apu_op_ex_o[3];
+  assign apu_op_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_op_ex_o[2] : apu_op_ex_o[3];
+
+  assign apu_operands_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_operands_ex_o[0] : apu_operands_ex_o[3];
+  assign apu_operands_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_operands_ex_o[1] : apu_operands_ex_o[3];
+  assign apu_operands_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_operands_ex_o[2] : apu_operands_ex_o[3];
+
+  assign apu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_waddr_ex_o[0] : apu_waddr_ex_o[3];
+  assign apu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_waddr_ex_o[1] : apu_waddr_ex_o[3];
+  assign apu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_waddr_ex_o[2] : apu_waddr_ex_o[3];
+
+  assign regfile_alu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_waddr_ex_o[0] : regfile_alu_waddr_ex_o[3];
+  assign regfile_alu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_waddr_ex_o[1] : regfile_alu_waddr_ex_o[3];
+  assign regfile_alu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_waddr_ex_o[2] : regfile_alu_waddr_ex_o[3];
+
+  assign regfile_alu_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_we_ex_o[0] : regfile_alu_we_ex_o[3];
+  assign regfile_alu_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_we_ex_o[1] : regfile_alu_we_ex_o[3];
+  assign regfile_alu_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_we_ex_o[2] : regfile_alu_we_ex_o[3];
+
+
 
 
   // VOTERS
-  cv32e40p_3voter #(32) voter_alu_operand_b_ex
+  cv32e40p_3voter #(32,1) voter_alu_operand_b_ex
   (
     .in_1_i           ( alu_operand_b_ex_voter_in[0] ),
     .in_2_i           ( alu_operand_b_ex_voter_in[1] ),
@@ -1780,7 +2011,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(6) voter_regfile_waddr_ex
+  cv32e40p_3voter #(6,1) voter_regfile_waddr_ex
   (
     .in_1_i           ( regfile_waddr_ex_voter_in[0] ),
     .in_2_i           ( regfile_waddr_ex_voter_in[1] ),
@@ -1793,7 +2024,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_regfile_we_ex
+  cv32e40p_3voter #(1,1) voter_regfile_we_ex
   (
     .in_1_i           ( regfile_we_ex_voter_in[0] ),
     .in_2_i           ( regfile_we_ex_voter_in[1] ),
@@ -1806,7 +2037,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_csr_access_ex
+  cv32e40p_3voter #(1,1) voter_csr_access_ex
   (
     .in_1_i           ( csr_access_ex_voter_in[0] ),
     .in_2_i           ( csr_access_ex_voter_in[1] ),
@@ -1819,7 +2050,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(2) voter_csr_op_ex
+  cv32e40p_3voter #(2,1) voter_csr_op_ex
   (
     .in_1_i           ( csr_op_ex_voter_in[0] ),
     .in_2_i           ( csr_op_ex_voter_in[1] ),
@@ -1832,7 +2063,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_data_req_ex
+  cv32e40p_3voter #(1,1) voter_data_req_ex
   (
     .in_1_i           ( data_req_ex_voter_in[0] ),
     .in_2_i           ( data_req_ex_voter_in[1] ),
@@ -1845,7 +2076,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_data_we_ex
+  cv32e40p_3voter #(1,1) voter_data_we_ex
   (
     .in_1_i           ( data_we_ex_voter_in[0] ),
     .in_2_i           ( data_we_ex_voter_in[1] ),
@@ -1858,7 +2089,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(7) voter_alu_operator_ex
+  cv32e40p_3voter #(7,1) voter_alu_operator_ex
   (
     .in_1_i           ( alu_operator_ex_voter_in[0] ),
     .in_2_i           ( alu_operator_ex_voter_in[1] ),
@@ -1871,7 +2102,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_apu_en_ex
+  cv32e40p_3voter #(1,1) voter_apu_en_ex
   (
     .in_1_i           ( apu_en_ex_voter_in[0] ),
     .in_2_i           ( apu_en_ex_voter_in[1] ),
@@ -1884,7 +2115,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(2) voter_apu_lat_ex
+  cv32e40p_3voter #(2,1) voter_apu_lat_ex
   (
     .in_1_i           ( apu_lat_ex_voter_in[0] ),
     .in_2_i           ( apu_lat_ex_voter_in[1] ),
@@ -1897,7 +2128,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(1) voter_branch_in_ex
+  cv32e40p_3voter #(1,1) voter_branch_in_ex
   (
     .in_1_i           ( branch_in_ex_voter_in[0] ),
     .in_2_i           ( branch_in_ex_voter_in[1] ),
@@ -1910,7 +2141,429 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_detected_o   (  )
   );
 
+  cv32e40p_3voter #(32,1) voter_pc_ex
+  (
+    .in_1_i           ( pc_ex_voter_in[0] ),
+    .in_2_i           ( pc_ex_voter_in[1] ),
+    .in_3_i           ( pc_ex_voter_in[2] ),
+    .voted_o          ( pc_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
 
+  cv32e40p_3voter #(32,1) voter_alu_operand_a_ex
+  (
+    .in_1_i           ( alu_operand_a_ex_voter_in[0] ),
+    .in_2_i           ( alu_operand_a_ex_voter_in[1] ),
+    .in_3_i           ( alu_operand_a_ex_voter_in[2] ),
+    .voted_o          ( alu_operand_a_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_alu_operand_c_ex
+  (
+    .in_1_i           ( alu_operand_c_ex_voter_in[0] ),
+    .in_2_i           ( alu_operand_c_ex_voter_in[1] ),
+    .in_3_i           ( alu_operand_c_ex_voter_in[2] ),
+    .voted_o          ( alu_operand_c_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(APU_NDSFLAGS_CPU,1) voter_apu_flags_ex
+  (
+    .in_1_i           ( apu_flags_ex_voter_in[0] ),
+    .in_2_i           ( apu_flags_ex_voter_in[1] ),
+    .in_3_i           ( apu_flags_ex_voter_in[2] ),
+    .voted_o          ( apu_flags_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_data_type_ex
+  (
+    .in_1_i           ( data_type_ex_voter_in[0] ),
+    .in_2_i           ( data_type_ex_voter_in[1] ),
+    .in_3_i           ( data_type_ex_voter_in[2] ),
+    .voted_o          ( data_type_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_data_sign_ext_ex
+  (
+    .in_1_i           ( data_sign_ext_ex_voter_in[0] ),
+    .in_2_i           ( data_sign_ext_ex_voter_in[1] ),
+    .in_3_i           ( data_sign_ext_ex_voter_in[2] ),
+    .voted_o          ( data_sign_ext_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_data_load_event_ex
+  (
+    .in_1_i           ( data_load_event_ex_voter_in[0] ),
+    .in_2_i           ( data_load_event_ex_voter_in[1] ),
+    .in_3_i           ( data_load_event_ex_voter_in[2] ),
+    .voted_o          ( data_load_event_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_data_reg_offset_ex
+  (
+    .in_1_i           ( data_reg_offset_ex_voter_in[0] ),
+    .in_2_i           ( data_reg_offset_ex_voter_in[1] ),
+    .in_3_i           ( data_reg_offset_ex_voter_in[2] ),
+    .voted_o          ( data_reg_offset_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) voter_data_misaligned_ex
+  (
+    .in_1_i           ( data_misaligned_ex_voter_in[0] ),
+    .in_2_i           ( data_misaligned_ex_voter_in[1] ),
+    .in_3_i           ( data_misaligned_ex_voter_in[2] ),
+    .voted_o          ( data_misaligned_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) voter_useincr_addr_ex
+  (
+    .in_1_i           ( useincr_addr_ex_voter_in[0] ),
+    .in_2_i           ( useincr_addr_ex_voter_in[1] ),
+    .in_3_i           ( useincr_addr_ex_voter_in[2] ),
+    .voted_o          ( useincr_addr_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+  
+  cv32e40p_3voter #(6,1) voter_atop_ex
+  (
+    .in_1_i           ( atop_ex_voter_in[0] ),
+    .in_2_i           ( atop_ex_voter_in[1] ),
+    .in_3_i           ( atop_ex_voter_in[2] ),
+    .voted_o          ( atop_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) voter_alu_en_ex
+  (
+    .in_1_i           ( alu_en_ex_voter_in[0] ),
+    .in_2_i           ( alu_en_ex_voter_in[1] ),
+    .in_3_i           ( alu_en_ex_voter_in[2] ),
+    .voted_o          ( alu_en_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(3,1) voter_mult_operator_ex
+  (
+    .in_1_i           ( mult_operator_ex_voter_in[0] ),
+    .in_2_i           ( mult_operator_ex_voter_in[1] ),
+    .in_3_i           ( mult_operator_ex_voter_in[2] ),
+    .voted_o          ( mult_operator_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_operand_a_ex
+  (
+    .in_1_i           ( mult_operand_a_ex_voter_in[0] ),
+    .in_2_i           ( mult_operand_a_ex_voter_in[1] ),
+    .in_3_i           ( mult_operand_a_ex_voter_in[2] ),
+    .voted_o          ( mult_operand_a_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_operand_b_ex
+  (
+    .in_1_i           ( mult_operand_b_ex_voter_in[0] ),
+    .in_2_i           ( mult_operand_b_ex_voter_in[1] ),
+    .in_3_i           ( mult_operand_b_ex_voter_in[2] ),
+    .voted_o          ( mult_operand_b_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_operand_c_ex
+  (
+    .in_1_i           ( mult_operand_c_ex_voter_in[0] ),
+    .in_2_i           ( mult_operand_c_ex_voter_in[1] ),
+    .in_3_i           ( mult_operand_c_ex_voter_in[2] ),
+    .voted_o          ( mult_operand_c_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) voter_mult_en_ex
+  (
+    .in_1_i           ( mult_en_ex_voter_in[0] ),
+    .in_2_i           ( mult_en_ex_voter_in[1] ),
+    .in_3_i           ( mult_en_ex_voter_in[2] ),
+    .voted_o          ( mult_en_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) voter_mult_sel_subword_ex
+  (
+    .in_1_i           ( mult_sel_subword_ex_voter_in[0] ),
+    .in_2_i           ( mult_sel_subword_ex_voter_in[1] ),
+    .in_3_i           ( mult_sel_subword_ex_voter_in[2] ),
+    .voted_o          ( mult_sel_subword_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_mult_signed_mode_voter_in
+  (
+    .in_1_i           ( mult_signed_mode_voter_in[0] ),
+    .in_2_i           ( mult_signed_mode_voter_in[1] ),
+    .in_3_i           ( mult_signed_mode_voter_in[2] ),
+    .voted_o          ( mult_signed_mode_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(5,1) voter_mult_imm_ex
+  (
+    .in_1_i           ( mult_imm_ex_voter_in[0] ),
+    .in_2_i           ( mult_imm_ex_voter_in[1] ),
+    .in_3_i           ( mult_imm_ex_voter_in[2] ),
+    .voted_o          ( mult_imm_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_dot_op_a_ex
+  (
+    .in_1_i           ( mult_dot_op_a_ex_voter_in[0] ),
+    .in_2_i           ( mult_dot_op_a_ex_voter_in[1] ),
+    .in_3_i           ( mult_dot_op_a_ex_voter_in[2] ),
+    .voted_o          ( mult_dot_op_a_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_dot_op_b_ex
+  (
+    .in_1_i           ( mult_dot_op_b_ex_voter_in[0] ),
+    .in_2_i           ( mult_dot_op_b_ex_voter_in[1] ),
+    .in_3_i           ( mult_dot_op_b_ex_voter_in[2] ),
+    .voted_o          ( mult_dot_op_b_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(32,1) voter_mult_dot_op_c_ex
+  (
+    .in_1_i           ( mult_dot_op_c_ex_voter_in[0] ),
+    .in_2_i           ( mult_dot_op_c_ex_voter_in[1] ),
+    .in_3_i           ( mult_dot_op_c_ex_voter_in[2] ),
+    .voted_o          ( mult_dot_op_c_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_mult_dot_signed_ex
+  (
+    .in_1_i           ( mult_dot_signed_ex_voter_in[0] ),
+    .in_2_i           ( mult_dot_signed_ex_voter_in[1] ),
+    .in_3_i           ( mult_dot_signed_ex_voter_in[2] ),
+    .voted_o          ( mult_dot_signed_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(1,1) voter_mult_is_clpx_ex
+  (
+    .in_1_i           ( mult_is_clpx_ex_voter_in[0] ),
+    .in_2_i           ( mult_is_clpx_ex_voter_in[1] ),
+    .in_3_i           ( mult_is_clpx_ex_voter_in[2] ),
+    .voted_o          ( mult_is_clpx_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) voter_mult_clpx_shift_ex
+  (
+    .in_1_i           ( mult_clpx_shift_ex_voter_in[0] ),
+    .in_2_i           ( mult_clpx_shift_ex_voter_in[1] ),
+    .in_3_i           ( mult_clpx_shift_ex_voter_in[2] ),
+    .voted_o          ( mult_clpx_shift_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(1,1) voter_mult_clpx_img_ex
+  (
+    .in_1_i           ( mult_clpx_img_ex_voter_in[0] ),
+    .in_2_i           ( mult_clpx_img_ex_voter_in[1] ),
+    .in_3_i           ( mult_clpx_img_ex_voter_in[2] ),
+    .voted_o          ( mult_clpx_img_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(APU_WOP_CPU,1) voter_apu_op_ex
+  (
+    .in_1_i           ( apu_op_ex_voter_in[0] ),
+    .in_2_i           ( apu_op_ex_voter_in[1] ),
+    .in_3_i           ( apu_op_ex_voter_in[2] ),
+    .voted_o          ( apu_op_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(APU_NARGS_CPU,32) voter_apu_operands_ex
+  (
+    .in_1_i           ( apu_operands_ex_voter_in[0] ),
+    .in_2_i           ( apu_operands_ex_voter_in[1] ),
+    .in_3_i           ( apu_operands_ex_voter_in[2] ),
+    .voted_o          ( apu_operands_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(6,2) voter_apu_waddr_ex
+  (
+    .in_1_i           ( apu_waddr_ex_voter_in[0] ),
+    .in_2_i           ( apu_waddr_ex_voter_in[1] ),
+    .in_3_i           ( apu_waddr_ex_voter_in[2] ),
+    .voted_o          ( apu_waddr_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(6,2) voter_regfile_alu_waddr_ex_voter_in
+  (
+    .in_1_i           ( regfile_alu_waddr_ex_voter_in[0] ),
+    .in_2_i           ( regfile_alu_waddr_ex_voter_in[1] ),
+    .in_3_i           ( regfile_alu_waddr_ex_voter_in[2] ),
+    .voted_o          ( regfile_alu_waddr_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
+  cv32e40p_3voter #(1,2) voter_regfile_alu_we_ex
+  (
+    .in_1_i           ( regfile_alu_we_ex_voter_in[0] ),
+    .in_2_i           ( regfile_alu_we_ex_voter_in[1] ),
+    .in_3_i           ( regfile_alu_we_ex_voter_in[2] ),
+    .voted_o          ( regfile_alu_we_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+ // parallel pipeline for thos signals
 
 
   // stall control

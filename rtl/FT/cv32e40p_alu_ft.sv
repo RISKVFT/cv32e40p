@@ -47,7 +47,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o // trigger the performance counter relative to the specif ALU
-  input  logic [3:0][2:0]          sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 );
 
 
@@ -180,7 +180,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 
 	        // the voter of result_o. 
-	        cv32e40p_3voter #(32) voter_result
+	        cv32e40p_3voter #(32,1) voter_result
 	         (
 	          .in_1_i           ( voter_res_1_in ),
 	          .in_2_i           ( voter_res_2_in ),
@@ -194,7 +194,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        );
 
 	        // voter of comparison_result_o
-	        cv32e40p_3voter #(1) voter_comp_res
+	        cv32e40p_3voter #(1,1) voter_comp_res
 	        (
 	         .in_1_i           ( voter_comp_1_in ),
 	         .in_2_i           ( voter_comp_2_in ),
@@ -208,7 +208,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        );
 
 	        //voter of ready_o
-	        cv32e40p_3voter #(1) voter_comp_ready
+	        cv32e40p_3voter #(1,1) voter_comp_ready
 	        (
 		     .in_1_i           ( voter_ready_1_in ),
 		     .in_2_i           ( voter_ready_2_in ),
