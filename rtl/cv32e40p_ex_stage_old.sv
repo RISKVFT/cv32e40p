@@ -10,7 +10,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Engineer:       Renzo Andri - andrire@student.ethz.ch                      //
-//                 Luca Fiore - luca.fiore@studenti.polito.it                 //
 //                                                                            //
 // Additional contributions by:                                               //
 //                 Igor Loi - igor.loi@unibo.it                               //
@@ -19,15 +18,14 @@
 //                 Michael Gautschi - gautschi@iis.ee.ethz.ch                 //
 //                 Davide Schiavone - pschiavo@iis.ee.ethz.ch                 //
 //                                                                            //
-// Design Name:    Execute stage FT                                           //
-// Project Name:   cv32e40p Fault tolernat                                    //
+// Design Name:    Execute stage                                              //
+// Project Name:   RI5CY                                                      //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    Execution stage: Hosts ALU and MAC unit                    //
 //                 ALU: computes additions/subtractions/comparisons           //
 //                 MULT: computes normal multiplications                      //
 //                 APU_DISP: offloads instructions to the shared unit.        //
-//                 Fault tolerant version.                                    //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -44,50 +42,50 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic        rst_n,
 
   // ALU signals from ID stage
-  input  logic [3:0][ALU_OP_WIDTH-1:0] alu_operator_i,
-  input  logic [3:0][31:0] alu_operand_a_i,
-  input  logic [3:0][31:0] alu_operand_b_i,
-  input  logic [3:0][31:0] alu_operand_c_i,
-  input  logic [3:0]       alu_en_i,
-  input  logic [3:0][ 4:0] bmask_a_i,
-  input  logic [3:0][ 4:0] bmask_b_i,
-  input  logic [3:0][ 1:0] imm_vec_ext_i,
-  input  logic [3:0][ 1:0] alu_vec_mode_i,
-  input  logic [3:0]       alu_is_clpx_i,
-  input  logic [3:0]       alu_is_subrot_i,
-  input  logic [3:0][ 1:0] alu_clpx_shift_i,
+  input  logic [ALU_OP_WIDTH-1:0] alu_operator_i,
+  input  logic [31:0] alu_operand_a_i,
+  input  logic [31:0] alu_operand_b_i,
+  input  logic [31:0] alu_operand_c_i,
+  input  logic        alu_en_i,
+  input  logic [ 4:0] bmask_a_i,
+  input  logic [ 4:0] bmask_b_i,
+  input  logic [ 1:0] imm_vec_ext_i,
+  input  logic [ 1:0] alu_vec_mode_i,
+  input  logic        alu_is_clpx_i,
+  input  logic        alu_is_subrot_i,
+  input  logic [ 1:0] alu_clpx_shift_i,
 
   // Multiplier signals
-  input  logic [3:0][ 2:0] mult_operator_i,
-  input  logic [3:0][31:0] mult_operand_a_i,
-  input  logic [3:0][31:0] mult_operand_b_i,
-  input  logic [3:0][31:0] mult_operand_c_i,
-  input  logic [3:0]       mult_en_i,
-  input  logic [3:0]       mult_sel_subword_i,
-  input  logic [3:0][ 1:0] mult_signed_mode_i,
-  input  logic [3:0][ 4:0] mult_imm_i,
+  input  logic [ 2:0] mult_operator_i,
+  input  logic [31:0] mult_operand_a_i,
+  input  logic [31:0] mult_operand_b_i,
+  input  logic [31:0] mult_operand_c_i,
+  input  logic        mult_en_i,
+  input  logic        mult_sel_subword_i,
+  input  logic [ 1:0] mult_signed_mode_i,
+  input  logic [ 4:0] mult_imm_i,
 
-  input  logic [3:0][31:0] mult_dot_op_a_i,
-  input  logic [3:0][31:0] mult_dot_op_b_i,
-  input  logic [3:0][31:0] mult_dot_op_c_i,
-  input  logic [3:0][ 1:0] mult_dot_signed_i,
-  input  logic [3:0]       mult_is_clpx_i,
-  input  logic [3:0][ 1:0] mult_clpx_shift_i,
-  input  logic [3:0]       mult_clpx_img_i,
+  input  logic [31:0] mult_dot_op_a_i,
+  input  logic [31:0] mult_dot_op_b_i,
+  input  logic [31:0] mult_dot_op_c_i,
+  input  logic [ 1:0] mult_dot_signed_i,
+  input  logic        mult_is_clpx_i,
+  input  logic [ 1:0] mult_clpx_shift_i,
+  input  logic        mult_clpx_img_i,
 
-  output logic             mult_multicycle_o,
+  output logic        mult_multicycle_o,
 
   // FPU signals
   input  logic [C_PC-1:0]             fpu_prec_i,
   output logic                        fpu_fflags_we_o,
 
   // APU signals
-  input  logic [3:0]                       apu_en_i,
-  input  logic [3:0][APU_WOP_CPU-1:0]      apu_op_i,
-  input  logic [3:0][1:0]                  apu_lat_i,
-  input  logic [3:0][APU_NARGS_CPU-1:0][31:0] apu_operands_i,
-  input  logic [3:0][5:0]                  apu_waddr_i,
-  input  logic [3:0][APU_NDSFLAGS_CPU-1:0] apu_flags_i,
+  input  logic                        apu_en_i,
+  input  logic [APU_WOP_CPU-1:0]      apu_op_i,
+  input  logic [1:0]                  apu_lat_i,
+  input  logic [APU_NARGS_CPU-1:0][31:0] apu_operands_i,
+  input  logic [5:0]                  apu_waddr_i,
+  input  logic [APU_NDSFLAGS_CPU-1:0] apu_flags_i,
 
   input  logic [2:0][5:0]             apu_read_regs_i,
   input  logic [2:0]                  apu_read_regs_valid_i,
@@ -119,16 +117,16 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [31:0] lsu_rdata_i,
 
   // input from ID stage
-  input  logic [3:0]       branch_in_ex_i,
-  input  logic [3:0][5:0]  regfile_alu_waddr_i,
-  input  logic [3:0]       regfile_alu_we_i,
+  input  logic        branch_in_ex_i,
+  input  logic [5:0]  regfile_alu_waddr_i,
+  input  logic        regfile_alu_we_i,
 
   // directly passed through to WB stage, not used in EX
-  input  logic [3:0]       regfile_we_i,
-  input  logic [3:0][5:0]  regfile_waddr_i,
+  input  logic        regfile_we_i,
+  input  logic [5:0]  regfile_waddr_i,
 
   // CSR access
-  input  logic [3:0]       csr_access_i,
+  input  logic        csr_access_i,
   input  logic [31:0] csr_rdata_i,
 
   // Output of EX stage pipeline
@@ -152,44 +150,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   output logic        ex_ready_o, // EX stage ready for new data
   output logic        ex_valid_o, // EX stage gets new data
-  input  logic        wb_ready_i,  // WB stage ready for new data
-
-  // ft
-  input  logic [2:0]       sel_mux_ex_i, // selector of the three mux to choose three of the four alu
-  output logic             err_corrected_o,
-  output logic             err_detected_o,
-  output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
-  output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
-  input  logic [3:0]       clock_enable_alu_i,
-
-  // addictional inputs coming from the id_stage pipeline after a voting mechanism
-  input logic                 alu_en_ex_voted_i,
-  input logic [2:0]           mult_operator_ex_voted_i,   
-  input logic [31:0]          mult_operand_a_ex_voted_i, 
-  input logic [31:0]          mult_operand_b_ex_voted_i,
-  input logic [31:0]          mult_operand_c_ex_voted_i,
-  input logic                 mult_en_ex_voted_i,
-  input logic                 mult_sel_subword_ex_voted_i,   
-  input logic [ 1:0]          mult_signed_mode_voted_i, 
-  input logic [ 4:0]          mult_imm_ex_voted_i,
-  input logic [31:0]          mult_dot_op_a_ex_voted_i,
-  input logic [31:0]          mult_dot_op_b_ex_voted_i,
-  input logic [31:0]          mult_dot_op_c_ex_voted_i,
-  input logic [ 1:0]          mult_dot_signed_ex_voted_i,
-  input logic                 mult_is_clpx_ex_voted_i,
-  input logic [ 1:0]          mult_clpx_shift_ex_voted_i,
-  input logic                 mult_clpx_img_ex_voted_i,
-  input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
-  input logic [APU_NARGS_CPU:0][32:0]          apu_operands_ex_voted_i,
-  input logic [ 5:0]          apu_waddr_ex_voted_i,
-  input logic [ 5:0]          regfile_alu_waddr_ex_voted_i,
-  input logic                 regfile_alu_we_ex_voted_i,
-  input logic                 apu_en_ex_voted_i,
-  input logic [1:0]           apu_lat_ex_voted_i,
-  input logic                 branch_in_ex_voted_i,
-  input logic [5:0]           regfile_waddr_ex_voted_i,
-  input logic                 regfile_we_ex_voted_i,
-  input logic                 csr_access_ex_voted
+  input  logic        wb_ready_i  // WB stage ready for new data
 );
 
   logic [31:0]    alu_result;
@@ -231,17 +192,17 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       regfile_alu_waddr_fw_o = apu_waddr;
       regfile_alu_wdata_fw_o = apu_result;
 
-      if(regfile_alu_we_ex_voted_i & ~apu_en_ex_voted_i) begin
+      if(regfile_alu_we_i & ~apu_en_i) begin
         wb_contention = 1'b1;
       end
     end else begin
-      regfile_alu_we_fw_o      = regfile_alu_we_ex_voted_i & ~apu_en_ex_voted_i; // private fpu incomplete?
-      regfile_alu_waddr_fw_o   = regfile_alu_waddr_ex_voted_i;
-      if (alu_en_ex_voted_i)
+      regfile_alu_we_fw_o      = regfile_alu_we_i & ~apu_en_i; // private fpu incomplete?
+      regfile_alu_waddr_fw_o   = regfile_alu_waddr_i;
+      if (alu_en_i)
         regfile_alu_wdata_fw_o = alu_result;
-      if (mult_en_ex_voted_i)
+      if (mult_en_i)
         regfile_alu_wdata_fw_o = mult_result;
-      if (csr_access_ex_voted)
+      if (csr_access_i)
         regfile_alu_wdata_fw_o = csr_rdata_i;
     end
   end
@@ -304,17 +265,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .comparison_result_o ( alu_cmp_result  ),
 
     .ready_o             ( alu_ready       ),
-    .ex_ready_i          ( ex_ready_o      ),
-
-    .clock_en_i          (clock_enable_alu_i),
-    .err_corrected_o     (err_corrected_o),
-    .err_detected_o      (err_detected_o),
-    .permanent_faulty_alu_o                 (permanent_faulty_alu_o),
-    .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
-    .sel_mux_ex_i        (sel_mux_ex_i)
+    .ex_ready_i          ( ex_ready_o      )
   );
-
-
 
 
   ////////////////////////////////////////////////////////////////
@@ -331,24 +283,24 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .clk             ( clk                  ),
     .rst_n           ( rst_n                ),
 
-    .enable_i        ( mult_en_ex_voted_i            ),
-    .operator_i      ( mult_operator_ex_voted_i      ),
+    .enable_i        ( mult_en_i            ),
+    .operator_i      ( mult_operator_i      ),
 
-    .short_subword_i ( mult_sel_subword_ex_voted_i   ),
-    .short_signed_i  ( mult_signed_mode_voted_i   ),
+    .short_subword_i ( mult_sel_subword_i   ),
+    .short_signed_i  ( mult_signed_mode_i   ),
 
-    .op_a_i          ( mult_operand_a_ex_voted_i     ),
-    .op_b_i          ( mult_operand_b_ex_voted_i     ),
-    .op_c_i          ( mult_operand_c_ex_voted_i     ),
-    .imm_i           ( mult_imm_ex_voted_i          ),
+    .op_a_i          ( mult_operand_a_i     ),
+    .op_b_i          ( mult_operand_b_i     ),
+    .op_c_i          ( mult_operand_c_i     ),
+    .imm_i           ( mult_imm_i           ),
 
-    .dot_op_a_i      ( mult_dot_op_a_ex_voted_i      ),
-    .dot_op_b_i      ( mult_dot_op_b_ex_voted_i      ),
-    .dot_op_c_i      ( mult_dot_op_c_ex_voted_i      ),
-    .dot_signed_i    ( mult_dot_signed_ex_voted_i    ),
-    .is_clpx_i       ( mult_is_clpx_ex_voted_i       ),
-    .clpx_shift_i    ( mult_clpx_shift_ex_voted_i    ),
-    .clpx_img_i      ( mult_clpx_img_ex_voted_i     ),
+    .dot_op_a_i      ( mult_dot_op_a_i      ),
+    .dot_op_b_i      ( mult_dot_op_b_i      ),
+    .dot_op_c_i      ( mult_dot_op_c_i      ),
+    .dot_signed_i    ( mult_dot_signed_i    ),
+    .is_clpx_i       ( mult_is_clpx_i       ),
+    .clpx_shift_i    ( mult_clpx_shift_i    ),
+    .clpx_img_i      ( mult_clpx_img_i      ),
 
     .result_o        ( mult_result          ),
 
@@ -373,9 +325,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
          .clk_i              ( clk                            ),
          .rst_ni             ( rst_n                          ),
 
-         .enable_i           ( apu_en_ex_voted_i                ),
-         .apu_lat_i          ( apu_lat_ex_voted_i               ),
-         .apu_waddr_i        ( apu_waddr_ex_voted_i           ),
+         .enable_i           ( apu_en_i                       ),
+         .apu_lat_i          ( apu_lat_i                      ),
+         .apu_waddr_i        ( apu_waddr_i                    ),
 
          .apu_waddr_o        ( apu_waddr                      ),
          .apu_multicycle_o   ( apu_multicycle                 ),
@@ -405,14 +357,14 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
          );
 
          assign apu_perf_wb_o  = wb_contention | wb_contention_lsu;
-         assign apu_ready_wb_o = ~(apu_active | apu_en_ex_voted_i | apu_stall) | apu_valid;
+         assign apu_ready_wb_o = ~(apu_active | apu_en_i | apu_stall) | apu_valid;
 
          assign apu_master_req_o      = apu_req;
          assign apu_master_ready_o    = apu_ready;
          assign apu_gnt               = apu_master_gnt_i;
          assign apu_valid             = apu_master_valid_i;
-         assign apu_master_operands_o = apu_operands_ex_voted_i;
-         assign apu_master_op_o       = apu_op_ex_voted_i;
+         assign apu_master_operands_o = apu_operands_i;
+         assign apu_master_op_o       = apu_op_i;
          assign apu_result            = apu_master_result_i;
          assign fpu_fflags_we_o       = apu_valid;
       end
@@ -461,9 +413,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     begin
       if (ex_valid_o) // wb_ready_i is implied
       begin
-        regfile_we_lsu    <= regfile_we_ex_voted_i & ~lsu_err_i;
-        if (regfile_we_ex_voted_i & ~lsu_err_i ) begin
-          regfile_waddr_lsu <= regfile_waddr_ex_voted_i;
+        regfile_we_lsu    <= regfile_we_i & ~lsu_err_i;
+        if (regfile_we_i & ~lsu_err_i ) begin
+          regfile_waddr_lsu <= regfile_waddr_i;
         end
       end else if (wb_ready_i) begin
         // we are ready for a new instruction, but there is none available,
@@ -477,8 +429,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // to finish branches without going to the WB stage, ex_valid does not
   // depend on ex_ready.
   assign ex_ready_o = (~apu_stall & alu_ready & mult_ready & lsu_ready_ex_i
-                       & wb_ready_i & ~wb_contention) | (branch_in_ex_voted_i);
-  assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted_i | csr_access_ex_voted | lsu_en_i)
+                       & wb_ready_i & ~wb_contention) | (branch_in_ex_i);
+  assign ex_valid_o = (apu_valid | alu_en_i | mult_en_i | csr_access_i | lsu_en_i)
                        & (alu_ready & mult_ready & lsu_ready_ex_i & wb_ready_i);
 
 endmodule

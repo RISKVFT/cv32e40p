@@ -35,9 +35,6 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1
-  //parameter APU_NARGS_CPU       =  APU_NARGS_CPU,
-  //parameter APU_WOP_CPU         =  APU_WOP_CPU,
-  //parameter APU_NDSFLAGS_CPU    =  APU_NDSFLAGS_CPU,
 )
 (
   // Clock and Reset
@@ -150,16 +147,16 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]       pc_id;             // Program counter in ID stage
 
   // ID performance counter signals
-  logic        		is_decoding;
+  logic        is_decoding;
 
-  logic [3:0]       useincr_addr_ex;   // Active when post increment  // FT: output of quadruplicated pipe
-  logic        		data_misaligned;
+  logic        useincr_addr_ex;   // Active when post increment
+  logic        data_misaligned;
 
   logic        mult_multicycle;
 
   // Jump and branch target and decision (EX->IF)
   logic [31:0] jump_target_id, jump_target_ex;
-  logic [3:0]  branch_in_ex;    	// FT: output of quadruplicated pipe
+  logic        branch_in_ex;
   logic        branch_decision;
 
   logic        ctrl_busy;
@@ -167,37 +164,37 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic        lsu_busy;
   logic        apu_busy;
 
-  logic [3:0][31:0] pc_ex; // PC of last executed branch or p.elw // FT: output of quadruplicated pipe
+  logic [31:0] pc_ex; // PC of last executed branch or p.elw
 
   // ALU Control
-  logic [3:0]       alu_en_ex;							// FT: output of quadruplicated pipe
-  logic [3:0][ALU_OP_WIDTH-1:0] alu_operator_ex;		// FT: output of quadruplicated pipe
-  logic [3:0][31:0] alu_operand_a_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] alu_operand_b_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] alu_operand_c_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][ 4:0] bmask_a_ex;							// FT: output of quadruplicated pipe
-  logic [3:0][ 4:0] bmask_b_ex;							// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] imm_vec_ext_ex;						// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] alu_vec_mode_ex;					// FT: output of quadruplicated pipe
-  logic [3:0]       alu_is_clpx_ex, alu_is_subrot_ex;	// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] alu_clpx_shift_ex;					// FT: output of quadruplicated pipe
+  logic        alu_en_ex;
+  logic [ALU_OP_WIDTH-1:0] alu_operator_ex;
+  logic [31:0] alu_operand_a_ex;
+  logic [31:0] alu_operand_b_ex;
+  logic [31:0] alu_operand_c_ex;
+  logic [ 4:0] bmask_a_ex;
+  logic [ 4:0] bmask_b_ex;
+  logic [ 1:0] imm_vec_ext_ex;
+  logic [ 1:0] alu_vec_mode_ex;
+  logic        alu_is_clpx_ex, alu_is_subrot_ex;
+  logic [ 1:0] alu_clpx_shift_ex;
 
   // Multiplier Control
-  logic [3:0][ 2:0] mult_operator_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_operand_a_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_operand_b_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_operand_c_ex;					// FT: output of quadruplicated pipe
-  logic [3:0]       mult_en_ex;							// FT: output of quadruplicated pipe
-  logic [3:0]       mult_sel_subword_ex;				// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] mult_signed_mode_ex;				// FT: output of quadruplicated pipe
-  logic [3:0][ 4:0] mult_imm_ex;						// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_dot_op_a_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_dot_op_b_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][31:0] mult_dot_op_c_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] mult_dot_signed_ex;					// FT: output of quadruplicated pipe
-  logic [3:0]       mult_is_clpx_ex;					// FT: output of quadruplicated pipe
-  logic [3:0][ 1:0] mult_clpx_shift_ex;					// FT: output of quadruplicated pipe
-  logic [3:0]       mult_clpx_img_ex;					// FT: output of quadruplicated pipe
+  logic [ 2:0] mult_operator_ex;
+  logic [31:0] mult_operand_a_ex;
+  logic [31:0] mult_operand_b_ex;
+  logic [31:0] mult_operand_c_ex;
+  logic        mult_en_ex;
+  logic        mult_sel_subword_ex;
+  logic [ 1:0] mult_signed_mode_ex;
+  logic [ 4:0] mult_imm_ex;
+  logic [31:0] mult_dot_op_a_ex;
+  logic [31:0] mult_dot_op_b_ex;
+  logic [31:0] mult_dot_op_c_ex;
+  logic [ 1:0] mult_dot_signed_ex;
+  logic        mult_is_clpx_ex;
+  logic [ 1:0] mult_clpx_shift_ex;
+  logic        mult_clpx_img_ex;
 
   // FPU
   logic [C_PC-1:0]            fprec_csr;
@@ -206,12 +203,12 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic                       fflags_we;
 
   // APU
-  logic [3:0]                       	apu_en_ex;			// FT: output of quadruplicated pipe
-  logic [3:0][APU_NDSFLAGS_CPU-1:0] 	apu_flags_ex;		// FT: output of quadruplicated pipe
-  logic [3:0][APU_WOP_CPU-1:0]     		apu_op_ex;			// FT: output of quadruplicated pipe
-  logic [3:0][1:0]                  	apu_lat_ex;			// FT: output of quadruplicated pipe
-  logic [3:0][APU_NARGS_CPU-1:0][31:0]	apu_operands_ex;	// FT: output of quadruplicated pipe
-  logic [3:0][5:0]                		apu_waddr_ex;		// FT: output of quadruplicated pipe
+  logic                        apu_en_ex;
+  logic [APU_NDSFLAGS_CPU-1:0] apu_flags_ex;
+  logic [APU_WOP_CPU-1:0]      apu_op_ex;
+  logic [1:0]                  apu_lat_ex;
+  logic [APU_NARGS_CPU-1:0][31:0]                 apu_operands_ex;
+  logic [5:0]                  apu_waddr_ex;
 
   logic [2:0][5:0]             apu_read_regs;
   logic [2:0]                  apu_read_regs_valid;
@@ -226,22 +223,22 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic                        perf_apu_wb;
 
   // Register Write Control
-  logic [3:0][5:0]  regfile_waddr_ex;			// FT: output of quadruplicated pipe
-  logic [3:0]       regfile_we_ex;				// FT: output of quadruplicated pipe
-  logic [5:0]  regfile_waddr_fw_wb_o;           // From WB to ID
+  logic [5:0]  regfile_waddr_ex;
+  logic        regfile_we_ex;
+  logic [5:0]  regfile_waddr_fw_wb_o;        // From WB to ID
   logic        regfile_we_wb;
   logic [31:0] regfile_wdata;
 
-  logic [3:0][5:0]  regfile_alu_waddr_ex;		// FT: output of quadruplicated pipe
-  logic [3:0]       regfile_alu_we_ex;			// FT: output of quadruplicated pipe
+  logic [5:0]  regfile_alu_waddr_ex;
+  logic        regfile_alu_we_ex;
 
   logic [5:0]  regfile_alu_waddr_fw;
   logic        regfile_alu_we_fw;
   logic [31:0] regfile_alu_wdata_fw;
 
   // CSR control
-  logic [3:0]       csr_access_ex;				// FT: output of quadruplicated pipe
-  logic [3:0][1:0]  csr_op_ex;					// FT: output of quadruplicated pipe
+  logic        csr_access_ex;
+  logic [1:0]  csr_op_ex;
   logic [23:0] mtvec, utvec;
   logic [1:0]  mtvec_mode;
   logic [1:0]  utvec_mode;
@@ -254,14 +251,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   PrivLvl_t    current_priv_lvl;
 
   // Data Memory Control:  From ID stage (id-ex pipe) <--> load store unit
-  logic [3:0]       data_we_ex;				// FT: output of quadruplicated pipe
-  logic [3:0][5:0]  data_atop_ex;			// FT: output of quadruplicated pipe
-  logic [3:0][1:0]  data_type_ex;			// FT: output of quadruplicated pipe
-  logic [3:0][1:0]  data_sign_ext_ex;		// FT: output of quadruplicated pipe	
-  logic [3:0][1:0]  data_reg_offset_ex;		// FT: output of quadruplicated pipe
-  logic [3:0]       data_req_ex;			// FT: output of quadruplicated pipe
-  logic [3:0]       data_load_event_ex;		// FT: output of quadruplicated pipe
-  logic [3:0]       data_misaligned_ex;		// FT: output of quadruplicated pipe
+  logic        data_we_ex;
+  logic [5:0]  data_atop_ex;
+  logic [1:0]  data_type_ex;
+  logic [1:0]  data_sign_ext_ex;
+  logic [1:0]  data_reg_offset_ex;
+  logic        data_req_ex;
+  logic        data_load_event_ex;
+  logic        data_misaligned_ex;
 
   logic        p_elw_start;             // Start of p.elw load (when data_req_o is sent)
   logic        p_elw_finish;            // Finish of p.elw load (when data_rvalid_i is received)
@@ -352,61 +349,6 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]                      instr_addr_pmp;
   logic                             instr_err_pmp;
 
-  // FT - ID stage
-  logic [3:0][8:0]   permanent_faulty_alu;  // set of 4 9bit register for a each ALU. One for each fsm: 4 ALU and 9 subpart of ALU
-  logic [2:0]        sel_mux_ex;            // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-  logic [3:0]        clock_enable_alu;		// FT: output of quadruplicated pipe
-
-  // FT - EX stage
-  logic             err_corrected_alu;
-  logic             err_detected_alu;
-  logic [ 3:0]      perf_counter_permanent_faulty_alu; // trigger the performance counter relative to the specif ALU
-
-  // 
-  logic [31:0]      pc_ex_core;
-  logic [31:0]      alu_operand_a_ex_core;
-  logic [31:0]      alu_operand_c_ex_core;
-  logic [APU_NDSFLAGS_CPU-1:0]            apu_flags_ex_core;
-  logic [ 1:0]      data_type_ex_core;
-  logic [ 1:0]      data_sign_ext_ex_core;
-  logic [ 1:0]      data_load_event_ex_core;
-  logic [ 1:0]      data_reg_offset_ex_core;
-  logic             data_misaligned_ex_core;
-  logic             useincr_addr_ex_core;
-  logic [ 5:0]      atop_ex_core;
-  logic             csr_access_ex_core;
-  logic             data_req_ex_core; 
-  logic             data_we_ex_core; 
-  logic             branch_in_ex_core;
-  logic [31:0]      alu_operand_b_ex_core;
-  logic             apu_en_ex_core;
-  logic [ 1:0]      apu_lat_ex_core;
-  logic [ 5:0]      regfile_waddr_ex_core;
-  logic             regfile_we_ex_core;
-
-    // signal output of the voters for the outputs of id_stage that are used into the ex_stage
-  logic             alu_en_ex_core;
-  logic [ 2:0]      mult_operator_ex_core;   
-  logic [31:0]      mult_operand_a_ex_core; 
-  logic [31:0]      mult_operand_b_ex_core;
-  logic [31:0]      mult_operand_c_ex_core;
-  logic             mult_en_ex_core;
-  logic             mult_sel_subword_ex_core;   
-  logic [ 1:0]      mult_signed_mode_core ;
-  logic [ 4:0]      mult_imm_ex_core;
-  logic [31:0]      mult_dot_op_a_ex_core;
-  logic [31:0]      mult_dot_op_b_ex_core;
-  logic [31:0]      mult_dot_op_c_ex_core;
-  logic [ 1:0]      mult_dot_signed_ex_core;
-  logic             mult_is_clpx_ex_core;
-  logic [ 1:0]      mult_clpx_shift_ex_core;
-  logic             mult_clpx_img_ex_core;
-  logic [APU_WOP_CPU-1:0]      apu_op_ex_core;
-  logic [APU_NARGS_CPU:0][32:0]  apu_operands_ex_core;
-  logic [ 5:0]      apu_waddr_ex_core;
-  logic [ 5:0]      regfile_alu_waddr_ex_core;
-  logic             regfile_alu_we_ex_core;
-
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
   assign u_exc_vec_pc_mux_id = (utvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -416,7 +358,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   // APU master signals
   assign apu_master_type_o  = '0;
-  assign apu_master_flags_o = apu_flags_ex_core;
+  assign apu_master_flags_o = apu_flags_ex;
   assign fflags_csr         = apu_master_flags_i;
 
   //////////////////////////////////////////////////////////////////////////////////////////////
@@ -778,54 +720,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .perf_jr_stall_o              ( perf_jr_stall        ),
     .perf_ld_stall_o              ( perf_ld_stall        ),
     .perf_pipeline_stall_o        ( perf_pipeline_stall  ),
-    .mcounteren_i                 ( mcounteren           ),
-
-    .permanent_faulty_alu_i       ( permanent_faulty_alu ),  // one for each fsm: 4 ALU and 9 subpart of ALU
-    .sel_mux_ex_o                 ( sel_mux_ex ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-    .clock_enable_alu_o           ( clock_enable_alu ),
-    .pc_ex_voted                  ( pc_ex_core ),
-    .alu_operand_a_ex_voted       ( alu_operand_a_ex_core ),
-    .alu_operand_c_ex_voted       ( alu_operand_a_ex_core ),
-    .apu_flags_ex_voted           ( apu_flags_ex_core ),
-    .data_type_ex_voted           ( data_type_ex_core ),
-    .data_sign_ext_ex_voted       ( data_sign_ext_ex_core ),
-    .data_load_event_ex_voted     ( data_load_event_ex_core ),
-    .data_reg_offset_ex_voted     ( data_reg_offset_ex_core ),
-    .data_misaligned_ex_voted     ( data_misaligned_ex_core ),
-    .useincr_addr_ex_voted        ( useincr_addr_ex_core ),
-    .atop_ex_voted                ( atop_ex_core ),
-    .csr_access_ex_voted          ( csr_access_ex_core ),
-    .data_req_ex_voted            ( data_req_ex_core ),   
-    .data_we_ex_voted             ( data_we_ex_core ), 
-    .branch_in_ex_voted           ( branch_in_ex_core ),
-    .alu_operand_b_ex_voted       ( alu_operand_b_ex_core ),
-    .apu_en_ex_voted              ( apu_en_ex_core ),
-    .apu_lat_ex_voted             ( apu_lat_ex_core ),
-    .regfile_waddr_ex_voted       ( regfile_waddr_ex_core ),
-    .regfile_we_ex_voted          ( regfile_we_ex_core ),
-
-    // signal output of the voters for the outputs of id_stage that are used into the ex_stage
-    .alu_en_ex_voted              ( alu_en_ex_core ),
-    .mult_operator_ex_voted       ( mult_operator_ex_core ),   
-    .mult_operand_a_ex_voted      ( mult_operand_a_ex_core ), 
-    .mult_operand_b_ex_voted      ( mult_operand_b_ex_core ),
-    .mult_operand_c_ex_voted      ( mult_operand_c_ex_core ),
-    .mult_en_ex_voted             ( mult_en_ex_core ),
-    .mult_sel_subword_ex_voted    ( mult_sel_subword_ex_core ),   
-    .mult_signed_mode_voted       ( mult_signed_mode_core ), 
-    .mult_imm_ex_voted            ( mult_imm_ex_core ),
-    .mult_dot_op_a_ex_voted       ( mult_dot_op_a_ex_core ),
-    .mult_dot_op_b_ex_voted       ( mult_dot_op_b_ex_core ),
-    .mult_dot_op_c_ex_voted       ( mult_dot_op_c_ex_core ),
-    .mult_dot_signed_ex_voted     ( mult_dot_signed_ex_core ),
-    .mult_is_clpx_ex_voted        ( mult_is_clpx_ex_core ),
-    .mult_clpx_shift_ex_voted     ( mult_clpx_shift_ex_core ),
-    .mult_clpx_img_ex_voted       ( mult_clpx_img_ex_core ),
-    .apu_op_ex_voted              ( apu_op_ex_core ),
-    .apu_operands_ex_voted        ( apu_operands_ex_core ),
-    .apu_waddr_ex_voted           ( apu_waddr_ex_core ),
-    .regfile_alu_waddr_ex_voted   ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core )
+    .mcounteren_i                 ( mcounteren           )
   );
 
 
@@ -848,151 +743,116 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   ex_stage_i
   (
     // Global signals: Clock and active low asynchronous reset
-    .clk                        ( clk                      ),
-    .rst_n                      ( rst_ni                   ),
+    .clk                        ( clk                          ),
+    .rst_n                      ( rst_ni                       ),
 
     // Alu signals from ID stage
-    .alu_en_i                   ( alu_en_ex                ),
-    .alu_operator_i             ( alu_operator_ex          ), // from ID/EX pipe registers
-    .alu_operand_a_i            ( alu_operand_a_ex         ), // from ID/EX pipe registers
-    .alu_operand_b_i            ( alu_operand_b_ex         ), // from ID/EX pipe registers
-    .alu_operand_c_i            ( alu_operand_c_ex         ), // from ID/EX pipe registers
-    .bmask_a_i                  ( bmask_a_ex               ), // from ID/EX pipe registers
-    .bmask_b_i                  ( bmask_b_ex               ), // from ID/EX pipe registers
-    .imm_vec_ext_i              ( imm_vec_ext_ex           ), // from ID/EX pipe registers
-    .alu_vec_mode_i             ( alu_vec_mode_ex          ), // from ID/EX pipe registers
-    .alu_is_clpx_i              ( alu_is_clpx_ex           ), // from ID/EX pipe registers
-    .alu_is_subrot_i            ( alu_is_subrot_ex         ), // from ID/Ex pipe registers
-    .alu_clpx_shift_i           ( alu_clpx_shift_ex        ), // from ID/EX pipe registers
+    .alu_en_i                   ( alu_en_ex                    ),
+    .alu_operator_i             ( alu_operator_ex              ), // from ID/EX pipe registers
+    .alu_operand_a_i            ( alu_operand_a_ex             ), // from ID/EX pipe registers
+    .alu_operand_b_i            ( alu_operand_b_ex             ), // from ID/EX pipe registers
+    .alu_operand_c_i            ( alu_operand_c_ex             ), // from ID/EX pipe registers
+    .bmask_a_i                  ( bmask_a_ex                   ), // from ID/EX pipe registers
+    .bmask_b_i                  ( bmask_b_ex                   ), // from ID/EX pipe registers
+    .imm_vec_ext_i              ( imm_vec_ext_ex               ), // from ID/EX pipe registers
+    .alu_vec_mode_i             ( alu_vec_mode_ex              ), // from ID/EX pipe registers
+    .alu_is_clpx_i              ( alu_is_clpx_ex               ), // from ID/EX pipe registers
+    .alu_is_subrot_i            ( alu_is_subrot_ex             ), // from ID/Ex pipe registers
+    .alu_clpx_shift_i           ( alu_clpx_shift_ex            ), // from ID/EX pipe registers
 
     // Multipler
-    .mult_operator_i            ( mult_operator_ex         ), // from ID/EX pipe registers
-    .mult_operand_a_i           ( mult_operand_a_ex        ), // from ID/EX pipe registers
-    .mult_operand_b_i           ( mult_operand_b_ex        ), // from ID/EX pipe registers
-    .mult_operand_c_i           ( mult_operand_c_ex        ), // from ID/EX pipe registers
-    .mult_en_i                  ( mult_en_ex               ), // from ID/EX pipe registers
-    .mult_sel_subword_i         ( mult_sel_subword_ex      ), // from ID/EX pipe registers
-    .mult_signed_mode_i         ( mult_signed_mode_ex      ), // from ID/EX pipe registers
-    .mult_imm_i                 ( mult_imm_ex              ), // from ID/EX pipe registers
-    .mult_dot_op_a_i            ( mult_dot_op_a_ex         ), // from ID/EX pipe registers
-    .mult_dot_op_b_i            ( mult_dot_op_b_ex         ), // from ID/EX pipe registers
-    .mult_dot_op_c_i            ( mult_dot_op_c_ex         ), // from ID/EX pipe registers
-    .mult_dot_signed_i          ( mult_dot_signed_ex       ), // from ID/EX pipe registers
-    .mult_is_clpx_i             ( mult_is_clpx_ex          ), // from ID/EX pipe registers
-    .mult_clpx_shift_i          ( mult_clpx_shift_ex       ), // from ID/EX pipe registers
-    .mult_clpx_img_i            ( mult_clpx_img_ex         ), // from ID/EX pipe registers
+    .mult_operator_i            ( mult_operator_ex             ), // from ID/EX pipe registers
+    .mult_operand_a_i           ( mult_operand_a_ex            ), // from ID/EX pipe registers
+    .mult_operand_b_i           ( mult_operand_b_ex            ), // from ID/EX pipe registers
+    .mult_operand_c_i           ( mult_operand_c_ex            ), // from ID/EX pipe registers
+    .mult_en_i                  ( mult_en_ex                   ), // from ID/EX pipe registers
+    .mult_sel_subword_i         ( mult_sel_subword_ex          ), // from ID/EX pipe registers
+    .mult_signed_mode_i         ( mult_signed_mode_ex          ), // from ID/EX pipe registers
+    .mult_imm_i                 ( mult_imm_ex                  ), // from ID/EX pipe registers
+    .mult_dot_op_a_i            ( mult_dot_op_a_ex             ), // from ID/EX pipe registers
+    .mult_dot_op_b_i            ( mult_dot_op_b_ex             ), // from ID/EX pipe registers
+    .mult_dot_op_c_i            ( mult_dot_op_c_ex             ), // from ID/EX pipe registers
+    .mult_dot_signed_i          ( mult_dot_signed_ex           ), // from ID/EX pipe registers
+    .mult_is_clpx_i             ( mult_is_clpx_ex              ), // from ID/EX pipe registers
+    .mult_clpx_shift_i          ( mult_clpx_shift_ex           ), // from ID/EX pipe registers
+    .mult_clpx_img_i            ( mult_clpx_img_ex             ), // from ID/EX pipe registers
 
-    .mult_multicycle_o          ( mult_multicycle          ), // to ID/EX pipe registers
+    .mult_multicycle_o          ( mult_multicycle              ), // to ID/EX pipe registers
 
     // FPU
-    .fpu_prec_i                 ( fprec_csr                ),
-    .fpu_fflags_we_o            ( fflags_we                ),
+    .fpu_prec_i                 ( fprec_csr                    ),
+    .fpu_fflags_we_o            ( fflags_we                    ),
 
     // APU
-    .apu_en_i                   ( apu_en_ex                ),
-    .apu_op_i                   ( apu_op_ex                ),
-    .apu_lat_i                  ( apu_lat_ex               ),
-    .apu_operands_i             ( apu_operands_ex          ),
-    .apu_waddr_i                ( apu_waddr_ex             ),
-    .apu_flags_i                ( apu_flags_ex             ),
+    .apu_en_i                   ( apu_en_ex                    ),
+    .apu_op_i                   ( apu_op_ex                    ),
+    .apu_lat_i                  ( apu_lat_ex                   ),
+    .apu_operands_i             ( apu_operands_ex              ),
+    .apu_waddr_i                ( apu_waddr_ex                 ),
+    .apu_flags_i                ( apu_flags_ex                 ),
 
-    .apu_read_regs_i            ( apu_read_regs            ),
-    .apu_read_regs_valid_i      ( apu_read_regs_valid      ),
-    .apu_read_dep_o             ( apu_read_dep             ),
-    .apu_write_regs_i           ( apu_write_regs           ),
-    .apu_write_regs_valid_i     ( apu_write_regs_valid     ),
-    .apu_write_dep_o            ( apu_write_dep            ),
+    .apu_read_regs_i            ( apu_read_regs                ),
+    .apu_read_regs_valid_i      ( apu_read_regs_valid          ),
+    .apu_read_dep_o             ( apu_read_dep                 ),
+    .apu_write_regs_i           ( apu_write_regs               ),
+    .apu_write_regs_valid_i     ( apu_write_regs_valid         ),
+    .apu_write_dep_o            ( apu_write_dep                ),
 
-    .apu_perf_type_o            ( perf_apu_type            ),
-    .apu_perf_cont_o            ( perf_apu_cont            ),
-    .apu_perf_wb_o              ( perf_apu_wb              ),
-    .apu_ready_wb_o             ( apu_ready_wb             ),
-    .apu_busy_o                 ( apu_busy                 ),
+    .apu_perf_type_o            ( perf_apu_type                ),
+    .apu_perf_cont_o            ( perf_apu_cont                ),
+    .apu_perf_wb_o              ( perf_apu_wb                  ),
+    .apu_ready_wb_o             ( apu_ready_wb                 ),
+    .apu_busy_o                 ( apu_busy                     ),
 
     // apu-interconnect
     // handshake signals
-    .apu_master_req_o           ( apu_master_req_o         ),
-    .apu_master_ready_o         ( apu_master_ready_o       ),
-    .apu_master_gnt_i           ( apu_master_gnt_i         ),
+    .apu_master_req_o           ( apu_master_req_o             ),
+    .apu_master_ready_o         ( apu_master_ready_o           ),
+    .apu_master_gnt_i           ( apu_master_gnt_i             ),
     // request channel
-    .apu_master_operands_o      ( apu_master_operands_o    ),
-    .apu_master_op_o            ( apu_master_op_o          ),
+    .apu_master_operands_o      ( apu_master_operands_o        ),
+    .apu_master_op_o            ( apu_master_op_o              ),
     // response channel
-    .apu_master_valid_i         ( apu_master_valid_i       ),
-    .apu_master_result_i        ( apu_master_result_i      ),
+    .apu_master_valid_i         ( apu_master_valid_i           ),
+    .apu_master_result_i        ( apu_master_result_i          ),
 
-    .lsu_en_i                   ( data_req_ex              ),
-    .lsu_rdata_i                ( lsu_rdata                ),
+    .lsu_en_i                   ( data_req_ex                  ),
+    .lsu_rdata_i                ( lsu_rdata                    ),
 
     // interface with CSRs
-    .csr_access_i               ( csr_access_ex            ),
-    .csr_rdata_i                ( csr_rdata                ),
+    .csr_access_i               ( csr_access_ex                ),
+    .csr_rdata_i                ( csr_rdata                    ),
 
     // From ID Stage: Regfile control signals
-    .branch_in_ex_i             ( branch_in_ex             ),
-    .regfile_alu_waddr_i        ( regfile_alu_waddr_ex     ),
-    .regfile_alu_we_i           ( regfile_alu_we_ex        ),
+    .branch_in_ex_i             ( branch_in_ex                 ),
+    .regfile_alu_waddr_i        ( regfile_alu_waddr_ex         ),
+    .regfile_alu_we_i           ( regfile_alu_we_ex            ),
 
-    .regfile_waddr_i            ( regfile_waddr_ex         ),
-    .regfile_we_i               ( regfile_we_ex            ),
+    .regfile_waddr_i            ( regfile_waddr_ex             ),
+    .regfile_we_i               ( regfile_we_ex                ),
 
     // Output of ex stage pipeline
-    .regfile_waddr_wb_o         ( regfile_waddr_fw_wb_o    ),
-    .regfile_we_wb_o            ( regfile_we_wb            ),
-    .regfile_wdata_wb_o         ( regfile_wdata            ),
+    .regfile_waddr_wb_o         ( regfile_waddr_fw_wb_o        ),
+    .regfile_we_wb_o            ( regfile_we_wb                ),
+    .regfile_wdata_wb_o         ( regfile_wdata                ),
 
     // To IF: Jump and branch target and decision
-    .jump_target_o              ( jump_target_ex           ),
-    .branch_decision_o          ( branch_decision          ),
+    .jump_target_o              ( jump_target_ex               ),
+    .branch_decision_o          ( branch_decision              ),
 
     // To ID stage: Forwarding signals
-    .regfile_alu_waddr_fw_o     ( regfile_alu_waddr_fw     ),
-    .regfile_alu_we_fw_o        ( regfile_alu_we_fw        ),
-    .regfile_alu_wdata_fw_o     ( regfile_alu_wdata_fw     ),
+    .regfile_alu_waddr_fw_o     ( regfile_alu_waddr_fw         ),
+    .regfile_alu_we_fw_o        ( regfile_alu_we_fw            ),
+    .regfile_alu_wdata_fw_o     ( regfile_alu_wdata_fw         ),
 
     // stall control
-    .is_decoding_i              ( is_decoding              ),
-    .lsu_ready_ex_i             ( lsu_ready_ex             ),
-    .lsu_err_i                  ( data_err_pmp             ),
+    .is_decoding_i              ( is_decoding                  ),
+    .lsu_ready_ex_i             ( lsu_ready_ex                 ),
+    .lsu_err_i                  ( data_err_pmp                 ),
 
-    .ex_ready_o                 ( ex_ready                 ),
-    .ex_valid_o                 ( ex_valid                 ),
-    .wb_ready_i                 ( lsu_ready_wb             ),
-
-    // FT
-    .sel_mux_ex_i               (sel_mux_ex                ), // selector of the three mux to choose three of the four alu
-    .err_corrected_o            (err_corrected_alu         ),
-    .err_detected_o             (err_detected_alu          ),
-    .permanent_faulty_alu_o     (permanent_faulty_alu      ),  // set of 4 9bit register for a each ALU 
-    .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
-    .clock_enable_alu_i         (clock_enable_alu          ),
-    .alu_en_ex_voted_i          ( alu_en_ex_core ),
-    .mult_operator_ex_voted_i   ( mult_operator_ex_core ),   
-    .mult_operand_a_ex_voted_i  ( mult_operand_a_ex_core ), 
-    .mult_operand_b_ex_voted_i  ( mult_operand_b_ex_core ),
-    .mult_operand_c_ex_voted_i  ( mult_operand_c_ex_core ),
-    .mult_en_ex_voted_i         ( mult_en_ex_core ),
-    .mult_sel_subword_ex_voted_i( mult_sel_subword_ex_core ),   
-    .mult_signed_mode_voted_i   ( mult_signed_mode_core ), 
-    .mult_imm_ex_voted_i        ( mult_imm_ex_core ),
-    .mult_dot_op_a_ex_voted_i   ( mult_dot_op_a_ex_core ),
-    .mult_dot_op_b_ex_voted_i   ( mult_dot_op_b_ex_core ),
-    .mult_dot_op_c_ex_voted_i   ( mult_dot_op_c_ex_core ),
-    .mult_dot_signed_ex_voted_i ( mult_dot_signed_ex_core ),
-    .mult_is_clpx_ex_voted_i    ( mult_is_clpx_ex_core ),
-    .mult_clpx_shift_ex_voted_i ( mult_clpx_shift_ex_core ),
-    .mult_clpx_img_ex_voted_i   ( mult_clpx_img_ex_core ),
-    .apu_op_ex_voted_i          ( apu_op_ex_core ),
-    .apu_operands_ex_voted_i    ( apu_operands_ex_core ),
-    .apu_waddr_ex_voted_i       ( apu_waddr_ex_core ),
-    .regfile_alu_waddr_ex_voted_i   ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted_i      ( regfile_alu_we_ex_core ),
-    .apu_en_ex_voted_i          ( apu_en_ex_core ),
-    .apu_lat_ex_voted_i         ( apu_lat_ex_core ),
-    .branch_in_ex_voted_i       ( branch_in_ex_core ),
-    .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core ),
-    .regfile_we_ex_voted_i      ( regfile_we_ex_core ),
-    .csr_access_ex_voted        ( csr_access_ex_core)
+    .ex_ready_o                 ( ex_ready                     ),
+    .ex_valid_o                 ( ex_valid                     ),
+    .wb_ready_i                 ( lsu_ready_wb                 )
   );
 
 
@@ -1029,21 +889,21 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .data_rdata_i          ( data_rdata_i       ),
 
     // signal from ex stage
-    .data_we_ex_i          ( data_we_ex_core         ),
-    .data_atop_ex_i        ( data_atop_ex_core       ),
-    .data_type_ex_i        ( data_type_ex_core       ),
-    .data_wdata_ex_i       ( alu_operand_c_ex_core   ),
-    .data_reg_offset_ex_i  ( data_reg_offset_ex_core ),
-    .data_load_event_ex_i  ( data_load_event_ex_core ),
-    .data_sign_ext_ex_i    ( data_sign_ext_ex_core   ),  // sign extension
+    .data_we_ex_i          ( data_we_ex         ),
+    .data_atop_ex_i        ( data_atop_ex       ),
+    .data_type_ex_i        ( data_type_ex       ),
+    .data_wdata_ex_i       ( alu_operand_c_ex   ),
+    .data_reg_offset_ex_i  ( data_reg_offset_ex ),
+    .data_load_event_ex_i  ( data_load_event_ex ),
+    .data_sign_ext_ex_i    ( data_sign_ext_ex   ),  // sign extension
 
     .data_rdata_ex_o       ( lsu_rdata          ),
-    .data_req_ex_i         ( data_req_ex_core        ),
-    .operand_a_ex_i        ( alu_operand_a_ex_core   ),
-    .operand_b_ex_i        ( alu_operand_b_ex_core   ),
-    .addr_useincr_ex_i     ( useincr_addr_ex_core    ),
+    .data_req_ex_i         ( data_req_ex        ),
+    .operand_a_ex_i        ( alu_operand_a_ex   ),
+    .operand_b_ex_i        ( alu_operand_b_ex   ),
+    .addr_useincr_ex_i     ( useincr_addr_ex    ),
 
-    .data_misaligned_ex_i  ( data_misaligned_ex_core ), // from ID/EX pipeline
+    .data_misaligned_ex_i  ( data_misaligned_ex ), // from ID/EX pipeline
     .data_misaligned_o     ( data_misaligned    ),
 
     .p_elw_start_o         ( p_elw_start        ),
@@ -1138,7 +998,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     .pc_if_i                 ( pc_if              ),
     .pc_id_i                 ( pc_id              ),
-    .pc_ex_i                 ( pc_ex_core         ),
+    .pc_ex_i                 ( pc_ex              ),
 
     .csr_save_if_i           ( csr_save_if        ),
     .csr_save_id_i           ( csr_save_id        ),
@@ -1168,7 +1028,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .imiss_i                 ( perf_imiss         ),
     .pc_set_i                ( pc_set             ),
     .jump_i                  ( perf_jump          ),
-    .branch_i                ( branch_in_ex_voted ),
+    .branch_i                ( branch_in_ex       ),
     .branch_taken_i          ( branch_decision    ),
     .ld_stall_i              ( perf_ld_stall      ),
     .jr_stall_i              ( perf_jr_stall      ),
@@ -1185,10 +1045,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   //  CSR access
   assign csr_addr     =  csr_addr_int;
-  assign csr_wdata    =  alu_operand_a_ex_core;
+  assign csr_wdata    =  alu_operand_a_ex;
   assign csr_op       =  csr_op_ex;
 
-  assign csr_addr_int = csr_num_e'(csr_access_ex_core ? alu_operand_b_ex_core[11:0] : '0);
+  assign csr_addr_int = csr_num_e'(csr_access_ex ? alu_operand_b_ex[11:0] : '0);
 
 
 
