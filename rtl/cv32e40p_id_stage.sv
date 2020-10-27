@@ -255,7 +255,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted,
     output logic [1:0]           data_type_ex_voted,
     output logic [1:0]           data_sign_ext_ex_voted,
-    output logic [1:0]           data_load_event_ex_voted,
+    output logic                 data_load_event_ex_voted,
     output logic [1:0]           data_reg_offset_ex_voted,
     output logic                 data_misaligned_ex_voted,
     output logic                 useincr_addr_ex_voted,
@@ -289,11 +289,21 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [ 1:0]          mult_clpx_shift_ex_voted,
     output logic                 mult_clpx_img_ex_voted,
     output logic [APU_WOP_CPU-1:0]              apu_op_ex_voted,
-    output logic [APU_NARGS_CPU:0][32:0]          apu_operands_ex_voted,
+    output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted,
     output logic [ 5:0]          apu_waddr_ex_voted,
     output logic [ 5:0]          regfile_alu_waddr_ex_voted,
-    output logic                 regfile_alu_we_ex_voted
-  
+    output logic                 regfile_alu_we_ex_voted,
+    
+    // signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
+    output logic [ ALU_OP_WIDTH-1:0]              alu_operator_ex_voted,
+    output logic [ 1:0]              alu_vec_mode_ex_voted,
+    output logic [ 4:0]              bmask_a_ex_voted,
+    output logic [ 4:0]              bmask_b_ex_voted,
+    output logic [ 1:0]              imm_vec_ext_ex_voted,
+
+    output logic                     alu_is_clpx_ex_voted,
+    output logic                     alu_is_subrot_ex_voted,
+    output logic [ 1:0]              alu_clpx_shift_ex_voted  
 );
 
   // Source/Destination register instruction index
@@ -537,7 +547,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][1:0]      csr_op_ex_voter_in;
   logic [2:0]           data_req_ex_voter_in;
   logic [2:0]           data_we_ex_voter_in;
-  logic [2:0][6:0]      alu_operator_ex_voter_in;
+  logic [2:0][ALU_OP_WIDTH-1:0]      alu_operator_ex_voter_in;
   logic [2:0]           apu_en_ex_voter_in;
   logic [2:0][1:0]      apu_lat_ex_voter_in;
   logic [2:0]           branch_in_ex_voter_in;
@@ -548,7 +558,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voter_in;
   logic [2:0][1:0]      data_type_ex_voter_in;
   logic [2:0][1:0]      data_sign_ext_ex_voter_in;
-  logic [2:0][1:0]      data_load_event_ex_voter_in;
+  logic [2:0]           data_load_event_ex_voter_in;
   logic [2:0][1:0]      data_reg_offset_ex_voter_in;
   logic [2:0]           data_misaligned_ex_voter_in;
   logic [2:0]           useincr_addr_ex_voter_in;
@@ -562,7 +572,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]           csr_op_ex_voted;
   //logic                 data_req_ex_voted;    // is actually an output
   //logic                 data_we_ex_voted;     // is actually an output
-  logic [6:0]           alu_operator_ex_voted;
+  //logic [6:0]           alu_operator_ex_voted;
   //logic                 apu_en_ex_voted;
   //logic [1:0]           apu_lat_ex_voted;
   //logic                 branch_in_ex_voted; // is actually an output
@@ -600,12 +610,25 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][ 1:0]           mult_clpx_shift_ex_voter_in;
   logic [2:0]                 mult_clpx_img_ex_voter_in;
   logic [2:0][APU_WOP_CPU-1:0]              apu_op_ex_voter_in;
-  logic [2:0][APU_NARGS_CPU:0][32:0]          apu_operands_ex_voter_in;
+  logic [2:0][APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voter_in;
   logic [2:0][ 5:0]           apu_waddr_ex_voter_in;
   logic [2:0][ 5:0]           regfile_alu_waddr_ex_voter_in;
   logic [2:0]                 regfile_alu_we_ex_voter_in;
 
   logic [3:0]				  permanent_faulty_alu_in_decoder;
+
+  // for those signal used in ex stage and in particular by the single alu incase FT==0
+  logic [2:0][ 4:0] bmask_a_ex_voter_in;       
+  logic [2:0][ 4:0] bmask_b_ex_voter_in;        
+  logic [2:0][ 1:0] imm_vec_ext_ex_voter_in;    
+  logic [2:0][ 1:0] alu_vec_mode_ex_voter_in;  
+
+  logic [2:0]       alu_is_clpx_ex_voter_in;              
+  logic [2:0]       alu_is_subrot_ex_voter_in;           
+  logic [2:0][ 1:0] alu_clpx_shift_ex_voter_in;
+
+
+////////////////////////////////////////////////////////////77
 
   assign instr = instr_rdata_i;
 
@@ -1659,10 +1682,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         .sel_mux_ex_o               (sel_mux_ex_s)
       );*/
 
-        default:  clock_en = 4'b0111;        
+        default:  permanent_faulty_alu_in_decoder = 4'b0000;        
 
 
-      endcase // case (alu_operator)
+      endcase // case (alu_operator_ex_voted)
 
     end // end always_comb EX_dispatcher
 
@@ -1812,13 +1835,13 @@ ID_EX_pipeline_4 [3:0]
   .apu_waddr_ex_o           ( apu_waddr_ex_o ),
 
   // Jumps and branches
-  .branch_in_ex_o           ( branch_in_ex_o ),
+  .branch_in_ex_o           ( branch_in_ex_o )
 
-  // Fault tolerant, select 3 of the 4 ALU in the EX stage
-  .sel_mux_ex_i		     ( sel_mux_ex_s ),
-  .sel_mux_ex_o		     ( sel_mux_ex_o ), 
+  /*// Fault tolerant, select 3 of the 4 ALU in the EX stage
+  .sel_mux_ex_i		     ( sel_mux_alu_s ),
+  .sel_mux_ex_o		     ( sel_mux_alu_o ),
   .clock_enable_alu_i        ( clk_enable_ft ),
-  .clock_enable_alu_o        ( clock_enable_alu_o )
+  .clock_enable_alu_o        ( clock_enable_alu_o )*/
 
 );
 
@@ -1828,12 +1851,14 @@ ID_EX_pipeline_4 [3:0]
   // FOR THIS REASON WE HAVE TO USE SOME MUXs TO DECIDE WHICH TRIPLET OF THE 4 PIPER REGISTER OUTPUT USE A INPUTS FOR THE VOTER.
   // WE USE THE SEL_MUX_EX_O (NEEDED FOR EX_STAGE MUXs TO FEED ID_STAGE MUXs TOO)
 
-  // WE NEED A VOTER OF SEL_MUX_EX BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
+  // WE NEED A VOTER OF SEL_MUX_EX AND CLOCK_ENABLE BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
   always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
     if(~rst_n) begin
       sel_mux_ex_o <= 3'b0;
+      clock_enable_alu_o <= 3'b0;
     end else begin
       sel_mux_ex_o <= sel_mux_ex_s;
+      clock_enable_alu_o <= clk_enable_ft;
     end
   end
 
@@ -2016,6 +2041,35 @@ ID_EX_pipeline_4 [3:0]
   assign regfile_alu_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_we_ex_o[0] : regfile_alu_we_ex_o[3];
   assign regfile_alu_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_we_ex_o[1] : regfile_alu_we_ex_o[3];
   assign regfile_alu_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_we_ex_o[2] : regfile_alu_we_ex_o[3];
+
+// for those signals used by the single alu in case FT==0
+  assign bmask_a_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_a_ex_o[0] : bmask_a_ex_o[3];
+  assign bmask_a_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_a_ex_o[1] : bmask_a_ex_o[3];
+  assign bmask_a_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_a_ex_o[2] : bmask_a_ex_o[3];
+
+  assign bmask_b_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_b_ex_o[0] : bmask_b_ex_o[3];
+  assign bmask_b_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_b_ex_o[1] : bmask_b_ex_o[3];
+  assign bmask_b_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_b_ex_o[2] : bmask_b_ex_o[3];
+
+  assign imm_vec_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? imm_vec_ext_ex_o[0] : imm_vec_ext_ex_o[3];
+  assign imm_vec_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? imm_vec_ext_ex_o[1] : imm_vec_ext_ex_o[3];
+  assign imm_vec_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? imm_vec_ext_ex_o[2] : imm_vec_ext_ex_o[3];
+
+  assign alu_vec_mode_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_vec_mode_ex_o[0] : alu_vec_mode_ex_o[3];
+  assign alu_vec_mode_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_vec_mode_ex_o[1] : alu_vec_mode_ex_o[3];
+  assign alu_vec_mode_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_vec_mode_ex_o[2] : alu_vec_mode_ex_o[3];
+
+  assign alu_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_clpx_ex_o[0] : alu_is_clpx_ex_o[3];
+  assign alu_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_clpx_ex_o[1] : alu_is_clpx_ex_o[3];
+  assign alu_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_clpx_ex_o[2] : alu_is_clpx_ex_o[3];
+
+  assign alu_is_subrot_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_subrot_ex_o[0] : alu_is_subrot_ex_o[3];
+  assign alu_is_subrot_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_subrot_ex_o[1] : alu_is_subrot_ex_o[3];
+  assign alu_is_subrot_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_subrot_ex_o[2] : alu_is_subrot_ex_o[3];
+
+  assign alu_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_clpx_shift_ex_o[0] : alu_clpx_shift_ex_o[3];
+  assign alu_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_clpx_shift_ex_o[1] : alu_clpx_shift_ex_o[3];
+  assign alu_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_clpx_shift_ex_o[2] : alu_clpx_shift_ex_o[3];
 
 
 
@@ -2242,7 +2296,7 @@ ID_EX_pipeline_4 [3:0]
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(2,1) voter_data_load_event_ex
+  cv32e40p_3voter #(1,1) voter_data_load_event_ex
   (
     .in_1_i           ( data_load_event_ex_voter_in[0] ),
     .in_2_i           ( data_load_event_ex_voter_in[1] ),
@@ -2545,7 +2599,7 @@ ID_EX_pipeline_4 [3:0]
     .err_detected_o   (  )
   );
 
-  cv32e40p_3voter #(6,2) voter_apu_waddr_ex
+  cv32e40p_3voter #(6,1) voter_apu_waddr_ex
   (
     .in_1_i           ( apu_waddr_ex_voter_in[0] ),
     .in_2_i           ( apu_waddr_ex_voter_in[1] ),
@@ -2559,7 +2613,7 @@ ID_EX_pipeline_4 [3:0]
   );
 
 
-  cv32e40p_3voter #(6,2) voter_regfile_alu_waddr_ex_voter_in
+  cv32e40p_3voter #(6,1) voter_regfile_alu_waddr_ex_voter_in
   (
     .in_1_i           ( regfile_alu_waddr_ex_voter_in[0] ),
     .in_2_i           ( regfile_alu_waddr_ex_voter_in[1] ),
@@ -2573,7 +2627,7 @@ ID_EX_pipeline_4 [3:0]
   );
 
 
-  cv32e40p_3voter #(1,2) voter_regfile_alu_we_ex
+  cv32e40p_3voter #(1,1) voter_regfile_alu_we_ex
   (
     .in_1_i           ( regfile_alu_we_ex_voter_in[0] ),
     .in_2_i           ( regfile_alu_we_ex_voter_in[1] ),
@@ -2585,6 +2639,98 @@ ID_EX_pipeline_4 [3:0]
     .err_corrected_o  (  ),
     .err_detected_o   (  )
   );
+
+  cv32e40p_3voter #(5,1) voter_bmask_a_ex
+  (
+    .in_1_i           ( bmask_a_ex_voter_in[0] ),
+    .in_2_i           ( bmask_a_ex_voter_in[1] ),
+    .in_3_i           ( bmask_a_ex_voter_in[2] ),
+    .voted_o          ( bmask_a_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(5,1) voter_bmask_b_ex
+  (
+    .in_1_i           ( bmask_b_ex_voter_in[0] ),
+    .in_2_i           ( bmask_b_ex_voter_in[1] ),
+    .in_3_i           ( bmask_b_ex_voter_in[2] ),
+    .voted_o          ( bmask_b_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) imm_vec_ext_ex
+  (
+    .in_1_i           ( imm_vec_ext_ex_voter_in[0] ),
+    .in_2_i           ( imm_vec_ext_ex_voter_in[1] ),
+    .in_3_i           ( imm_vec_ext_ex_voter_in[2] ),
+    .voted_o          ( imm_vec_ext_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) imm_alu_vec_mode_ex
+  (
+    .in_1_i           ( alu_vec_mode_ex_voter_in[0] ),
+    .in_2_i           ( alu_vec_mode_ex_voter_in[1] ),
+    .in_3_i           ( alu_vec_mode_ex_voter_in[2] ),
+    .voted_o          ( alu_vec_mode_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) imm_alu_is_clpx_ex
+  (
+    .in_1_i           ( alu_is_clpx_ex_voter_in[0] ),
+    .in_2_i           ( alu_is_clpx_ex_voter_in[1] ),
+    .in_3_i           ( alu_is_clpx_ex_voter_in[2] ),
+    .voted_o          ( alu_is_clpx_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(1,1) imm_alu_is_subrot_ex
+  (
+    .in_1_i           ( alu_is_subrot_ex_voter_in[0] ),
+    .in_2_i           ( alu_is_subrot_ex_voter_in[1] ),
+    .in_3_i           ( alu_is_subrot_ex_voter_in[2] ),
+    .voted_o          ( alu_is_subrot_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+  cv32e40p_3voter #(2,1) imm_alu_clpx_shift_ex
+  (
+    .in_1_i           ( alu_clpx_shift_ex_voter_in[0] ),
+    .in_2_i           ( alu_clpx_shift_ex_voter_in[1] ),
+    .in_3_i           ( alu_clpx_shift_ex_voter_in[2] ),
+    .voted_o          ( alu_clpx_shift_ex_voted),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
 
  // parallel pipeline for thos signals
 

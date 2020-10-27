@@ -36,7 +36,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter FT 			=  0
+  parameter FT 			=  1
   //parameter APU_NARGS_CPU       =  APU_NARGS_CPU,
   //parameter APU_WOP_CPU         =  APU_WOP_CPU,
   //parameter APU_NDSFLAGS_CPU    =  APU_NDSFLAGS_CPU,
@@ -369,9 +369,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]      alu_operand_a_ex_core;
   logic [31:0]      alu_operand_c_ex_core;
   logic [APU_NDSFLAGS_CPU-1:0]            apu_flags_ex_core;
+  logic [5:0]       data_atop_ex_core;
   logic [ 1:0]      data_type_ex_core;
   logic [ 1:0]      data_sign_ext_ex_core;
-  logic [ 1:0]      data_load_event_ex_core;
+  logic             data_load_event_ex_core;
   logic [ 1:0]      data_reg_offset_ex_core;
   logic             data_misaligned_ex_core;
   logic             useincr_addr_ex_core;
@@ -404,10 +405,20 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [ 1:0]      mult_clpx_shift_ex_core;
   logic             mult_clpx_img_ex_core;
   logic [APU_WOP_CPU-1:0]      apu_op_ex_core;
-  logic [APU_NARGS_CPU:0][32:0]  apu_operands_ex_core;
+  logic [APU_NARGS_CPU-1:0][31:0]  apu_operands_ex_core;
   logic [ 5:0]      apu_waddr_ex_core;
   logic [ 5:0]      regfile_alu_waddr_ex_core;
   logic             regfile_alu_we_ex_core;
+
+  // for those signals used by single ALU if FT==0
+  logic [ALU_OP_WIDTH-1:0] alu_operator_ex_core;
+  logic [1:0] vector_mode_core;
+  logic [4:0] bmask_a_single_core;
+  logic [4:0] bmask_b_single_core;
+  logic [1:0] imm_vec_ext_sigle_core;
+  logic is_clpx_single_core;
+  logic is_subrot_single_core;
+  logic [1:0] clpx_shift_single_core;
 
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -787,7 +798,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .clock_enable_alu_o           ( clock_enable_alu ),
     .pc_ex_voted                  ( pc_ex_core ),
     .alu_operand_a_ex_voted       ( alu_operand_a_ex_core ),
-    .alu_operand_c_ex_voted       ( alu_operand_a_ex_core ),
+    .alu_operand_c_ex_voted       ( alu_operand_c_ex_core ),
     .apu_flags_ex_voted           ( apu_flags_ex_core ),
     .data_type_ex_voted           ( data_type_ex_core ),
     .data_sign_ext_ex_voted       ( data_sign_ext_ex_core ),
@@ -827,10 +838,19 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .apu_operands_ex_voted        ( apu_operands_ex_core ),
     .apu_waddr_ex_voted           ( apu_waddr_ex_core ),
     .regfile_alu_waddr_ex_voted   ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core )
+    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core ),
+    
+    .alu_operator_ex_voted        ( alu_operator_ex_core ),
+    .alu_vec_mode_ex_voted            ( vector_mode_core ),
+    .bmask_a_ex_voted         ( bmask_a_single_core ),
+    .bmask_b_ex_voted         ( bmask_b_single_core ),
+    .imm_vec_ext_ex_voted      ( imm_vec_ext_sigle_core ),
+    .alu_is_clpx_ex_voted         ( is_clpx_single_core ),
+    .alu_is_subrot_ex_voted       ( is_subrot_single_core ),
+    .alu_clpx_shift_ex_voted      ( clpx_shift_single_core )
   );
 
-
+ 
   /////////////////////////////////////////////////////
   //   _______  __  ____ _____  _    ____ _____      //
   //  | ____\ \/ / / ___|_   _|/ \  / ___| ____|     //
@@ -995,7 +1015,22 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .branch_in_ex_voted_i       ( branch_in_ex_core ),
     .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core ),
     .regfile_we_ex_voted_i      ( regfile_we_ex_core ),
-    .csr_access_ex_voted        ( csr_access_ex_core)
+    .csr_access_ex_voted_i      ( csr_access_ex_core),
+    .lsu_en_voted_i		( data_req_ex_core ),
+
+     // signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
+    .enable_single_i          ( apu_en_ex_core ),
+    .operand_a_single_i       ( alu_operand_a_ex_core ), 
+    .operand_b_single_i       ( alu_operand_b_ex_core ),
+    .operand_c_single_i       ( alu_operand_c_ex_core ),
+    .operator_single_i        ( alu_operator_ex_core ),
+    .vector_mode_single_i     ( vector_mode_core ),
+    .bmask_a_single_i         ( bmask_a_single_core ),
+    .bmask_b_single_i         ( bmask_b_single_core ),
+    .imm_vec_ext_single_i     ( imm_vec_ext_sigle_core ),
+    .is_clpx_single_i         ( is_clpx_single_core ),
+    .is_subrot_single_i       ( is_subrot_single_core ),
+    .clpx_shift_single_i      ( clpx_shift_single_core )
   );
 
 

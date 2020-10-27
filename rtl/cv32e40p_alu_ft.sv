@@ -45,12 +45,29 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     ready_o,
   input  logic                     ex_ready_i,
 
-  input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
+// ft  
+input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
-  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  input  logic [2:0]               sel_mux_ex_i, // selector of the three mux to choose three of the four alu
+
+  // signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
+  input  logic                     enable_single_i,
+  input  logic [ALU_OP_WIDTH-1:0]  operator_single_i,
+  input  logic [31:0]              operand_a_single_i,
+  input  logic [31:0]              operand_b_single_i,
+  input  logic [31:0]              operand_c_single_i,
+
+  input  logic [ 1:0]              vector_mode_single_i,
+  input  logic [ 4:0]              bmask_a_single_i,
+  input  logic [ 4:0]              bmask_b_single_i,
+  input  logic [ 1:0]              imm_vec_ext_single_i,
+
+  input  logic                     is_clpx_single_i,
+  input  logic                     is_subrot_single_i,
+  input  logic [ 1:0]              clpx_shift_single_i
 );
 
 
@@ -75,21 +92,21 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	// signals out from the voter
 
-	logic [31:0]              voter_res_out;
+	//logic [31:0]              voter_res_out;
 	logic                     err_detected_res_1;
 	logic                     err_detected_res_2;
 	logic                     err_detected_res_3;
 	logic                     err_corrected_res;
 	logic                     err_detected_res; 
 
-	logic                     voter_comp_out;
+	//logic                     voter_comp_out;
 	logic                     err_detected_comp_1;
 	logic                     err_detected_comp_2;
 	logic                     err_detected_comp_3;
 	logic                     err_corrected_comp;
 	logic                     err_detected_comp; 
 
-	logic                     voter_ready_out;
+	//logic                     voter_ready_out;
 	logic                     err_detected_ready_1;
 	logic                     err_detected_ready_2;
 	logic                     err_detected_ready_3;
@@ -188,7 +205,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	          .in_1_i           ( voter_res_1_in ),
 	          .in_2_i           ( voter_res_2_in ),
 	          .in_3_i           ( voter_res_3_in ),
-	          .voted_o          ( voter_res_out  ),
+	          .voted_o          ( result_o  ),
 	          .err_detected_1 	( err_detected_res_1 ),
 	          .err_detected_2 	( err_detected_res_2 ),
 	          .err_detected_3 	( err_detected_res_3 ),
@@ -202,7 +219,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	         .in_1_i           ( voter_comp_1_in ),
 	         .in_2_i           ( voter_comp_2_in ),
 	         .in_3_i           ( voter_comp_3_in ),
-	         .voted_o          ( voter_comp_out ),
+	         .voted_o          ( comparison_result_o ),
 	         .err_detected_1   ( err_detected_comp_1 ),
 	         .err_detected_2   ( err_detected_comp_2 ),
 	         .err_detected_3   ( err_detected_comp_3 ),
@@ -216,7 +233,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 		     .in_1_i           ( voter_ready_1_in ),
 		     .in_2_i           ( voter_ready_2_in ),
 		     .in_3_i           ( voter_ready_3_in ),
-		     .voted_o          ( voter_ready_out      ),
+		     .voted_o          ( ready_o      ),
 		     .err_detected_1   ( err_detected_ready_1 ),
 		     .err_detected_2   ( err_detected_ready_2 ),
 		     .err_detected_3   ( err_detected_ready_3 ),
@@ -354,30 +371,32 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        (
 	         .clk                 ( clk             ),
 	         .rst_n               ( rst_n           ),
-	         .enable_i            ( alu_en_i        ),
-	         .operator_i          ( alu_operator_i  ),
-	         .operand_a_i         ( alu_operand_a_i ),
-	         .operand_b_i         ( alu_operand_b_i ),
-	         .operand_c_i         ( alu_operand_c_i ),
+	         .enable_i            ( enable_single_i    ),
+	         .operator_i          ( operator_single_i  ),
+	         .operand_a_i         ( operand_a_single_i ),
+	         .operand_b_i         ( operand_b_single_i ),
+	         .operand_c_i         ( operand_c_single_i ),
 
-	         .vector_mode_i       ( alu_vec_mode_i  ),
-	         .bmask_a_i           ( bmask_a_i       ),
-	         .bmask_b_i           ( bmask_b_i       ),
-	         .imm_vec_ext_i       ( imm_vec_ext_i   ),
+	         .vector_mode_i       ( vector_mode_single_i   ),
+	         .bmask_a_i           ( bmask_a_single_i       ),
+	         .bmask_b_i           ( bmask_b_single_i       ),
+	         .imm_vec_ext_i       ( imm_vec_ext_single_i   ),
 
-	         .is_clpx_i           ( alu_is_clpx_i   ),
-	         .clpx_shift_i        ( alu_clpx_shift_i),
-	         .is_subrot_i         ( alu_is_subrot_i ),
+	         .is_clpx_i           ( is_clpx_single_i   ),
+	         .clpx_shift_i        ( clpx_shift_single_i),
+	         .is_subrot_i         ( is_subrot_single_i ),
 
-	         .result_o            ( alu_result      ),
-	         .comparison_result_o ( alu_cmp_result  ),
+	         .result_o            ( result_o      ),
+	         .comparison_result_o ( comparison_result_o  ),
 
-	         .ready_o             ( alu_ready       ),
-	         .ex_ready_i          ( ex_ready_o      )
+	         .ready_o             ( ready_o       ),
+	         .ex_ready_i          ( ex_ready_i       )
 	        );
 
 			assign err_corrected_o = 1'b0;
 	  		assign err_detected_o  = 1'b0;
+			assign permanent_faulty_alu_o = 36'b0; 
+			assign perf_counter_permanent_faulty_alu_o = 4'b0;
    
          end
 

@@ -30,26 +30,26 @@ module cv32e40p_decoder_faulty_alu(
 // I want to have always TMR even if one of the three ALU is faulty.
 
 always_comb begin : proc_decoder_faulty_alu
-	case (permanent_faulty_alu_i)
+	unique case (permanent_faulty_alu_i)
 		4'b0000: begin
 			clock_gate_pipe_replica_o = 4'b0111;
-			sel_mux_ex_o <= 000;
+			sel_mux_ex_o <= 3'b000;
 		end
 		4'b0001: begin
 			clock_gate_pipe_replica_o = 4'b1110;
-			sel_mux_ex_o <= 001;
+			sel_mux_ex_o <= 3'b001;
 		end
 		4'b0010, 4'b0011: begin
 			clock_gate_pipe_replica_o = 4'b1101;
-			sel_mux_ex_o <= 010;
+			sel_mux_ex_o <= 3'b010;
 		end
 		4'b0100, 4'b0101, 4'b0111: begin
 			clock_gate_pipe_replica_o = 4'b1011;
-			sel_mux_ex_o <= 100;
+			sel_mux_ex_o <= 3'b100;
 		end
 		4'b1000, 4'b1001, 4'b1010, 4'b1011, 4'b1100, 4'b1101, 4'b1110, 4'b1111 : begin
 			clock_gate_pipe_replica_o = 4'b0111;
-			sel_mux_ex_o <= 000;
+			sel_mux_ex_o <= 3'b000;
 		end
 
 

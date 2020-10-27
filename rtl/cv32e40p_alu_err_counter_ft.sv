@@ -28,7 +28,7 @@ module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_c
   input  logic [3:0]      clock_en,
   input  logic            rst_n,
   input  logic [3:0]      alu_enable_i,
-  input  logic [3:0]      alu_operator_i,
+  input  logic [3:0][ALU_OP_WIDTH-1:0]      alu_operator_i,
   input  logic [3:0]      error_detected_i, 
   output logic [3:0][8:0] permanent_faulty_alu_o,  // one for each fsm: 4 ALU and 9 subpart of ALU
   output logic [3:0]      perf_counter_permanent_faulty_alu_o // decided to use only four performance counters, one for each ALU and increment them only if there is a permanent error (in any of the subset of istructions) into the corresponding ALU.
@@ -344,22 +344,24 @@ generate
     end
   end
 
+end
+endgenerate
 
-  assign permanent_faulty_alu_o[0][8:0] = permanent_faulty[0][8:0];
-  assign permanent_faulty_alu_o[1][8:0] = permanent_faulty[1][8:0];
-  assign permanent_faulty_alu_o[2][8:0] = permanent_faulty[2][8:0];
-  assign permanent_faulty_alu_o[3][8:0] = permanent_faulty[3][8:0];
+
+  assign permanent_faulty_alu_o[0] = permanent_faulty[0];
+  assign permanent_faulty_alu_o[1] = permanent_faulty[1];
+  assign permanent_faulty_alu_o[2] = permanent_faulty[2];
+  assign permanent_faulty_alu_o[3] = permanent_faulty[3];
 
 
   // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.
   // Because this output signals are combinatorially obtained from the output of the registers of the internal counters, the performance caunter will be incremented one clock cycle after the internal counter increment. 
   // To CS-Registers
   assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_o[0];
-  assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_o[0];
-  assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_o[0];
-  assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_o[0];
+  assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_o[1];
+  assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_o[2];
+  assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_o[3];
 
-end
-endgenerate
+
 
 endmodule
