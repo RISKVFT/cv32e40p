@@ -9,7 +9,7 @@
 //                 Elia Ribaldone - s265613@studenti.polito.it                //
 //                                                                            //
 // Design Name:    cv32e40p_alu_ft                                            //
-// Project Name:   cv32e40p Fault tolernat                                    //
+// Project Name:   cv32e40p Fault tolerant                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    Fault tolerant version of cv32e40p ALU.                    //
@@ -18,6 +18,9 @@
 
 
 module cv32e40p_alu_ft import cv32e40p_pkg::*;
+#(
+  parameter FT = 0
+)
 (
   input  logic                     clk,
   input  logic                     rst_n,
@@ -46,7 +49,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
-  output logic [3:0]      		   perf_counter_permanent_faulty_alu_o // trigger the performance counter relative to the specif ALU
+  output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
   input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 );
 
@@ -104,10 +107,10 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	logic					  err_detected_res_alu2;
 	logic					  err_detected_res_alu3;
 
-	logic 					  err_detected_comb_alu0;
-	logic 					  err_detected_comb_alu1;
-	logic 					  err_detected_comb_alu2;
-	logic 					  err_detected_comb_alu3;
+	logic 					  err_detected_comp_alu0;
+	logic 					  err_detected_comp_alu1;
+	logic 					  err_detected_comp_alu2;
+	logic 					  err_detected_comp_alu3;
 
 	logic 					  err_detected_ready_alu0;
 	logic 					  err_detected_ready_alu1;
@@ -225,74 +228,96 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
 			// In this way the counter associated to the standby ALU does not increment. --> This is obtained also with clock gatin but for security we provide also this approach.
 			always_comb begin : assign_err_count_to_3_used_alu
-				case (used_alu_i)
-					4'b0111: 
+				case (clock_en_i)
+					4'b0111: begin
 						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comb_alu0 = err_detected_comb_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
 						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comb_alu1 = err_detected_comb_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
 						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comb_alu2 = err_detected_comb_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
 						err_detected_ready_alu2 = err_detected_ready_3;
 
 						err_detected_res_alu3 = 1'b0;
-						err_detected_comb_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
+					end
 
-					4'b1110:
+					4'b1110: begin
 						err_detected_res_alu0 = 1'b0;
-						err_detected_comb_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
 						err_detected_ready_alu0 = 1'b0;
 
 						err_detected_res_alu1 = err_detected_res_1;
-						err_detected_comb_alu1 = err_detected_comb_1;
+						err_detected_comp_alu1 = err_detected_comp_1;
 						err_detected_ready_alu1 = err_detected_ready_1;
 
 						err_detected_res_alu2 = err_detected_res_2;
-						err_detected_comb_alu2 = err_detected_comb_2;
+						err_detected_comp_alu2 = err_detected_comp_2;
 						err_detected_ready_alu2 = err_detected_ready_2;
 
 						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comb_alu3 = err_detected_comb_3;
+						err_detected_comp_alu3 = err_detected_comp_3;
 						err_detected_ready_alu3 = err_detected_ready_3;
+					end
 
-					4'b1101:
+					4'b1101: begin
 						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comb_alu0 = err_detected_comb_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
 						err_detected_res_alu1 = 1'b0;
-						err_detected_comb_alu1 = 1'b0;
+						err_detected_comp_alu1 = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
 						err_detected_res_alu2 = err_detected_res_2;
-						err_detected_comb_alu2 = err_detected_comb_2;
+						err_detected_comp_alu2 = err_detected_comp_2;
 						err_detected_ready_alu3 = err_detected_ready_2;
 
 						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comb_alu3 = err_detected_comb_3;
+						err_detected_comp_alu3 = err_detected_comp_3;
 						err_detected_ready_alu3 = err_detected_ready_3;
+					end
 
-					4'b1011:
+					4'b1011: begin
 						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comb_alu0 = err_detected_comb_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
 						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comb_alu1 = err_detected_comb_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
 						err_detected_res_alu2 = 1'b0;
-						err_detected_comb_alu2 = 1'b0;
+						err_detected_comp_alu2 = 1'b0;
 						err_detected_ready_alu2 = 1'b0;
 
 						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comb_alu3 = err_detected_comb_3;
-						err_detected_ready_alu = err_detected_ready_3;
+						err_detected_comp_alu3 = err_detected_comp_3;
+						err_detected_ready_alu3 = err_detected_ready_3;
+					end
+
+					default: begin 
+						err_detected_res_alu0 = err_detected_res_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_ready_alu0 = err_detected_ready_1;
+
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
+						err_detected_ready_alu3 = 1'b0;
+					end
 				endcase 
 				
 			end
@@ -300,26 +325,26 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			
 
 			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU
-	        assign err_detected_alu0 = (err_detected_res_alu0 || err_detected_comb_alu0 || err_detected_ready_alu0);
-	        assign err_detected_alu1 = (err_detected_res_alu1 || err_detected_comb_alu1 || err_detected_ready_alu1);
-	        assign err_detected_alu2 = (err_detected_res_alu2 || err_detected_comb_alu2 || err_detected_ready_alu2);
-	        assign err_detected_alu3 = (err_detected_res_alu3 || err_detected_comb_alu3 || err_detected_ready_alu3);
+	        assign err_detected_alu0 = (err_detected_res_alu0 || err_detected_comp_alu0 || err_detected_ready_alu0);
+	        assign err_detected_alu1 = (err_detected_res_alu1 || err_detected_comp_alu1 || err_detected_ready_alu1);
+	        assign err_detected_alu2 = (err_detected_res_alu2 || err_detected_comp_alu2 || err_detected_ready_alu2);
+	        assign err_detected_alu3 = (err_detected_res_alu3 || err_detected_comp_alu3 || err_detected_ready_alu3);
 
 
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
-			  .clk 									clock,
-			  .clock_en 							clock_en_i,
-			  .rst_n								rst_n,
-			  .alu_enable_i 						enable_i,
-			  .alu_operator_i 						operator_i,
-			  .error_detected_i						{err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0}, 
-			  .permanent_faulty_alu_o, 
-			  .perf_counter_permanent_faulty_alu_o
+			  .clk 									(clock),
+			  .clock_en 							(clock_en_i),
+			  .rst_n								(rst_n),
+			  .alu_enable_i 						(enable_i),
+			  .alu_operator_i 						(operator_i),
+			  .error_detected_i						({err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0}), 
+			  .permanent_faulty_alu_o     					(permanent_faulty_alu_o),
+			  .perf_counter_permanent_faulty_alu_o				(perf_counter_permanent_faulty_alu_o)
 			);
 
-	        assign err_detected_o = (err_detected_res || err_detected_comb || err_detected_ready);
-	        assign err_corrected_o = (err_corrected_res || err_corrected_comb || err_corrected_ready);
+	        assign err_detected_o = (err_detected_res || err_detected_comp || err_detected_ready);
+	        assign err_corrected_o = (err_corrected_res || err_corrected_comp || err_corrected_ready);
 
 
         end

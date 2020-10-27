@@ -59,8 +59,6 @@ always_comb begin : proc_decoder_faulty_alu
 end
 
 
-endmodule : cv32e40p_decoder_faulty_alu
-
 /*
 always_comb begin : proc_decoder_faulty_alu
 	case (permanent_faulty_alu_i)
@@ -118,4 +116,7 @@ always_comb begin : proc_decoder_faulty_alu
 	endcase
 
 end
-/*
+*/
+
+
+endmodule : cv32e40p_decoder_faulty_alu

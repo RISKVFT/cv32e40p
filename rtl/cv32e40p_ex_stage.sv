@@ -20,7 +20,7 @@
 //                 Davide Schiavone - pschiavo@iis.ee.ethz.ch                 //
 //                                                                            //
 // Design Name:    Execute stage FT                                           //
-// Project Name:   cv32e40p Fault tolernat                                    //
+// Project Name:   cv32e40p Fault tolerant                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    Execution stage: Hosts ALU and MAC unit                    //
@@ -282,10 +282,11 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   //                        //
   ////////////////////////////
 
-  cv32e40p_alu_ft
+  cv32e40p_alu_ft 
   #(
     .FT (FT)
    )
+   alu_i
   (
     .clk                 ( clk             ),
     .rst_n               ( rst_n           ),

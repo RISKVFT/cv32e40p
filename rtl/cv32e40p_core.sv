@@ -10,7 +10,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Engineer:       Matthias Baer - baermatt@student.ethz.ch                   //
-//                                                                            //
+//                 Luca Fiore - luca.fiore@studenti.polito.it                 //
+//									      //
 // Additional contributions by:                                               //
 //                 Igor Loi - igor.loi@unibo.it                               //
 //                 Andreas Traber - atraber@student.ethz.ch                   //
@@ -19,7 +20,7 @@
 //                 Davide Schiavone - pschiavo@iis.ee.ethz.ch                 //
 //                                                                            //
 // Design Name:    Top level module                                           //
-// Project Name:   RI5CY                                                      //
+// Project Name:   cv32e40p Fault tolerant                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
 // Description:    Top level module of the RISC-V core.                       //

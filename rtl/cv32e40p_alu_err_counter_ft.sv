@@ -36,7 +36,7 @@ module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_c
 
 logic [3:0][8:0] count_logic;
 logic [3:0][8:0] count_shift;
-logic [3:0][8:0] count_bit_man
+logic [3:0][8:0] count_bit_man;
 logic [3:0][8:0] count_bit_count;
 logic [3:0][8:0] count_comparison;
 logic [3:0][8:0] count_abs;
@@ -54,13 +54,13 @@ cv32e40p_clock_gate CG_counter[3:0]
  .clk_i        ( clk            ),
  .en_i         ( clock_en[3:0]  ),
  .scan_cg_en_i ( 1'b0           ), // not used
- .clk_o        ( clk_gated[3:0] )
+ .clk_o        ( clock_gated[3:0] )
 );
 
 genvar i;
 generate
   for (i=0; i < 4; i++) begin
-    always_ff @(posedge clk_gated[i])
+    always_ff @(posedge clock_gated[i]) begin
       if (~rst_n) begin
         count_logic       <= 8'b0;
         count_shift       <= 8'b0;
@@ -245,7 +245,7 @@ generate
           end
 
 
-          default:          
+          default: begin          
             count_logic[i]       <= 8'b0;
             count_shift[i]       <= 8'b0;
             count_bit_man[i]     <= 8'b0;
@@ -255,15 +255,13 @@ generate
             count_min_max[i]     <= 8'b0;
             count_div_rem[i]     <= 8'b0;
             count_shuf[i]        <= 8'b0;
-
+	  end
         endcase; // case (alu_operator)
       end
     end
-  end
+  
 
-
-
-  always_ff @(posedge clk) begin : permanent_error_threshold
+  always_ff @(posedge clock_gated[i]) begin : permanent_error_threshold
     if (~rst_n) begin
       permanent_faulty[i]     <= 9'b0;
     end 
@@ -361,7 +359,7 @@ generate
   assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_o[0];
   assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_o[0];
 
-
+end
 endgenerate
 
 endmodule

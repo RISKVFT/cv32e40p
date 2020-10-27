@@ -21,6 +21,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 (
   // INPUTS //
   input logic         clk,                  // Gated clock
+  input logic 	      rst_n,
   input logic         data_misaligned_i,
   input logic         ex_ready_i,           // EX stage is ready for the next instruction
   input logic         mult_multicycle_i,    // from ALU: when we need multiple cycles in the multiplier and use op c as storage
@@ -31,7 +32,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   input logic         apu_en,
   input logic         regfile_we_id,        // Register Write Control
   input logic         regfile_alu_we_id,
-  input logic         data_req_id           // Data Memory Control
+  input logic         data_req_id,           // Data Memory Control
   input logic [1:0]   ctrl_transfer_insn_in_id,
 
   input logic [31:0]              operand_a_fw_id,
@@ -63,7 +64,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   input logic                     prepost_useincr,
   input logic                     csr_access,
   input logic [1:0]               csr_op,
-  input logic [1:0]               data_we_id,
+  input logic                     data_we_id,
   input logic [1:0]               data_type_id,
   input logic [1:0]               data_sign_ext_id,
   input logic [1:0]               data_reg_offset_id,
@@ -228,7 +229,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       branch_in_ex_o              <= 1'b0;
 
       sel_mux_ex_o                <= 3'b0;
-      clock_enable_alu_i          <= 3'b0;
+      clock_enable_alu_o          <= 3'b0;
 
     end
     else if (data_misaligned_i) begin
@@ -255,14 +256,14 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
         data_misaligned_ex_o        <= 1'b1;
       end
     end else if (mult_multicycle_i) begin
-      clock_gated_alu_o           <= clock_gated_alu_i;
+      clock_enable_alu_o           <= clock_enable_alu_i;
       sel_mux_ex_o                <= sel_mux_ex_i;
 
       mult_operand_c_ex_o <= operand_c_fw_id;
     end
     else begin
       // normal pipeline unstall case
-      clock_gated_alu_o           <= clock_gated_alu_i;
+      clock_enable_alu_o           <= clock_enable_alu_i;
       sel_mux_ex_o                <= sel_mux_ex_i;
 
       if (id_valid_o)
