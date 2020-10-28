@@ -692,9 +692,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
                                 regfile_waddr_id : regfile_addr_ra_id;
 
   // Forwarding control signals
-  assign reg_d_ex_is_reg_a_id  = (regfile_waddr_ex_voted[5:0]     == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
-  assign reg_d_ex_is_reg_b_id  = (regfile_waddr_ex_voted[5:0]     == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
-  assign reg_d_ex_is_reg_c_id  = (regfile_waddr_ex_voted[5:0]     == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
+  assign reg_d_ex_is_reg_a_id  = (regfile_waddr_ex_voted == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
+  assign reg_d_ex_is_reg_b_id  = (regfile_waddr_ex_voted == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
+  assign reg_d_ex_is_reg_c_id  = (regfile_waddr_ex_voted == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
   assign reg_d_wb_is_reg_a_id  = (regfile_waddr_wb_i     == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
   assign reg_d_wb_is_reg_b_id  = (regfile_waddr_wb_i     == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
   assign reg_d_wb_is_reg_c_id  = (regfile_waddr_wb_i     == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
@@ -1057,7 +1057,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   assign apu_perf_dep_o      = apu_stall;
   // stall when we access the CSR after a multicycle APU instruction
-  assign csr_apu_stall       = (csr_access & (apu_en_ex_voted & (apu_lat_ex_voted == 1'b1) | apu_busy_i));
+  assign csr_apu_stall       = (csr_access & (apu_en_ex_voted & (apu_lat_ex_voted[1] == 1'b1) | apu_busy_i));
 
   /////////////////////////////////////////////////////////
   //  ____  _____ ____ ___ ____ _____ _____ ____  ____   //
