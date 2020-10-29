@@ -134,6 +134,11 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	logic 					  err_detected_ready_alu2;
 	logic 					  err_detected_ready_alu3;
 
+        //prova signal
+	logic [31:0]         result_o_prova;
+	logic                comparison_result_o_prova;
+	logic                ready_o_prova;
+
 
 
 	generate
@@ -150,7 +155,7 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        //////////////////////////////////////////////
 
 
-	        cv32e40p_alu alu_i[3:0] // four identical ALU replicas if FT=1 
+	        cv32e40p_alu alu_ft_4_i[3:0] // four identical ALU replicas if FT=1 
 	        (
 	         .clk                 ( clk         ),
 	         .rst_n               ( rst_n       ),
@@ -183,13 +188,13 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        // Insantiate 3 mux to select 3 of the 4 units available
 	        
 
-	        assign voter_result_1_in = sel_mux_ex_i[0] ? result_o_ft[0] : result_o_ft[3];
-	        assign voter_result_2_in = sel_mux_ex_i[1] ? result_o_ft[1] : result_o_ft[3];
-	        assign voter_result_3_in = sel_mux_ex_i[2] ? result_o_ft[2] : result_o_ft[3];
+	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[0] : result_o_ft[3];
+	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[1] : result_o_ft[3];
+	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[2] : result_o_ft[3];
 
-	        assign voter_comparison_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[0] : comparison_result_o_ft[3];
-	        assign voter_comparison_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[1] : comparison_result_o_ft[3];
-	        assign voter_comparison_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[2] : comparison_result_o_ft[3];
+	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[0] : comparison_result_o_ft[3];
+	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[1] : comparison_result_o_ft[3];
+	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[2] : comparison_result_o_ft[3];
 
 	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[0] : ready_o_ft[3];
 	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[1] : ready_o_ft[3];
@@ -240,6 +245,8 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 		     .err_corrected_o  ( err_corrected_ready  ),
 		     .err_detected_o   ( err_detected_ready   )
 	        );
+
+
 
 
 			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
@@ -363,6 +370,41 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        assign err_detected_o = (err_detected_res || err_detected_comp || err_detected_ready);
 	        assign err_corrected_o = (err_corrected_res || err_corrected_comp || err_corrected_ready);
 
+
+
+
+
+	/*cv32e40p_alu alu_x
+	        (
+	         .clk                 ( clk             ),
+	         .rst_n               ( rst_n           ),
+	         .enable_i            ( enable_single_i    ),
+	         .operator_i          ( operator_single_i  ),
+	         .operand_a_i         ( operand_a_single_i ),
+	         .operand_b_i         ( operand_b_single_i ),
+	         .operand_c_i         ( operand_c_single_i ),
+
+	         .vector_mode_i       ( vector_mode_single_i   ),
+	         .bmask_a_i           ( bmask_a_single_i       ),
+	         .bmask_b_i           ( bmask_b_single_i       ),
+	         .imm_vec_ext_i       ( imm_vec_ext_single_i   ),
+
+	         .is_clpx_i           ( is_clpx_single_i   ),
+	         .clpx_shift_i        ( clpx_shift_single_i),
+	         .is_subrot_i         ( is_subrot_single_i ),
+
+	         .result_o            ( result_o      ),
+	         .comparison_result_o ( comparison_result_o  ),
+
+	         .ready_o             ( ready_o       ),
+	         .ex_ready_i          ( ex_ready_i       )
+	        );
+
+			assign err_corrected_o = 1'b0;
+	  		assign err_detected_o  = 1'b0;
+			assign permanent_faulty_alu_o = 36'b0; 
+			assign perf_counter_permanent_faulty_alu_o = 4'b0;
+		*/
 
         end
         else begin
