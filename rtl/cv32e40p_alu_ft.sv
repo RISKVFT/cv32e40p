@@ -51,9 +51,9 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
-  input  logic [2:0]               sel_mux_ex_i, // selector of the three mux to choose three of the four alu
+  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 
-  // signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
+  /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
   input  logic                     enable_single_i,
   input  logic [ALU_OP_WIDTH-1:0]  operator_single_i,
   input  logic [31:0]              operand_a_single_i,
@@ -67,7 +67,7 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 
   input  logic                     is_clpx_single_i,
   input  logic                     is_subrot_single_i,
-  input  logic [ 1:0]              clpx_shift_single_i
+  input  logic [ 1:0]              clpx_shift_single_i*/
 );
 
 
@@ -413,20 +413,20 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        (
 	         .clk                 ( clk             ),
 	         .rst_n               ( rst_n           ),
-	         .enable_i            ( enable_single_i    ),
-	         .operator_i          ( operator_single_i  ),
-	         .operand_a_i         ( operand_a_single_i ),
-	         .operand_b_i         ( operand_b_single_i ),
-	         .operand_c_i         ( operand_c_single_i ),
+	         .enable_i            ( enable_i[0]    ),
+	         .operator_i          ( operator_i[0]  ),
+	         .operand_a_i         ( operand_a_i[0] ),
+	         .operand_b_i         ( operand_b_i[0] ),
+	         .operand_c_i         ( operand_c_i[0] ),
 
-	         .vector_mode_i       ( vector_mode_single_i   ),
-	         .bmask_a_i           ( bmask_a_single_i       ),
-	         .bmask_b_i           ( bmask_b_single_i       ),
-	         .imm_vec_ext_i       ( imm_vec_ext_single_i   ),
+	         .vector_mode_i       ( vector_mode_i[0]   ),
+	         .bmask_a_i           ( bmask_a_i[0]       ),
+	         .bmask_b_i           ( bmask_b_i[0]       ),
+	         .imm_vec_ext_i       ( imm_vec_ext_i[0]   ),
 
-	         .is_clpx_i           ( is_clpx_single_i   ),
-	         .clpx_shift_i        ( clpx_shift_single_i),
-	         .is_subrot_i         ( is_subrot_single_i ),
+	         .is_clpx_i           ( is_clpx_i[0]   ),
+	         .clpx_shift_i        ( clpx_shift_i[0]),
+	         .is_subrot_i         ( is_subrot_i[0] ),
 
 	         .result_o            ( result_o      ),
 	         .comparison_result_o ( comparison_result_o  ),

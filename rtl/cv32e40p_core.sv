@@ -838,17 +838,18 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .apu_operands_ex_voted        ( apu_operands_ex_core ),
     .apu_waddr_ex_voted           ( apu_waddr_ex_core ),
     .regfile_alu_waddr_ex_voted   ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core ),
+    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core )
     
-    .alu_operator_ex_voted        ( alu_operator_ex_core ),
+    /*.alu_operator_ex_voted        ( alu_operator_ex_core ),
     .alu_vec_mode_ex_voted            ( vector_mode_core ),
     .bmask_a_ex_voted         ( bmask_a_single_core ),
     .bmask_b_ex_voted         ( bmask_b_single_core ),
     .imm_vec_ext_ex_voted      ( imm_vec_ext_sigle_core ),
     .alu_is_clpx_ex_voted         ( is_clpx_single_core ),
     .alu_is_subrot_ex_voted       ( is_subrot_single_core ),
-    .alu_clpx_shift_ex_voted      ( clpx_shift_single_core )
+    .alu_clpx_shift_ex_voted      ( clpx_shift_single_core )*/
   );
+
 
  
   /////////////////////////////////////////////////////
@@ -1016,9 +1017,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core ),
     .regfile_we_ex_voted_i      ( regfile_we_ex_core ),
     .csr_access_ex_voted_i      ( csr_access_ex_core),
-    .lsu_en_voted_i		( data_req_ex_core ),
+    .lsu_en_voted_i		( data_req_ex_core )
 
-     // signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
+    /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
     .enable_single_i          ( apu_en_ex_core ),
     .operand_a_single_i       ( alu_operand_a_ex_core ), 
     .operand_b_single_i       ( alu_operand_b_ex_core ),
@@ -1030,7 +1031,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .imm_vec_ext_single_i     ( imm_vec_ext_sigle_core ),
     .is_clpx_single_i         ( is_clpx_single_core ),
     .is_subrot_single_i       ( is_subrot_single_core ),
-    .clpx_shift_single_i      ( clpx_shift_single_core )
+    .clpx_shift_single_i      ( clpx_shift_single_core )*/
   );
 
 
