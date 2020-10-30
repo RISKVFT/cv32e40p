@@ -191,7 +191,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic [5:0]           regfile_waddr_ex_voted_i,
   input logic                 regfile_we_ex_voted_i,
   input logic                 csr_access_ex_voted_i,
-  input logic 		      lsu_en_voted_i,
+  input logic 		            lsu_en_voted_i
 
   /*// for those single signal (not quadruplicated used by the ALU)
   input  logic                     enable_single_i,

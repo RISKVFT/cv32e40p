@@ -47,7 +47,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   parameter APU_WOP_CPU       =  6,
   parameter APU_NDSFLAGS_CPU  = 15,
   parameter APU_NUSFLAGS_CPU  =  5,
-  parameter DEBUG_TRIGGER_EN  =  1
+  parameter DEBUG_TRIGGER_EN  =  1,
+  parameter FT                =  0
 )
 (
     input  logic        clk,                    // Gated clock
@@ -292,10 +293,12 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted,
     output logic [ 5:0]          apu_waddr_ex_voted,
     output logic [ 5:0]          regfile_alu_waddr_ex_voted,
-    output logic                 regfile_alu_we_ex_voted
+    output logic                 regfile_alu_we_ex_voted.
+
+    output logic [ ALU_OP_WIDTH-1:0]              alu_operator_ex_voted,
     
     /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
-    output logic [ ALU_OP_WIDTH-1:0]              alu_operator_ex_voted,
+    
     output logic [ 1:0]              alu_vec_mode_ex_voted,
     output logic [ 4:0]              bmask_a_ex_voted,
     output logic [ 4:0]              bmask_b_ex_voted,
@@ -1592,7 +1595,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       
         always_comb begin: EX_dispatcher
 
-            case (alu_operator_ex_voted) begin
+            case (alu_operator_ex_voted) 
 
                 // shift
                 ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL: 
@@ -2902,7 +2905,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             assign apu_waddr_ex_o[3:1] = 3'b000;
 
             // Jumps and branches
-            assign apu_waddr_ex_obranch_in_ex_o[3:1] = 3'b000;
+            assign branch_in_ex_o[3:1] = 3'b000;
 
             // output signals used inside ID_stage itself
             assign alu_operand_b_ex_voted   = alu_operand_b_ex_o[0];
@@ -2946,7 +2949,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             assign mult_dot_op_c_ex_voted   = mult_dot_op_c_ex_o[0];
             assign mult_dot_signed_ex_voted = mult_dot_signed_ex_o[0];
             assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
-            assign mult_clpx_shift_ex_voted = smult_clpx_shift_ex_o[0];
+            assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
             assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];
             assign apu_op_ex_voted          = apu_op_ex_o[0];
             assign apu_operands_ex_voted    = apu_operands_ex_o[0];

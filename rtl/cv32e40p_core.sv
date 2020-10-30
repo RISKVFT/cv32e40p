@@ -595,7 +595,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .APU_WOP_CPU                  ( APU_WOP_CPU          ),
     .APU_NDSFLAGS_CPU             ( APU_NDSFLAGS_CPU     ),
     .APU_NUSFLAGS_CPU             ( APU_NUSFLAGS_CPU     ),
-    .DEBUG_TRIGGER_EN             ( DEBUG_TRIGGER_EN     )
+    .DEBUG_TRIGGER_EN             ( DEBUG_TRIGGER_EN     ),
+    .FT 						  ( FT                   )
   )
   id_stage_i
   (
