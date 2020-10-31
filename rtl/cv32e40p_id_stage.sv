@@ -47,7 +47,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   parameter APU_WOP_CPU       =  6,
   parameter APU_NDSFLAGS_CPU  = 15,
   parameter APU_NUSFLAGS_CPU  =  5,
-  parameter DEBUG_TRIGGER_EN  =  1
+  parameter DEBUG_TRIGGER_EN  =  1,
+  parameter FT                =  0
 )
 (
     input  logic        clk,                    // Gated clock
@@ -273,6 +274,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
     // signal output of the voters for the outputs of id_stage that are used into the ex_stage
     output logic                 alu_en_ex_voted,
+    /*
     output logic [2:0]           mult_operator_ex_voted,   
     output logic [31:0]          mult_operand_a_ex_voted, 
     output logic [31:0]          mult_operand_b_ex_voted,
@@ -288,14 +290,16 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic                 mult_is_clpx_ex_voted,
     output logic [ 1:0]          mult_clpx_shift_ex_voted,
     output logic                 mult_clpx_img_ex_voted,
+    */
     output logic [APU_WOP_CPU-1:0]              apu_op_ex_voted,
     output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted,
     output logic [ 5:0]          apu_waddr_ex_voted,
     output logic [ 5:0]          regfile_alu_waddr_ex_voted,
     output logic                 regfile_alu_we_ex_voted
+
     
     /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
-    output logic [ ALU_OP_WIDTH-1:0]              alu_operator_ex_voted,
+    output logic [ ALU_OP_WIDTH-1:0] alu_operator_ex_voted,
     output logic [ 1:0]              alu_vec_mode_ex_voted,
     output logic [ 4:0]              bmask_a_ex_voted,
     output logic [ 4:0]              bmask_b_ex_voted,
@@ -537,7 +541,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // Fault Tolerant
   // CLock gating on replicas of pipeline for FT versione
   logic [3:0]      clock_en;  // used for gating clock of one of the pipeline replicas for FT version
-  logic [3:0]      clk_enable_ft;
+  logic [3:0]      clk_gated_ft;
   logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
   // signals input to the voters for the outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
@@ -572,7 +576,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]           csr_op_ex_voted;
   //logic                 data_req_ex_voted;    // is actually an output
   //logic                 data_we_ex_voted;     // is actually an output
-  //logic [6:0]           alu_operator_ex_voted;
+  logic [6:0]           alu_operator_ex_voted;
   //logic                 apu_en_ex_voted;
   //logic [1:0]           apu_lat_ex_voted;
   //logic                 branch_in_ex_voted; // is actually an output
@@ -1592,7 +1596,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       
         always_comb begin: EX_dispatcher
 
-            case (alu_operator_ex_voted) begin
+            case (alu_operator_ex_voted) 
 
                 // shift
                 ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL: 
@@ -1655,15 +1659,20 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
          .sel_mux_ex_o               (sel_mux_ex_s)
         );
 
-        // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
+        /*// Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
         cv32e40p_clock_gate clk_gate_4 [3:0]
         (
          .clk_i        ( clk ),
          .en_i         ( clock_en ),
          .scan_cg_en_i ( 1'b0 ), // not used here
-         .clk_o        ( clk_enable_ft[3:0] )
-        );
- 
+         .clk_o        ( clk_gated_ft )
+        );*/
+
+        assign clk_gated_ft[0] = clock_en[0] & clk; 
+        assign clk_gated_ft[1] = clock_en[1] & clk; 
+        assign clk_gated_ft[2] = clock_en[2] & clk; 
+        assign clk_gated_ft[3] = clock_en[3] & clk;  
+
         cv32e40p_ID_EX_pipeline 
         #(
          .APU_NARGS_CPU    ( APU_NARGS_CPU     ),
@@ -1673,7 +1682,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         ID_EX_pipeline_4 [3:0]
         (
           // INPUTS //
-          .clk                      ( clk ),// Gated clock
+          .clk                      ( clk_gated_ft ),// Gated clock
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -1815,7 +1824,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             clock_enable_alu_o <= 3'b0;
           end else begin
             sel_mux_ex_o <= sel_mux_ex_s;
-            clock_enable_alu_o <= clk_enable_ft;
+            clock_enable_alu_o <= clock_en;
           end
         end
 
@@ -2331,6 +2340,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         .err_detected_o   (  )
         );
 
+        /*
         cv32e40p_3voter #(3,1) voter_mult_operator_ex
         (
         .in_1_i           ( mult_operator_ex_voter_in[0] ),
@@ -2527,7 +2537,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
-
+        */
 
         cv32e40p_3voter #(APU_WOP_CPU,1) voter_apu_op_ex
         (
@@ -2701,7 +2711,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             ID_EX_pipeline
             (
               // INPUTS //
-              .clk                      ( clk ),// Gated clock
+              .clk                      ( clk_gated_ft ),// Gated clock
               .rst_n                    ( rst_n ),
               .data_misaligned_i        ( data_misaligned_i ),
               .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -2902,7 +2912,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             assign apu_waddr_ex_o[3:1] = 3'b000;
 
             // Jumps and branches
-            assign apu_waddr_ex_obranch_in_ex_o[3:1] = 3'b000;
+            assign branch_in_ex_o[3:1] = 3'b000;
 
             // output signals used inside ID_stage itself
             assign alu_operand_b_ex_voted   = alu_operand_b_ex_o[0];
@@ -2946,7 +2956,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             assign mult_dot_op_c_ex_voted   = mult_dot_op_c_ex_o[0];
             assign mult_dot_signed_ex_voted = mult_dot_signed_ex_o[0];
             assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
-            assign mult_clpx_shift_ex_voted = smult_clpx_shift_ex_o[0];
+            assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
             assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];
             assign apu_op_ex_voted          = apu_op_ex_o[0];
             assign apu_operands_ex_voted    = apu_operands_ex_o[0];

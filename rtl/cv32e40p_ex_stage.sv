@@ -59,22 +59,22 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [3:0][ 1:0] alu_clpx_shift_i,
 
   // Multiplier signals
-  input  logic [3:0][ 2:0] mult_operator_i,
-  input  logic [3:0][31:0] mult_operand_a_i,
-  input  logic [3:0][31:0] mult_operand_b_i,
-  input  logic [3:0][31:0] mult_operand_c_i,
-  input  logic [3:0]       mult_en_i,
-  input  logic [3:0]       mult_sel_subword_i,
-  input  logic [3:0][ 1:0] mult_signed_mode_i,
-  input  logic [3:0][ 4:0] mult_imm_i,
+  input  logic [2:0][ 2:0] mult_operator_i,
+  input  logic [2:0][31:0] mult_operand_a_i,
+  input  logic [2:0][31:0] mult_operand_b_i,
+  input  logic [2:0][31:0] mult_operand_c_i,
+  input  logic [2:0]       mult_en_i,
+  input  logic [2:0]       mult_sel_subword_i,
+  input  logic [2:0][ 1:0] mult_signed_mode_i,
+  input  logic [2:0][ 4:0] mult_imm_i,
 
-  input  logic [3:0][31:0] mult_dot_op_a_i,
-  input  logic [3:0][31:0] mult_dot_op_b_i,
-  input  logic [3:0][31:0] mult_dot_op_c_i,
-  input  logic [3:0][ 1:0] mult_dot_signed_i,
-  input  logic [3:0]       mult_is_clpx_i,
-  input  logic [3:0][ 1:0] mult_clpx_shift_i,
-  input  logic [3:0]       mult_clpx_img_i,
+  input  logic [2:0][31:0] mult_dot_op_a_i,
+  input  logic [2:0][31:0] mult_dot_op_b_i,
+  input  logic [2:0][31:0] mult_dot_op_c_i,
+  input  logic [2:0][ 1:0] mult_dot_signed_i,
+  input  logic [2:0]       mult_is_clpx_i,
+  input  logic [2:0][ 1:0] mult_clpx_shift_i,
+  input  logic [2:0]       mult_clpx_img_i,
 
   output logic             mult_multicycle_o,
 
@@ -157,14 +157,15 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // ft
   input  logic [2:0]       sel_mux_ex_i, // selector of the three mux to choose three of the four alu
-  output logic             err_corrected_o,
-  output logic             err_detected_o,
+  output logic             err_corrected_alu_o,
+  output logic             err_detected_alu_o,
   output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
   output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
   input  logic [3:0]       clock_enable_alu_i,
 
   // addictional inputs coming from the id_stage pipeline after a voting mechanism
   input logic                 alu_en_ex_voted_i,
+  /*
   input logic [2:0]           mult_operator_ex_voted_i,   
   input logic [31:0]          mult_operand_a_ex_voted_i, 
   input logic [31:0]          mult_operand_b_ex_voted_i,
@@ -179,7 +180,11 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic [ 1:0]          mult_dot_signed_ex_voted_i,
   input logic                 mult_is_clpx_ex_voted_i,
   input logic [ 1:0]          mult_clpx_shift_ex_voted_i,
-  input logic                 mult_clpx_img_ex_voted_i,
+  input logic                 mult_clpx_img_ex_voted_i,*/
+  output logic                err_corrected_mult_o,
+  output logic                err_detected_mult_o, 
+  output logic [2:0]          perf_counter_permanent_faulty_mult_o,
+
   input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
   input logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted_i,
   input logic [ 5:0]          apu_waddr_ex_voted_i,
@@ -191,7 +196,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic [5:0]           regfile_waddr_ex_voted_i,
   input logic                 regfile_we_ex_voted_i,
   input logic                 csr_access_ex_voted_i,
-  input logic 		      lsu_en_voted_i,
+  input logic 		            lsu_en_voted_i
 
   /*// for those single signal (not quadruplicated used by the ALU)
   input  logic                     enable_single_i,
@@ -235,6 +240,22 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic           apu_ready;
   logic           apu_gnt;
 
+
+  // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
+  cv32e40p_3voter #(1,1) voter_mult_en_ex
+  (
+    .in_1_i           ( mult_en_i[0] ),
+    .in_2_i           ( mult_en_i[1] ),
+    .in_3_i           ( mult_en_i[2] ),
+    .voted_o          ( mult_en_ex_voted ),
+    .err_detected_1   (  ),
+    .err_detected_2   (  ),
+    .err_detected_3   (  ),
+    .err_corrected_o  (  ),
+    .err_detected_o   (  )
+  );
+
+
   // ALU write port mux
   always_comb
   begin
@@ -257,7 +278,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       regfile_alu_waddr_fw_o   = regfile_alu_waddr_ex_voted_i;
       if (alu_en_ex_voted_i)
         regfile_alu_wdata_fw_o = alu_result;
-      if (mult_en_ex_voted_i)
+      if (mult_en_ex_voted)
         regfile_alu_wdata_fw_o = mult_result;
       if (csr_access_ex_voted_i)
         regfile_alu_wdata_fw_o = csr_rdata_i;
@@ -329,8 +350,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ex_ready_i          ( ex_ready_o      ),
 
     .clock_en_i          (clock_enable_alu_i),
-    .err_corrected_o     (err_corrected_o),
-    .err_detected_o      (err_detected_o),
+    .err_corrected_o     (err_corrected_alu_o),
+    .err_detected_o      (err_detected_alu_o),
     .permanent_faulty_alu_o                 (permanent_faulty_alu_o),
     .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
     .sel_mux_ex_i        (sel_mux_ex_i)
@@ -363,35 +384,42 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   //                                                            //
   ////////////////////////////////////////////////////////////////
 
-  cv32e40p_mult mult_i
+  cv32e40p_mult_ft 
+  #(
+    .FT (FT)
+  )
+  mult_i
   (
     .clk             ( clk                  ),
     .rst_n           ( rst_n                ),
 
-    .enable_i        ( mult_en_ex_voted_i            ),
-    .operator_i      ( mult_operator_ex_voted_i      ),
+    .enable_i        ( mult_en_i            ),
+    .operator_i      ( mult_operator_i      ),
 
-    .short_subword_i ( mult_sel_subword_ex_voted_i   ),
-    .short_signed_i  ( mult_signed_mode_voted_i   ),
+    .short_subword_i ( mult_sel_subword_i   ),
+    .short_signed_i  ( mult_signed_mode_i   ),
 
-    .op_a_i          ( mult_operand_a_ex_voted_i     ),
-    .op_b_i          ( mult_operand_b_ex_voted_i     ),
-    .op_c_i          ( mult_operand_c_ex_voted_i     ),
-    .imm_i           ( mult_imm_ex_voted_i          ),
+    .op_a_i          ( mult_operand_a_i     ),
+    .op_b_i          ( mult_operand_b_i     ),
+    .op_c_i          ( mult_operand_c_i     ),
+    .imm_i           ( mult_imm_i           ),
 
-    .dot_op_a_i      ( mult_dot_op_a_ex_voted_i      ),
-    .dot_op_b_i      ( mult_dot_op_b_ex_voted_i      ),
-    .dot_op_c_i      ( mult_dot_op_c_ex_voted_i      ),
-    .dot_signed_i    ( mult_dot_signed_ex_voted_i    ),
-    .is_clpx_i       ( mult_is_clpx_ex_voted_i       ),
-    .clpx_shift_i    ( mult_clpx_shift_ex_voted_i    ),
-    .clpx_img_i      ( mult_clpx_img_ex_voted_i     ),
+    .dot_op_a_i      ( mult_dot_op_a_i      ),
+    .dot_op_b_i      ( mult_dot_op_b_i      ),
+    .dot_op_c_i      ( mult_dot_op_c_i      ),
+    .dot_signed_i    ( mult_dot_signed_i    ),
+    .is_clpx_i       ( mult_is_clpx_i       ),
+    .clpx_shift_i    ( mult_clpx_shift_i    ),
+    .clpx_img_i      ( mult_clpx_img_i      ),
 
     .result_o        ( mult_result          ),
 
     .multicycle_o    ( mult_multicycle_o    ),
     .ready_o         ( mult_ready           ),
-    .ex_ready_i      ( ex_ready_o           )
+    .ex_ready_i      ( ex_ready_o           ),
+    .err_corrected_o ( err_corrected_mult_o ),
+    .err_detected_o  ( err_detected_mult_o ),
+    .perf_counter_permanent_faulty_mult_o ( perf_counter_permanent_faulty_mult_o )
   );
 
    generate
@@ -515,7 +543,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // depend on ex_ready.
   assign ex_ready_o = (~apu_stall & alu_ready & mult_ready & lsu_ready_ex_i
                        & wb_ready_i & ~wb_contention) | (branch_in_ex_voted_i);
-  assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted_i | csr_access_ex_voted_i | lsu_en_voted_i)
+  assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted | csr_access_ex_voted_i | lsu_en_voted_i)
                        & (alu_ready & mult_ready & lsu_ready_ex_i & wb_ready_i);
 
 endmodule

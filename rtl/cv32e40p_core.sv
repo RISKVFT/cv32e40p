@@ -36,7 +36,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter FT 			=  1
+  parameter FT 		            =  1
   //parameter APU_NARGS_CPU       =  APU_NARGS_CPU,
   //parameter APU_WOP_CPU         =  APU_WOP_CPU,
   //parameter APU_NDSFLAGS_CPU    =  APU_NDSFLAGS_CPU,
@@ -363,6 +363,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic             err_corrected_alu;
   logic             err_detected_alu;
   logic [ 3:0]      perf_counter_permanent_faulty_alu; // trigger the performance counter relative to the specif ALU
+  logic             err_corrected_mult;
+  logic             err_detected_mult; 
+  logic [ 2:0]      perf_counter_permanent_faulty_mult;
 
   // 
   logic [31:0]      pc_ex_core;
@@ -389,7 +392,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     // signal output of the voters for the outputs of id_stage that are used into the ex_stage
   logic             alu_en_ex_core;
-  logic [ 2:0]      mult_operator_ex_core;   
+  /*logic [ 2:0]      mult_operator_ex_core;   
   logic [31:0]      mult_operand_a_ex_core; 
   logic [31:0]      mult_operand_b_ex_core;
   logic [31:0]      mult_operand_c_ex_core;
@@ -403,14 +406,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [ 1:0]      mult_dot_signed_ex_core;
   logic             mult_is_clpx_ex_core;
   logic [ 1:0]      mult_clpx_shift_ex_core;
-  logic             mult_clpx_img_ex_core;
+  logic             mult_clpx_img_ex_core;*/
   logic [APU_WOP_CPU-1:0]      apu_op_ex_core;
   logic [APU_NARGS_CPU-1:0][31:0]  apu_operands_ex_core;
   logic [ 5:0]      apu_waddr_ex_core;
   logic [ 5:0]      regfile_alu_waddr_ex_core;
   logic             regfile_alu_we_ex_core;
 
-  // for those signals used by single ALU if FT==0
+  /*// for those signals used by single ALU if FT==0
   logic [ALU_OP_WIDTH-1:0] alu_operator_ex_core;
   logic [1:0] vector_mode_core;
   logic [4:0] bmask_a_single_core;
@@ -418,7 +421,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [1:0] imm_vec_ext_sigle_core;
   logic is_clpx_single_core;
   logic is_subrot_single_core;
-  logic [1:0] clpx_shift_single_core;
+  logic [1:0] clpx_shift_single_core;*/
 
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -595,7 +598,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .APU_WOP_CPU                  ( APU_WOP_CPU          ),
     .APU_NDSFLAGS_CPU             ( APU_NDSFLAGS_CPU     ),
     .APU_NUSFLAGS_CPU             ( APU_NUSFLAGS_CPU     ),
-    .DEBUG_TRIGGER_EN             ( DEBUG_TRIGGER_EN     )
+    .DEBUG_TRIGGER_EN             ( DEBUG_TRIGGER_EN     ),
+    .FT 						  ( FT                   )
   )
   id_stage_i
   (
@@ -819,7 +823,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     // signal output of the voters for the outputs of id_stage that are used into the ex_stage
     .alu_en_ex_voted              ( alu_en_ex_core ),
-    .mult_operator_ex_voted       ( mult_operator_ex_core ),   
+    /*.mult_operator_ex_voted       ( mult_operator_ex_core ),   
     .mult_operand_a_ex_voted      ( mult_operand_a_ex_core ), 
     .mult_operand_b_ex_voted      ( mult_operand_b_ex_core ),
     .mult_operand_c_ex_voted      ( mult_operand_c_ex_core ),
@@ -834,6 +838,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mult_is_clpx_ex_voted        ( mult_is_clpx_ex_core ),
     .mult_clpx_shift_ex_voted     ( mult_clpx_shift_ex_core ),
     .mult_clpx_img_ex_voted       ( mult_clpx_img_ex_core ),
+    */
     .apu_op_ex_voted              ( apu_op_ex_core ),
     .apu_operands_ex_voted        ( apu_operands_ex_core ),
     .apu_waddr_ex_voted           ( apu_waddr_ex_core ),
@@ -890,21 +895,21 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .alu_clpx_shift_i           ( alu_clpx_shift_ex        ), // from ID/EX pipe registers
 
     // Multipler
-    .mult_operator_i            ( mult_operator_ex         ), // from ID/EX pipe registers
-    .mult_operand_a_i           ( mult_operand_a_ex        ), // from ID/EX pipe registers
-    .mult_operand_b_i           ( mult_operand_b_ex        ), // from ID/EX pipe registers
-    .mult_operand_c_i           ( mult_operand_c_ex        ), // from ID/EX pipe registers
-    .mult_en_i                  ( mult_en_ex               ), // from ID/EX pipe registers
-    .mult_sel_subword_i         ( mult_sel_subword_ex      ), // from ID/EX pipe registers
-    .mult_signed_mode_i         ( mult_signed_mode_ex      ), // from ID/EX pipe registers
-    .mult_imm_i                 ( mult_imm_ex              ), // from ID/EX pipe registers
-    .mult_dot_op_a_i            ( mult_dot_op_a_ex         ), // from ID/EX pipe registers
-    .mult_dot_op_b_i            ( mult_dot_op_b_ex         ), // from ID/EX pipe registers
-    .mult_dot_op_c_i            ( mult_dot_op_c_ex         ), // from ID/EX pipe registers
-    .mult_dot_signed_i          ( mult_dot_signed_ex       ), // from ID/EX pipe registers
-    .mult_is_clpx_i             ( mult_is_clpx_ex          ), // from ID/EX pipe registers
-    .mult_clpx_shift_i          ( mult_clpx_shift_ex       ), // from ID/EX pipe registers
-    .mult_clpx_img_i            ( mult_clpx_img_ex         ), // from ID/EX pipe registers
+    .mult_operator_i            ( mult_operator_ex[2:0]         ), // from ID/EX pipe registers
+    .mult_operand_a_i           ( mult_operand_a_ex[2:0]        ), // from ID/EX pipe registers
+    .mult_operand_b_i           ( mult_operand_b_ex[2:0]        ), // from ID/EX pipe registers
+    .mult_operand_c_i           ( mult_operand_c_ex[2:0]        ), // from ID/EX pipe registers
+    .mult_en_i                  ( mult_en_ex[2:0]               ), // from ID/EX pipe registers
+    .mult_sel_subword_i         ( mult_sel_subword_ex[2:0]     ), // from ID/EX pipe registers
+    .mult_signed_mode_i         ( mult_signed_mode_ex[2:0]      ), // from ID/EX pipe registers
+    .mult_imm_i                 ( mult_imm_ex[2:0]              ), // from ID/EX pipe registers
+    .mult_dot_op_a_i            ( mult_dot_op_a_ex[2:0]         ), // from ID/EX pipe registers
+    .mult_dot_op_b_i            ( mult_dot_op_b_ex[2:0]         ), // from ID/EX pipe registers
+    .mult_dot_op_c_i            ( mult_dot_op_c_ex[2:0]         ), // from ID/EX pipe registers
+    .mult_dot_signed_i          ( mult_dot_signed_ex[2:0]       ), // from ID/EX pipe registers
+    .mult_is_clpx_i             ( mult_is_clpx_ex [2:0]         ), // from ID/EX pipe registers
+    .mult_clpx_shift_i          ( mult_clpx_shift_ex[2:0]       ), // from ID/EX pipe registers
+    .mult_clpx_img_i            ( mult_clpx_img_ex[2:0]         ), // from ID/EX pipe registers
 
     .mult_multicycle_o          ( mult_multicycle          ), // to ID/EX pipe registers
 
@@ -985,12 +990,13 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     // FT
     .sel_mux_ex_i               (sel_mux_ex                ), // selector of the three mux to choose three of the four alu
-    .err_corrected_o            (err_corrected_alu         ),
-    .err_detected_o             (err_detected_alu          ),
+    .err_corrected_alu_o            (err_corrected_alu         ),
+    .err_detected_alu_o             (err_detected_alu          ),
     .permanent_faulty_alu_o     (permanent_faulty_alu      ),  // set of 4 9bit register for a each ALU 
     .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
     .clock_enable_alu_i         (clock_enable_alu          ),
     .alu_en_ex_voted_i          ( alu_en_ex_core ),
+    /*
     .mult_operator_ex_voted_i   ( mult_operator_ex_core ),   
     .mult_operand_a_ex_voted_i  ( mult_operand_a_ex_core ), 
     .mult_operand_b_ex_voted_i  ( mult_operand_b_ex_core ),
@@ -1006,6 +1012,12 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mult_is_clpx_ex_voted_i    ( mult_is_clpx_ex_core ),
     .mult_clpx_shift_ex_voted_i ( mult_clpx_shift_ex_core ),
     .mult_clpx_img_ex_voted_i   ( mult_clpx_img_ex_core ),
+    */
+     
+     .err_corrected_mult_o      ( err_corrected_mult ),
+     .err_detected_mult_o       ( err_detected_mult ), 
+     .perf_counter_permanent_faulty_mult_o  ( perf_counter_permanent_faulty_mult ),
+
     .apu_op_ex_voted_i          ( apu_op_ex_core ),
     .apu_operands_ex_voted_i    ( apu_operands_ex_core ),
     .apu_waddr_ex_voted_i       ( apu_waddr_ex_core ),
@@ -1017,7 +1029,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core ),
     .regfile_we_ex_voted_i      ( regfile_we_ex_core ),
     .csr_access_ex_voted_i      ( csr_access_ex_core),
-    .lsu_en_voted_i		( data_req_ex_core )
+    .lsu_en_voted_i		          ( data_req_ex_core )
 
     /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
     .enable_single_i          ( apu_en_ex_core ),

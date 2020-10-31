@@ -45,12 +45,12 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     ready_o,
   input  logic                     ex_ready_i,
 
-// ft  
-input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
+  // ft  
+  input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
-  output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
+  output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
   input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 
   /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
@@ -134,12 +134,6 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	logic 					  err_detected_ready_alu2;
 	logic 					  err_detected_ready_alu3;
 
-        //prova signal
-	logic [31:0]         result_o_prova;
-	logic                comparison_result_o_prova;
-	logic                ready_o_prova;
-
-
 
 	generate
 
@@ -186,7 +180,6 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        // MUX
 
 	        // Insantiate 3 mux to select 3 of the 4 units available
-	        
 
 	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[0] : result_o_ft[3];
 	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[1] : result_o_ft[3];
@@ -233,7 +226,7 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 	        );
 
 	        //voter of ready_o
-	        cv32e40p_3voter #(1,1) voter_comp_ready
+	        cv32e40p_3voter #(1,1) voter_ready
 	        (
 		     .in_1_i           ( voter_ready_1_in ),
 		     .in_2_i           ( voter_ready_2_in ),
@@ -363,8 +356,8 @@ input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating 
 			  .alu_enable_i 						(enable_i),
 			  .alu_operator_i 						(operator_i),
 			  .error_detected_i						({err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0}), 
-			  .permanent_faulty_alu_o     					(permanent_faulty_alu_o),
-			  .perf_counter_permanent_faulty_alu_o				(perf_counter_permanent_faulty_alu_o)
+			  .permanent_faulty_alu_o     			(permanent_faulty_alu_o),
+			  .perf_counter_permanent_faulty_alu_o	(perf_counter_permanent_faulty_alu_o)
 			);
 
 	        assign err_detected_o = (err_detected_res || err_detected_comp || err_detected_ready);
