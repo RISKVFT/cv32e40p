@@ -19,6 +19,7 @@
 
 
 module cv32e40p_decoder_faulty_alu(
+  input  logic 			  alu_enable,
   input  logic [3:0] 	  permanent_faulty_alu_i,  // one for each ALU
   output logic [3:0]      clock_gate_pipe_replica_o,
   output logic [2:0]	  sel_mux_ex_o
@@ -30,31 +31,39 @@ module cv32e40p_decoder_faulty_alu(
 // I want to have always TMR even if one of the three ALU is faulty.
 
 always_comb begin : proc_decoder_faulty_alu
-	unique case (permanent_faulty_alu_i)
-		4'b0000: begin
-			clock_gate_pipe_replica_o = 4'b0111;
-			sel_mux_ex_o <= 3'b000;
-		end
-		4'b0001: begin
-			clock_gate_pipe_replica_o = 4'b1110;
-			sel_mux_ex_o <= 3'b001;
-		end
-		4'b0010, 4'b0011: begin
-			clock_gate_pipe_replica_o = 4'b1101;
-			sel_mux_ex_o <= 3'b010;
-		end
-		4'b0100, 4'b0101, 4'b0111: begin
-			clock_gate_pipe_replica_o = 4'b1011;
-			sel_mux_ex_o <= 3'b100;
-		end
-		4'b1000, 4'b1001, 4'b1010, 4'b1011, 4'b1100, 4'b1101, 4'b1110, 4'b1111 : begin
-			clock_gate_pipe_replica_o = 4'b0111;
-			sel_mux_ex_o <= 3'b000;
-		end
+	if (alu_enable) begin  //only if alu has to be used we have to provide this decoding becasue it is relative to the choice of three of the four ALUs
+		unique case (permanent_faulty_alu_i)
+			4'b0000: begin
+				clock_gate_pipe_replica_o = 4'b0111;
+				sel_mux_ex_o <= 3'b000;
+			end
+			4'b0001: begin
+				clock_gate_pipe_replica_o = 4'b1110;
+				sel_mux_ex_o <= 3'b001;
+			end
+			4'b0010, 4'b0011: begin
+				clock_gate_pipe_replica_o = 4'b1101;
+				sel_mux_ex_o <= 3'b010;
+			end
+			4'b0100, 4'b0101, 4'b0111: begin
+				clock_gate_pipe_replica_o = 4'b1011;
+				sel_mux_ex_o <= 3'b100;
+			end
+			4'b1000, 4'b1001, 4'b1010, 4'b1011, 4'b1100, 4'b1101, 4'b1110, 4'b1111 : begin
+				clock_gate_pipe_replica_o = 4'b0111;
+				sel_mux_ex_o <= 3'b000;
+			end
 
 
-		default : clock_gate_pipe_replica_o = 4'b0111;
-	endcase
+			default : begin
+				clock_gate_pipe_replica_o = 4'b0111;
+				sel_mux_ex_o <= 3'b000;
+			end
+		endcase
+	end else begin
+		clock_gate_pipe_replica_o = 4'b0111;
+		sel_mux_ex_o <= 3'b000;
+	end
 
 end
 

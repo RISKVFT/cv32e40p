@@ -21,6 +21,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 (
   // INPUTS //
   input logic         clk,                  // Gated clock
+  input logic         clk_en,
   input logic 	      rst_n,
   input logic         data_misaligned_i,
   input logic         ex_ready_i,           // EX stage is ready for the next instruction
@@ -150,7 +151,19 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
 );
 
-/////////////////////////////////////////////////////////////////////////////////
+  /*logic clk_gated_ft;
+
+  cv32e40p_clock_gate clk_gate_pipeline
+  (
+   .clk_i        ( clk ),
+   .en_i         ( clk_en ),
+   .scan_cg_en_i ( 1'b0 ), // not used here
+   .clk_o        ( clk_gated_ft )
+  );*/
+
+
+
+  /////////////////////////////////////////////////////////////////////////////////
   //   ___ ____        _______  __  ____ ___ ____  _____ _     ___ _   _ _____   //
   //  |_ _|  _ \      | ____\ \/ / |  _ \_ _|  _ \| ____| |   |_ _| \ | | ____|  //
   //   | || | | |_____|  _|  \  /  | |_) | || |_) |  _| | |    | ||  \| |  _|    //
@@ -159,11 +172,10 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   //                                                                             //
   /////////////////////////////////////////////////////////////////////////////////
 
-  always_ff @(posedge clk, negedge rst_n)
-  begin : ID_EX_PIPE_REGISTERS
+  always_ff @(posedge clk or negedge rst_n)  begin : ID_EX_PIPE_REGISTERS
 
-    if (rst_n == 1'b0)
-    begin
+    if (~rst_n) begin
+
       alu_en_ex_o                 <= '0;
       alu_operator_ex_o           <= ALU_SLTU;
       alu_operand_a_ex_o          <= '0;
@@ -232,7 +244,8 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       clock_enable_alu_o          <= 3'b0;*/
 
     end
-    else if (data_misaligned_i) begin
+    else if (clk_en) begin
+    if (data_misaligned_i) begin
 
       // misaligned data access case
       /*clock_enable_alu_o           <= clock_enable_alu_i;
@@ -384,5 +397,5 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       end
     end
   end
-
+  end
 endmodule

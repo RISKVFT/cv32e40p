@@ -257,7 +257,7 @@ generate
             count_min_max[i]     <= 8'b0;
             count_div_rem[i]     <= 8'b0;
             count_shuf[i]        <= 8'b0;
-	  end
+	        end
         endcase; // case (alu_operator)
       end
     end
@@ -273,39 +273,39 @@ generate
         // shift
          // Logic
         ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:
-        if (permanent_faulty_alu_o[0][0] != 1'b1) begin
-          if (count_shift[i]>100) begin
-             permanent_faulty_alu_o[0][0] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][0]) begin
+          if (count_shift[i]==100) begin
+             permanent_faulty_alu_o[i][0] <= 1'b1;
           end
         end
 
         ALU_XOR, ALU_OR, ALU_AND:
-        if (permanent_faulty_alu_o[0][1] != 1'b1) begin
-          if (count_logic[i]>100) begin
-             permanent_faulty_alu_o[0][1] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][1]) begin
+          if (count_logic[i]==100) begin
+             permanent_faulty_alu_o[i][1] <= 1'b1;
           end
         end
           
         // Bit manipulation
         ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV: 
-        if (permanent_faulty_alu_o[0][2] != 1'b1) begin
-          if (count_bit_man[i]>100) begin
-             permanent_faulty_alu_o[0][2] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][2]) begin
+          if (count_bit_man[i]==100) begin
+             permanent_faulty_alu_o[i][2] <= 1'b1;
           end
         end
 
         // Bit counting
         ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
-        if (permanent_faulty_alu_o[0][3] != 1'b1) begin
-          if (count_bit_count[i]>100) begin
-             permanent_faulty_alu_o[0][3] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][3]) begin
+          if (count_bit_count[i]==100) begin
+             permanent_faulty_alu_o[i][3] <= 1'b1;
           end
         end
 
         // Shuffle
         ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:
-        if (permanent_faulty_alu_o[0][4] != 1'b1) begin
-          if (count_shuf[i]>100) begin
+        if (~permanent_faulty_alu_o[0][4]) begin
+          if (count_shuf[i]==100) begin
              permanent_faulty_alu_o[0][4] <= 1'b1;
           end
         end
@@ -313,33 +313,33 @@ generate
 
         // Comparisons
         ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:
-        if (permanent_faulty_alu_o[0][5] != 1'b1) begin
-          if (count_comparison[i]>100) begin
-             permanent_faulty_alu_o[0][5] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][5]) begin
+          if (count_comparison[i]==100) begin
+             permanent_faulty_alu_o[i][5] <= 1'b1;
           end
         end
 
         // Absolute value
         ALU_ABS, ALU_CLIP, ALU_CLIPU:
-        if (permanent_faulty_alu_o[0][6] != 1'b1) begin
-          if (count_abs[i]>100) begin
-             permanent_faulty_alu_o[0][6] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][6]) begin
+          if (count_abs[i]==100) begin
+             permanent_faulty_alu_o[i][6] <= 1'b1;
           end
         end
 
         // min/max
         ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:
-        if (permanent_faulty_alu_o[0][7] != 1'b1) begin
-          if (count_min_max[i]>100) begin
-             permanent_faulty_alu_o[0][7] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][7]) begin
+          if (count_min_max[i]==100) begin
+             permanent_faulty_alu_o[i][7] <= 1'b1;
           end
         end
 
         // div/rem
         ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM: 
-        if (permanent_faulty_alu_o[0][8] != 1'b1) begin
-          if (count_div_rem[i]>100) begin
-             permanent_faulty_alu_o[0][8] <= 1'b1;
+        if (~permanent_faulty_alu_o[i][8]) begin
+          if (count_div_rem[i]==100) begin
+             permanent_faulty_alu_o[i][8] <= 1'b1;
           end
         end
       endcase

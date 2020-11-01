@@ -112,7 +112,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	logic [ 2:0]        	  err_detected_mult;
 
 	logic [ 2:0]              counter_mult; // counter for the three MULTs
-	logic [ 2:0               ]enable_count;
+	logic [ 2:0]              enable_count;
 
 	/*
 	logic					  err_detected_res_mult0;
@@ -218,7 +218,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	         .in_1_i           ( multicycle_o_ft[0] ),
 	         .in_2_i           ( multicycle_o_ft[1] ),
 	         .in_3_i           ( multicycle_o_ft[2] ),
-	         .voted_o          ( voter_multicycle_o ),
+	         .voted_o          ( multicycle_o ),
 	         .err_detected_1   ( err_detected_multicycle_1 ),
 	         .err_detected_2   ( err_detected_multicycle_2 ),
 	         .err_detected_3   ( err_detected_multicycle_3 ),
@@ -283,6 +283,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        	if(~rst_n) begin
 	        		perf_counter_permanent_faulty_mult_o[0] <= 1'b0;
 	        		counter_mult[0] <= 8'b0;
+	        		enable_count[0] <= 1'b0;
 	        	end 
 	        	else if (enable_i[0] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
 	        		if (err_detected_mult[0]==1) begin
@@ -305,6 +306,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        	if(~rst_n) begin
 	        		perf_counter_permanent_faulty_mult_o[1] <= 1'b0;
 	        		counter_mult[1] <= 8'b0;
+	        		enable_count[1] <= 1'b0;
 	        	end 
 	        	else if (enable_i[1] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
 	        		if (err_detected_mult[1]==1) begin
@@ -328,6 +330,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        	if(~rst_n) begin
 	        		perf_counter_permanent_faulty_mult_o[2] <= 1'b0;
 	        		counter_mult[2] <= 8'b0;
+	        		enable_count[2] <= 1'b0;
 	        	end 
 	        	else if (enable_i[2] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
 	        		if (err_detected_mult[2]==1) begin

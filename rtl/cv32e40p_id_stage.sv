@@ -245,7 +245,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic [31:0] mcounteren_i,
 
     // FT
-    input  logic [8:0][3:0] 	permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
+    input  logic [8:0][3:0]   permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
     output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     output logic [3:0]        clock_enable_alu_o,
 
@@ -1654,24 +1654,34 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
         cv32e40p_decoder_faulty_alu decoder_faulty_alu 
         ( 
+         .alu_enable                 ( alu_en ),
          .permanent_faulty_alu_i     (permanent_faulty_alu_in_decoder),
          .clock_gate_pipe_replica_o  (clock_en),
          .sel_mux_ex_o               (sel_mux_ex_s)
         );
+        //assign sel_mux_ex_s = 4'b000;
+        //assign clock_en = 4'b0111;
 
-        /*// Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
-        cv32e40p_clock_gate clk_gate_4 [3:0]
+        // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
+        /*cv32e40p_clock_gate clk_gate_4[3:0]
         (
          .clk_i        ( clk ),
-         .en_i         ( clock_en ),
+         .en_i         ( clock_en[3:0] ),
          .scan_cg_en_i ( 1'b0 ), // not used here
-         .clk_o        ( clk_gated_ft )
+         .clk_o        ( clk_gated_ft[3:0] )
         );*/
 
+        /*
         assign clk_gated_ft[0] = clock_en[0] & clk; 
         assign clk_gated_ft[1] = clock_en[1] & clk; 
         assign clk_gated_ft[2] = clock_en[2] & clk; 
-        assign clk_gated_ft[3] = clock_en[3] & clk;  
+        assign clk_gated_ft[3] = clock_en[3] & clk;
+        */  
+        assign clk_gated_ft[0] = clk; 
+        assign clk_gated_ft[1] = clk; 
+        assign clk_gated_ft[2] = clk; 
+        assign clk_gated_ft[3] = clk;
+
 
         cv32e40p_ID_EX_pipeline 
         #(
@@ -1683,6 +1693,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         (
           // INPUTS //
           .clk                      ( clk_gated_ft ),// Gated clock
+          .clk_en                   ( clock_en ),
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -2711,7 +2722,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
             ID_EX_pipeline
             (
               // INPUTS //
-              .clk                      ( clk_gated_ft ),// Gated clock
+              .clk                      ( clk ),// Gated clock
+              .clk_en                   ( clock_en ),
               .rst_n                    ( rst_n ),
               .data_misaligned_i        ( data_misaligned_i ),
               .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction

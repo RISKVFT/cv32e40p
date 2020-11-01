@@ -241,7 +241,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 
 
-
+	        
 			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
 			// In this way the counter associated to the standby ALU does not increment. --> This is obtained also with clock gatin but for security we provide also this approach.
 			always_comb begin : assign_err_count_to_3_used_alu
@@ -339,6 +339,22 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 				
 			end
 
+
+					/*assign	err_detected_res_alu0 = 1'b1;
+					assign	err_detected_comp_alu0 = 1'b0;
+					assign	err_detected_ready_alu0 = 1'b0;
+
+					assign	err_detected_res_alu1 = 1'b0;
+					assign	err_detected_comp_alu1 = 1'b0;
+					assign	err_detected_ready_alu1 = 1'b0;
+
+					assign	err_detected_res_alu2 = 1'b0;
+					assign	err_detected_comp_alu2 = 1'b0;
+					assign	err_detected_ready_alu2 = 1'b0;
+
+					assign	err_detected_res_alu3 = 1'b1;
+					assign	err_detected_comp_alu3 = 1'b0;
+					assign	err_detected_ready_alu3 = 1'b0;*/
 			
 
 			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU
@@ -350,7 +366,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
-			  .clk 									(clock),
+			  .clk 									(clk),
 			  .clock_en 							(clock_en_i),
 			  .rst_n								(rst_n),
 			  .alu_enable_i 						(enable_i),

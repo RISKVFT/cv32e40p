@@ -372,14 +372,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]      alu_operand_a_ex_core;
   logic [31:0]      alu_operand_c_ex_core;
   logic [APU_NDSFLAGS_CPU-1:0]            apu_flags_ex_core;
-  logic [5:0]       data_atop_ex_core;
+  //logic [5:0]       data_atop_ex_core;
   logic [ 1:0]      data_type_ex_core;
   logic [ 1:0]      data_sign_ext_ex_core;
   logic             data_load_event_ex_core;
   logic [ 1:0]      data_reg_offset_ex_core;
   logic             data_misaligned_ex_core;
   logic             useincr_addr_ex_core;
-  logic [ 5:0]      atop_ex_core;
+  logic [ 5:0]      data_atop_ex_core;
   logic             csr_access_ex_core;
   logic             data_req_ex_core; 
   logic             data_we_ex_core; 
@@ -810,7 +810,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .data_reg_offset_ex_voted     ( data_reg_offset_ex_core ),
     .data_misaligned_ex_voted     ( data_misaligned_ex_core ),
     .useincr_addr_ex_voted        ( useincr_addr_ex_core ),
-    .atop_ex_voted                ( atop_ex_core ),
+    .atop_ex_voted                ( data_atop_ex_core ),
     .csr_access_ex_voted          ( csr_access_ex_core ),
     .data_req_ex_voted            ( data_req_ex_core ),   
     .data_we_ex_voted             ( data_we_ex_core ), 
@@ -1219,7 +1219,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .imiss_i                 ( perf_imiss         ),
     .pc_set_i                ( pc_set             ),
     .jump_i                  ( perf_jump          ),
-    .branch_i                ( branch_in_ex_voted ),
+    .branch_i                ( branch_in_ex_core  ),
     .branch_taken_i          ( branch_decision    ),
     .ld_stall_i              ( perf_ld_stall      ),
     .jr_stall_i              ( perf_jr_stall      ),
