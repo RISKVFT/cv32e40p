@@ -25,27 +25,27 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   input  logic        clk,
   input  logic        rst_n,
 
-  input  logic [ 2:0]       enable_i,
-  input  logic [ 2:0][ 2:0] operator_i,
+  input  logic [ 3:0]       enable_i,
+  input  logic [ 3:0][ 2:0] operator_i,
 
   // integer and short multiplier
-  input  logic [ 2:0]       short_subword_i,
-  input  logic [ 2:0][ 1:0] short_signed_i,
+  input  logic [ 3:0]       short_subword_i,
+  input  logic [ 3:0][ 1:0] short_signed_i,
 
-  input  logic [ 2:0][31:0] op_a_i,
-  input  logic [ 2:0][31:0] op_b_i,
-  input  logic [ 2:0][31:0] op_c_i,
+  input  logic [ 3:0][31:0] op_a_i,
+  input  logic [ 3:0][31:0] op_b_i,
+  input  logic [ 3:0][31:0] op_c_i,
 
-  input  logic [ 2:0][ 4:0] imm_i,
+  input  logic [ 3:0][ 4:0] imm_i,
 
   // dot multiplier
-  input  logic [ 2:0][ 1:0] dot_signed_i,
-  input  logic [ 2:0][31:0] dot_op_a_i,
-  input  logic [ 2:0][31:0] dot_op_b_i,
-  input  logic [ 2:0][31:0] dot_op_c_i,
-  input  logic [ 2:0]       is_clpx_i,
-  input  logic [ 2:0][ 1:0] clpx_shift_i,
-  input  logic [ 2:0]       clpx_img_i,
+  input  logic [ 3:0][ 1:0] dot_signed_i,
+  input  logic [ 3:0][31:0] dot_op_a_i,
+  input  logic [ 3:0][31:0] dot_op_b_i,
+  input  logic [ 3:0][31:0] dot_op_c_i,
+  input  logic [ 3:0]       is_clpx_i,
+  input  logic [ 3:0][ 1:0] clpx_shift_i,
+  input  logic [ 3:0]       clpx_img_i,
 
   output logic [31:0] result_o,
 
@@ -58,8 +58,8 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
   //output logic [2:0][8:0] 		   permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU 
-  output logic [2:0]      		   perf_counter_permanent_faulty_mult_o // trigger the performance counter relative to the specific MULT
-  //input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  output logic [2:0]      		   perf_counter_permanent_faulty_mult_o, // trigger the performance counter relative to the specific MULT
+  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 
 );
 
@@ -128,7 +128,22 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	logic 					  err_detected_ready_mult2;
 	*/
 
-
+	// to select 3 of the four inputs coming from the four pipes
+	logic [2:0]				enable_in;
+	logic [2:0][ 2:0]		operator_in;
+	logic [2:0]				short_subword_in;
+	logic [2:0][ 1:0]		short_signed_in;
+	logic [2:0][31:0]		op_a_in;
+	logic [2:0][31:0]       op_b_in;
+	logic [2:0][31:0]		op_c_in;
+	logic [2:0][ 4:0]		imm_in;
+	logic [2:0][ 1:0]		dot_signed_in;
+	logic [2:0][31:0]		dot_op_a_in;
+	logic [2:0][31:0]		dot_op_b_in;
+	logic [2:0][31:0]		dot_op_c_in;
+	logic [2:0]				is_clpx_in;
+	logic [2:0][ 1:0]		clpx_shift_in;
+	logic [2:0]				clpx_img_in;
 
 	generate
 
@@ -144,29 +159,93 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 			////////////////////////////////////////////////////////////////////////////////////
 
 
+	        
+			// MUXs of inputs, to redirect three of the four inputs coming from the four pipelines to the right three MULTs
+			assign enable_in[0] = sel_mux_ex_i[0] ? enable_i[0] : enable_i[3];
+	        assign enable_in[1] = sel_mux_ex_i[1] ? enable_i[1] : enable_i[3];
+	        assign enable_in[2] = sel_mux_ex_i[2] ? enable_i[2] : enable_i[3];
+
+	        assign operator_in[0] = sel_mux_ex_i[0] ? operator_i[0] : operator_i[3];
+	        assign operator_in[1] = sel_mux_ex_i[1] ? operator_i[1] : operator_i[3];
+	        assign operator_in[2] = sel_mux_ex_i[2] ? operator_i[2] : operator_i[3];
+
+	        assign short_subword_in[0] = sel_mux_ex_i[0] ? short_subword_i[0] : short_subword_i[3];
+	        assign short_subword_in[1] = sel_mux_ex_i[1] ? short_subword_i[1] : short_subword_i[3];
+	        assign short_subword_in[2] = sel_mux_ex_i[2] ? short_subword_i[2] : short_subword_i[3];
+
+	        assign short_signed_in[0] = sel_mux_ex_i[0] ? short_signed_i[0] : short_signed_i[3];
+	        assign short_signed_in[1] = sel_mux_ex_i[1] ? short_signed_i[1] : short_signed_i[3];
+	        assign short_signed_in[2] = sel_mux_ex_i[2] ? short_signed_i[2] : short_signed_i[3];
+
+	        assign op_a_in[0] = sel_mux_ex_i[0] ? op_a_i[0] : op_a_i[3];
+	        assign op_a_in[1] = sel_mux_ex_i[1] ? op_a_i[1] : op_a_i[3];
+	        assign op_a_in[2] = sel_mux_ex_i[2] ? op_a_i[2] : op_a_i[3];
+
+	        assign op_c_in[0] = sel_mux_ex_i[0] ? op_c_i[0] : op_c_i[3];
+	        assign op_c_in[1] = sel_mux_ex_i[1] ? op_c_i[1] : op_c_i[3];
+	        assign op_c_in[2] = sel_mux_ex_i[2] ? op_c_i[2] : op_c_i[3];
+
+	        assign op_b_in[0] = sel_mux_ex_i[0] ? op_b_i[0] : op_b_i[3];
+	        assign op_b_in[1] = sel_mux_ex_i[1] ? op_b_i[1] : op_b_i[3];
+	        assign op_b_in[2] = sel_mux_ex_i[2] ? op_b_i[2] : op_b_i[3];
+
+	        assign imm_in[0] = sel_mux_ex_i[0] ? imm_i[0] : imm_i[3];
+	        assign imm_in[1] = sel_mux_ex_i[1] ? imm_i[1] : imm_i[3];
+	        assign imm_in[2] = sel_mux_ex_i[2] ? imm_i[2] : imm_i[3];
+
+	        assign dot_signed_in[0] = sel_mux_ex_i[0] ? dot_signed_i[0] : dot_signed_i[3];
+	        assign dot_signed_in[1] = sel_mux_ex_i[1] ? dot_signed_i[1] : dot_signed_i[3];
+	        assign dot_signed_in[2] = sel_mux_ex_i[2] ? dot_signed_i[2] : dot_signed_i[3];
+
+	        assign dot_op_a_in[0] = sel_mux_ex_i[0] ? dot_op_a_i[0] : dot_op_a_i[3];
+	        assign dot_op_a_in[1] = sel_mux_ex_i[1] ? dot_op_a_i[1] : dot_op_a_i[3];
+	        assign dot_op_a_in[2] = sel_mux_ex_i[2] ? dot_op_a_i[2] : dot_op_a_i[3];
+
+	        assign dot_op_b_in[0] = sel_mux_ex_i[0] ? dot_op_b_i[0] : dot_op_b_i[3];
+	        assign dot_op_b_in[1] = sel_mux_ex_i[1] ? dot_op_b_i[1] : dot_op_b_i[3];
+	        assign dot_op_b_in[2] = sel_mux_ex_i[2] ? dot_op_b_i[2] : dot_op_b_i[3];
+
+	        assign dot_op_c_in[0] = sel_mux_ex_i[0] ? dot_op_c_i[0] : dot_op_c_i[3];
+	        assign dot_op_c_in[1] = sel_mux_ex_i[1] ? dot_op_c_i[1] : dot_op_c_i[3];
+	        assign dot_op_c_in[2] = sel_mux_ex_i[2] ? dot_op_c_i[2] : dot_op_c_i[3];
+
+	        assign is_clpx_in[0] = sel_mux_ex_i[0] ? is_clpx_i[0] : is_clpx_i[3];
+	        assign is_clpx_in[1] = sel_mux_ex_i[1] ? is_clpx_i[1] : is_clpx_i[3];
+	        assign is_clpx_in[2] = sel_mux_ex_i[2] ? is_clpx_i[2] : is_clpx_i[3];
+
+	        assign clpx_shift_in[0] = sel_mux_ex_i[0] ? clpx_shift_i[0] : clpx_shift_i[3];
+	        assign clpx_shift_in[1] = sel_mux_ex_i[1] ? clpx_shift_i[1] : clpx_shift_i[3];
+	        assign clpx_shift_in[2] = sel_mux_ex_i[2] ? clpx_shift_i[2] : clpx_shift_i[3];
+
+	        assign clpx_img_in[0] = sel_mux_ex_i[0] ? clpx_img_i[0] : clpx_img_i[3];
+	        assign clpx_img_in[1] = sel_mux_ex_i[1] ? clpx_img_i[1] : clpx_img_i[3];
+	        assign clpx_img_in[2] = sel_mux_ex_i[2] ? clpx_img_i[2] : clpx_img_i[3];
+
+
+
 	        cv32e40p_mult mult_ft_3_i[2:0] // four identical MULT replicas if FT=1 
-	        (
-	         .clk                 ( clk         ),
-	         .rst_n               ( rst_n       ),
-	         .enable_i            ( enable_i    ),
-	         .operator_i          ( operator_i  ),
-	         .short_subword_i     ( short_subword_i ),
-	         .short_signed_i      ( short_signed_i ),
+	        ( 
+	         .clk                 ( clk          ),
+	         .rst_n               ( rst_n        ),
+	         .enable_i            ( enable_in    ),
+	         .operator_i          ( operator_in  ),
+	         .short_subword_i     ( short_subword_in ),
+	         .short_signed_i      ( short_signed_in  ),
 
-	         .op_a_i         	  ( op_a_i ),
-	         .op_b_i              ( op_b_i ),
-	         .op_c_i              ( op_c_i ),
+	         .op_a_i         	  ( op_a_in ),
+	         .op_b_i              ( op_b_in ),
+	         .op_c_i              ( op_c_in ),
 
-			 .imm_i               ( imm_i  ),
+			 .imm_i               ( imm_in  ),
 
 			  // dot multiplier
-			 .dot_signed_i        ( dot_signed_i ),
-			 .dot_op_a_i          ( dot_op_a_i   ),
-			 .dot_op_b_i          ( dot_op_b_i   ),
-			 .dot_op_c_i          ( dot_op_c_i   ),
-			 .is_clpx_i           ( is_clpx_i    ),
-			 .clpx_shift_i        ( clpx_shift_i ),
-			 .clpx_img_i          ( clpx_img_i   ),
+			 .dot_signed_i        ( dot_signed_in ),
+			 .dot_op_a_i          ( dot_op_a_in   ),
+			 .dot_op_b_i          ( dot_op_b_in   ),
+			 .dot_op_c_i          ( dot_op_c_in   ),
+			 .is_clpx_i           ( is_clpx_in    ),
+			 .clpx_shift_i        ( clpx_shift_in ),
+			 .clpx_img_i          ( clpx_img_in   ),
 
 	         .result_o            ( result_o_ft  ),
 

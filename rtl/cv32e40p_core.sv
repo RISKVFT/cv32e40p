@@ -895,21 +895,21 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .alu_clpx_shift_i           ( alu_clpx_shift_ex        ), // from ID/EX pipe registers
 
     // Multipler
-    .mult_operator_i            ( mult_operator_ex[2:0]         ), // from ID/EX pipe registers
-    .mult_operand_a_i           ( mult_operand_a_ex[2:0]        ), // from ID/EX pipe registers
-    .mult_operand_b_i           ( mult_operand_b_ex[2:0]        ), // from ID/EX pipe registers
-    .mult_operand_c_i           ( mult_operand_c_ex[2:0]        ), // from ID/EX pipe registers
-    .mult_en_i                  ( mult_en_ex[2:0]               ), // from ID/EX pipe registers
-    .mult_sel_subword_i         ( mult_sel_subword_ex[2:0]     ), // from ID/EX pipe registers
-    .mult_signed_mode_i         ( mult_signed_mode_ex[2:0]      ), // from ID/EX pipe registers
-    .mult_imm_i                 ( mult_imm_ex[2:0]              ), // from ID/EX pipe registers
-    .mult_dot_op_a_i            ( mult_dot_op_a_ex[2:0]         ), // from ID/EX pipe registers
-    .mult_dot_op_b_i            ( mult_dot_op_b_ex[2:0]         ), // from ID/EX pipe registers
-    .mult_dot_op_c_i            ( mult_dot_op_c_ex[2:0]         ), // from ID/EX pipe registers
-    .mult_dot_signed_i          ( mult_dot_signed_ex[2:0]       ), // from ID/EX pipe registers
-    .mult_is_clpx_i             ( mult_is_clpx_ex [2:0]         ), // from ID/EX pipe registers
-    .mult_clpx_shift_i          ( mult_clpx_shift_ex[2:0]       ), // from ID/EX pipe registers
-    .mult_clpx_img_i            ( mult_clpx_img_ex[2:0]         ), // from ID/EX pipe registers
+    .mult_operator_i            ( mult_operator_ex         ), // from ID/EX pipe registers
+    .mult_operand_a_i           ( mult_operand_a_ex        ), // from ID/EX pipe registers
+    .mult_operand_b_i           ( mult_operand_b_ex        ), // from ID/EX pipe registers
+    .mult_operand_c_i           ( mult_operand_c_ex        ), // from ID/EX pipe registers
+    .mult_en_i                  ( mult_en_ex               ), // from ID/EX pipe registers
+    .mult_sel_subword_i         ( mult_sel_subword_ex      ), // from ID/EX pipe registers
+    .mult_signed_mode_i         ( mult_signed_mode_ex      ), // from ID/EX pipe registers
+    .mult_imm_i                 ( mult_imm_ex              ), // from ID/EX pipe registers
+    .mult_dot_op_a_i            ( mult_dot_op_a_ex         ), // from ID/EX pipe registers
+    .mult_dot_op_b_i            ( mult_dot_op_b_ex         ), // from ID/EX pipe registers
+    .mult_dot_op_c_i            ( mult_dot_op_c_ex         ), // from ID/EX pipe registers
+    .mult_dot_signed_i          ( mult_dot_signed_ex       ), // from ID/EX pipe registers
+    .mult_is_clpx_i             ( mult_is_clpx_ex          ), // from ID/EX pipe registers
+    .mult_clpx_shift_i          ( mult_clpx_shift_ex       ), // from ID/EX pipe registers
+    .mult_clpx_img_i            ( mult_clpx_img_ex         ), // from ID/EX pipe registers
 
     .mult_multicycle_o          ( mult_multicycle          ), // to ID/EX pipe registers
 

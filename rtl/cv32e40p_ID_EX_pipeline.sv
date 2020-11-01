@@ -244,8 +244,8 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       clock_enable_alu_o          <= 3'b0;*/
 
     end
-    else if (clk_en) begin
-    if (data_misaligned_i) begin
+    //else if (clk_en) begin
+    else if (data_misaligned_i) begin
 
       // misaligned data access case
       /*clock_enable_alu_o           <= clock_enable_alu_i;
@@ -397,5 +397,5 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       end
     end
   end
-  end
+  //end
 endmodule

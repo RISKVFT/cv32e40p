@@ -59,22 +59,22 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [3:0][ 1:0] alu_clpx_shift_i,
 
   // Multiplier signals
-  input  logic [2:0][ 2:0] mult_operator_i,
-  input  logic [2:0][31:0] mult_operand_a_i,
-  input  logic [2:0][31:0] mult_operand_b_i,
-  input  logic [2:0][31:0] mult_operand_c_i,
-  input  logic [2:0]       mult_en_i,
-  input  logic [2:0]       mult_sel_subword_i,
-  input  logic [2:0][ 1:0] mult_signed_mode_i,
-  input  logic [2:0][ 4:0] mult_imm_i,
+  input  logic [3:0][ 2:0] mult_operator_i,
+  input  logic [3:0][31:0] mult_operand_a_i,
+  input  logic [3:0][31:0] mult_operand_b_i,
+  input  logic [3:0][31:0] mult_operand_c_i,
+  input  logic [3:0]       mult_en_i,
+  input  logic [3:0]       mult_sel_subword_i,
+  input  logic [3:0][ 1:0] mult_signed_mode_i,
+  input  logic [3:0][ 4:0] mult_imm_i,
 
-  input  logic [2:0][31:0] mult_dot_op_a_i,
-  input  logic [2:0][31:0] mult_dot_op_b_i,
-  input  logic [2:0][31:0] mult_dot_op_c_i,
-  input  logic [2:0][ 1:0] mult_dot_signed_i,
-  input  logic [2:0]       mult_is_clpx_i,
-  input  logic [2:0][ 1:0] mult_clpx_shift_i,
-  input  logic [2:0]       mult_clpx_img_i,
+  input  logic [3:0][31:0] mult_dot_op_a_i,
+  input  logic [3:0][31:0] mult_dot_op_b_i,
+  input  logic [3:0][31:0] mult_dot_op_c_i,
+  input  logic [3:0][ 1:0] mult_dot_signed_i,
+  input  logic [3:0]       mult_is_clpx_i,
+  input  logic [3:0][ 1:0] mult_clpx_shift_i,
+  input  logic [3:0]       mult_clpx_img_i,
 
   output logic             mult_multicycle_o,
 
@@ -419,7 +419,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ex_ready_i      ( ex_ready_o           ),
     .err_corrected_o ( err_corrected_mult_o ),
     .err_detected_o  ( err_detected_mult_o ),
-    .perf_counter_permanent_faulty_mult_o ( perf_counter_permanent_faulty_mult_o )
+    .perf_counter_permanent_faulty_mult_o ( perf_counter_permanent_faulty_mult_o ),
+    .sel_mux_ex_i        (sel_mux_ex_i)
   );
 
    generate
