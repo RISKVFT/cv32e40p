@@ -159,7 +159,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [2:0]       sel_mux_ex_i, // selector of the three mux to choose three of the four alu
   output logic             err_corrected_alu_o,
   output logic             err_detected_alu_o,
-  output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
+  output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
+  output logic [3:0][8:0]  permanent_faulty_alu_s_o, 
   output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
   input  logic [3:0]       clock_enable_alu_i,
 
@@ -353,6 +354,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_corrected_o     (err_corrected_alu_o),
     .err_detected_o      (err_detected_alu_o),
     .permanent_faulty_alu_o                 (permanent_faulty_alu_o),
+    .permanent_faulty_alu_s                 (permanent_faulty_alu_s_o), 
     .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
     .sel_mux_ex_i        (sel_mux_ex_i)
 

@@ -245,7 +245,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic [31:0] mcounteren_i,
 
     // FT
-    input  logic [8:0][3:0]   permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
+    input  logic [3:0][8:0]   permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
+    input  logic [3:0][8:0]   permanent_faulty_alu_s_i,
     output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     output logic [3:0]        clock_enable_alu_o,
 
@@ -619,6 +620,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][ 5:0]           regfile_alu_waddr_ex_voter_in;
   logic [2:0]                 regfile_alu_we_ex_voter_in;
 
+  logic [8:0][3:0]            permanent_faulty_alu_trans;
+  logic [8:0][3:0]            permanent_faulty_alu_trans_s;
   logic [3:0]				  permanent_faulty_alu_in_decoder;
 
   /*// for those signal used in ex stage and in particular by the single alu incase FT==0
@@ -1589,6 +1592,17 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   //                                                                             //
   /////////////////////////////////////////////////////////////////////////////////
 
+genvar y;
+genvar z;
+generate //transpose the permanent_faulty_alu matrix
+    for (y=0; y<4; y++) begin
+        for (z=0; z<9; z++) begin
+            assign permanent_faulty_alu_trans[z][y] = permanent_faulty_alu_i[y][z];
+            assign permanent_faulty_alu_trans_s[z][y] = permanent_faulty_alu_s_i[y][z];
+        end
+    end
+endgenerate
+
 
   generate
 
@@ -1596,58 +1610,56 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       
         always_comb begin: EX_dispatcher
 
-            case (alu_operator_ex_voted) 
+            case (alu_operator) 
 
                 // shift
-                ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL: 
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[0]; 
+                ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[0] | permanent_faulty_alu_trans_s[0]; 
 
 
                 // Logic
                 ALU_XOR, ALU_OR, ALU_AND:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[1];  
-
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[1] | permanent_faulty_alu_trans_s[1];  
 
 
                 // Bit manipulation
                 ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[2];
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[2] | permanent_faulty_alu_trans_s[2];
 
 
                 // Bit counting
                 ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[3];
-
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[3] | permanent_faulty_alu_trans_s[3];
 
 
                 // Shuffle
                 ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS: 
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[4]; 
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[4] | permanent_faulty_alu_trans_s[4]; 
 
 
                 // Comparisons
                 ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[5];
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[5] | permanent_faulty_alu_trans_s[5];
 
 
                 // Absolute value
                 ALU_ABS, ALU_CLIP, ALU_CLIPU:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[6]; 
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[6] | permanent_faulty_alu_trans_s[6]; 
 
 
                 // min/max
                 ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[7];
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[7] | permanent_faulty_alu_trans_s[7];
 
 
                 // div/rem
                 ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_i[8];  
+                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[8] | permanent_faulty_alu_trans_s[8];  
 
 
                 default:  permanent_faulty_alu_in_decoder = 4'b0000;        
 
-            endcase // case (alu_operator_ex_voted)
+            endcase // case (alu_operator)
 
         end // end always_comb EX_dispatcher
 
@@ -1655,9 +1667,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         cv32e40p_decoder_faulty_alu decoder_faulty_alu 
         ( 
          .alu_enable                 ( alu_en ),
-         .permanent_faulty_alu_i     (permanent_faulty_alu_in_decoder),
-         .clock_gate_pipe_replica_o  (clock_en),
-         .sel_mux_ex_o               (sel_mux_ex_s)
+         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_decoder ),
+         .clock_gate_pipe_replica_o  ( clock_en ),
+         .sel_mux_ex_o               ( sel_mux_ex_s )
         );
         //assign sel_mux_ex_s = 4'b000;
         //assign clock_en = 4'b0111;
@@ -1677,10 +1689,12 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
         assign clk_gated_ft[2] = clock_en[2] & clk; 
         assign clk_gated_ft[3] = clock_en[3] & clk;
         */  
+        
         assign clk_gated_ft[0] = clk; 
         assign clk_gated_ft[1] = clk; 
         assign clk_gated_ft[2] = clk; 
         assign clk_gated_ft[3] = clk;
+        
 
 
         cv32e40p_ID_EX_pipeline 

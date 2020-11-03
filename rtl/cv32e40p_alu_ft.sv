@@ -49,7 +49,8 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
   output logic                     err_corrected_o,
   output logic                     err_detected_o,
-  output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU 
+  output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
+  output logic [3:0][8:0]          permanent_faulty_alu_s,  // one for each counter: 4 ALU and 9 subpart of ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
   input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
 
@@ -269,17 +270,17 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_comp_alu0 = 1'b0;
 						err_detected_ready_alu0 = 1'b0;
 
-						err_detected_res_alu1 = err_detected_res_1;
-						err_detected_comp_alu1 = err_detected_comp_1;
-						err_detected_ready_alu1 = err_detected_ready_1;
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
 
-						err_detected_res_alu2 = err_detected_res_2;
-						err_detected_comp_alu2 = err_detected_comp_2;
-						err_detected_ready_alu2 = err_detected_ready_2;
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
 
-						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comp_alu3 = err_detected_comp_3;
-						err_detected_ready_alu3 = err_detected_ready_3;
+						err_detected_res_alu3 = err_detected_res_1;
+						err_detected_comp_alu3 = err_detected_comp_1;
+						err_detected_ready_alu3 = err_detected_ready_1;
 					end
 
 					4'b1101: begin
@@ -291,13 +292,13 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_comp_alu1 = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
-						err_detected_res_alu2 = err_detected_res_2;
-						err_detected_comp_alu2 = err_detected_comp_2;
-						err_detected_ready_alu3 = err_detected_ready_2;
-
-						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comp_alu3 = err_detected_comp_3;
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
 						err_detected_ready_alu3 = err_detected_ready_3;
+
+						err_detected_res_alu3 = err_detected_res_2;
+						err_detected_comp_alu3 = err_detected_comp_2;
+						err_detected_ready_alu3 = err_detected_ready_2;
 					end
 
 					4'b1011: begin
@@ -373,6 +374,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .alu_operator_i 						(operator_i),
 			  .error_detected_i						({err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0}), 
 			  .permanent_faulty_alu_o     			(permanent_faulty_alu_o),
+			  .permanent_faulty_alu_s               (permanent_faulty_alu_s),  
 			  .perf_counter_permanent_faulty_alu_o	(perf_counter_permanent_faulty_alu_o)
 			);
 

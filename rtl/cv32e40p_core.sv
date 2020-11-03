@@ -356,6 +356,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   // FT - ID stage
   logic [3:0][8:0]   permanent_faulty_alu;  // set of 4 9bit register for a each ALU. One for each fsm: 4 ALU and 9 subpart of ALU
+  logic [3:0][8:0]   permanent_faulty_alu_s; 
   logic [2:0]        sel_mux_ex;            // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
   logic [3:0]        clock_enable_alu;		// FT: output of quadruplicated pipe
 
@@ -797,7 +798,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .perf_pipeline_stall_o        ( perf_pipeline_stall  ),
     .mcounteren_i                 ( mcounteren           ),
 
-    .permanent_faulty_alu_i       ( permanent_faulty_alu ),  // one for each fsm: 4 ALU and 9 subpart of ALU
+    .permanent_faulty_alu_i       ( permanent_faulty_alu   ),  // one for each fsm: 4 ALU and 9 subpart of ALU
+    .permanent_faulty_alu_s_i     ( permanent_faulty_alu_s ), 
     .sel_mux_ex_o                 ( sel_mux_ex ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     .clock_enable_alu_o           ( clock_enable_alu ),
     .pc_ex_voted                  ( pc_ex_core ),
@@ -989,13 +991,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .wb_ready_i                 ( lsu_ready_wb             ),
 
     // FT
-    .sel_mux_ex_i               (sel_mux_ex                ), // selector of the three mux to choose three of the four alu
-    .err_corrected_alu_o            (err_corrected_alu         ),
-    .err_detected_alu_o             (err_detected_alu          ),
-    .permanent_faulty_alu_o     (permanent_faulty_alu      ),  // set of 4 9bit register for a each ALU 
-    .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
-    .clock_enable_alu_i         (clock_enable_alu          ),
-    .alu_en_ex_voted_i          ( alu_en_ex_core ),
+    .sel_mux_ex_i               ( sel_mux_ex               ), // selector of the three mux to choose three of the four alu
+    .err_corrected_alu_o        ( err_corrected_alu        ),
+    .err_detected_alu_o         ( err_detected_alu         ),
+    .permanent_faulty_alu_o     ( permanent_faulty_alu     ),  // set of 4 9bit register for a each ALU 
+    .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   ),  // set of 4 9bit register for a each ALU 
+    .perf_counter_permanent_faulty_alu_o    ( perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
+    .clock_enable_alu_i         ( clock_enable_alu         ),
+    .alu_en_ex_voted_i          ( alu_en_ex_core           ),
     /*
     .mult_operator_ex_voted_i   ( mult_operator_ex_core ),   
     .mult_operand_a_ex_voted_i  ( mult_operand_a_ex_core ), 
