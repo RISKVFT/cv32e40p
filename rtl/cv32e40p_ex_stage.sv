@@ -241,7 +241,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic           apu_ready;
   logic           apu_gnt;
 
-
+  logic [ 3:0]    clk_gated_alu_ft;
+ 
   // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
   cv32e40p_3voter #(1,1) voter_mult_en_ex
   (
@@ -312,6 +313,18 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   assign jump_target_o     = alu_operand_c_i;
 
 
+
+
+
+  cv32e40p_clock_gate clk_gate_alu_4[3:0]
+  (
+   .clk_i        ( clk ),
+   .en_i         ( clock_enable_alu_i ),
+   .scan_cg_en_i ( 1'b0 ), // not used here
+   .clk_o        ( clk_gated_alu_ft   )
+  );
+
+
   ////////////////////////////
   //     _    _    _   _    //
   //    / \  | |  | | | |   //
@@ -328,6 +341,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
    alu_ft_i
   (
     .clk                 ( clk             ),
+    .clk_g               ( clk_gated_alu_ft ),
     .rst_n               ( rst_n           ),
     .enable_i            ( alu_en_i        ),
     .operator_i          ( alu_operator_i  ),

@@ -244,6 +244,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   // CSR control
   logic [3:0]       csr_access_ex;				// FT: output of quadruplicated pipe
   logic [3:0][1:0]  csr_op_ex;					// FT: output of quadruplicated pipe
+
   logic [23:0] mtvec, utvec;
   logic [1:0]  mtvec_mode;
   logic [1:0]  utvec_mode;
@@ -382,6 +383,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic             useincr_addr_ex_core;
   logic [ 5:0]      data_atop_ex_core;
   logic             csr_access_ex_core;
+  logic [1:0]	    csr_op_ex_core;
   logic             data_req_ex_core; 
   logic             data_we_ex_core; 
   logic             branch_in_ex_core;
@@ -711,120 +713,121 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .apu_busy_i                   ( apu_busy                ),
 
     // CSR ID/EX
-    .csr_access_ex_o              ( csr_access_ex        ),
-    .csr_op_ex_o                  ( csr_op_ex            ),
-    .current_priv_lvl_i           ( current_priv_lvl     ),
-    .csr_irq_sec_o                ( csr_irq_sec          ),
-    .csr_cause_o                  ( csr_cause            ),
-    .csr_save_if_o                ( csr_save_if          ), // control signal to save pc
-    .csr_save_id_o                ( csr_save_id          ), // control signal to save pc
-    .csr_save_ex_o                ( csr_save_ex          ), // control signal to save pc
-    .csr_restore_mret_id_o        ( csr_restore_mret_id  ), // control signal to restore pc
-    .csr_restore_uret_id_o        ( csr_restore_uret_id  ), // control signal to restore pc
+    .csr_access_ex_o              ( csr_access_ex        	),
+    .csr_op_ex_o                  ( csr_op_ex          	  	),
+    .current_priv_lvl_i           ( current_priv_lvl     	),
+    .csr_irq_sec_o                ( csr_irq_sec         	),
+    .csr_cause_o                  ( csr_cause            	),
+    .csr_save_if_o                ( csr_save_if        	  	), // control signal to save pc
+    .csr_save_id_o                ( csr_save_id          	), // control signal to save pc
+    .csr_save_ex_o                ( csr_save_ex          	), // control signal to save pc
+    .csr_restore_mret_id_o        ( csr_restore_mret_id  	), // control signal to restore pc
+    .csr_restore_uret_id_o        ( csr_restore_uret_id  	), // control signal to restore pc
 
-    .csr_restore_dret_id_o        ( csr_restore_dret_id  ), // control signal to restore pc
+    .csr_restore_dret_id_o        ( csr_restore_dret_id  	), // control signal to restore pc
 
-    .csr_save_cause_o             ( csr_save_cause       ),
+    .csr_save_cause_o             ( csr_save_cause       	),
 
     // hardware loop signals to IF hwlp controller
-    .hwlp_start_o                 ( hwlp_start           ),
-    .hwlp_end_o                   ( hwlp_end             ),
-    .hwlp_cnt_o                   ( hwlp_cnt             ),
+    .hwlp_start_o                 ( hwlp_start              ),
+    .hwlp_end_o                   ( hwlp_end                ),
+    .hwlp_cnt_o                   ( hwlp_cnt                ),
 
-    .hwlp_jump_o                  ( hwlp_jump            ),
-    .hwlp_target_o                ( hwlp_target          ),
+    .hwlp_jump_o                  ( hwlp_jump           	),
+    .hwlp_target_o                ( hwlp_target       	    ),
 
     // hardware loop signals from CSR
-    .csr_hwlp_regid_i             ( csr_hwlp_regid       ),
-    .csr_hwlp_we_i                ( csr_hwlp_we          ),
-    .csr_hwlp_data_i              ( csr_hwlp_data        ),
+    .csr_hwlp_regid_i             ( csr_hwlp_regid      	),
+    .csr_hwlp_we_i                ( csr_hwlp_we         	),
+    .csr_hwlp_data_i              ( csr_hwlp_data        	),
 
     // LSU
-    .data_req_ex_o                ( data_req_ex          ), // to load store unit
-    .data_we_ex_o                 ( data_we_ex           ), // to load store unit
-    .atop_ex_o                    ( data_atop_ex         ),
-    .data_type_ex_o               ( data_type_ex         ), // to load store unit
-    .data_sign_ext_ex_o           ( data_sign_ext_ex     ), // to load store unit
-    .data_reg_offset_ex_o         ( data_reg_offset_ex   ), // to load store unit
-    .data_load_event_ex_o         ( data_load_event_ex   ), // to load store unit
+    .data_req_ex_o                ( data_req_ex         	), // to load store unit
+    .data_we_ex_o                 ( data_we_ex           	), // to load store unit
+    .atop_ex_o                    ( data_atop_ex         	),
+    .data_type_ex_o               ( data_type_ex         	), // to load store unit
+    .data_sign_ext_ex_o           ( data_sign_ext_ex     	), // to load store unit
+    .data_reg_offset_ex_o         ( data_reg_offset_ex   	), // to load store unit
+    .data_load_event_ex_o         ( data_load_event_ex   	), // to load store unit
 
-    .data_misaligned_ex_o         ( data_misaligned_ex   ), // to load store unit
+    .data_misaligned_ex_o         ( data_misaligned_ex   	), // to load store unit
 
-    .prepost_useincr_ex_o         ( useincr_addr_ex      ),
-    .data_misaligned_i            ( data_misaligned      ),
-    .data_err_i                   ( data_err_pmp         ),
-    .data_err_ack_o               ( data_err_ack         ),
+    .prepost_useincr_ex_o         ( useincr_addr_ex      	),
+    .data_misaligned_i            ( data_misaligned      	),
+    .data_err_i                   ( data_err_pmp         	),
+    .data_err_ack_o               ( data_err_ack         	),
 
     // Interrupt Signals
-    .irq_i                        ( irq_i                ),
+    .irq_i                        ( irq_i                	),
     .irq_sec_i                    ( (PULP_SECURE) ? irq_sec_i : 1'b0 ),
-    .mie_bypass_i                 ( mie_bypass           ),
-    .mip_o                        ( mip                  ),
-    .m_irq_enable_i               ( m_irq_enable         ),
-    .u_irq_enable_i               ( u_irq_enable         ),
-    .irq_ack_o                    ( irq_ack_o            ),
-    .irq_id_o                     ( irq_id_o             ),
+    .mie_bypass_i                 ( mie_bypass           	),
+    .mip_o                        ( mip                  	),
+    .m_irq_enable_i               ( m_irq_enable         	),
+    .u_irq_enable_i               ( u_irq_enable         	),
+    .irq_ack_o                    ( irq_ack_o            	),
+    .irq_id_o                     ( irq_id_o                ),
 
     // Debug Signal
-    .debug_mode_o                 ( debug_mode           ),
-    .debug_cause_o                ( debug_cause          ),
-    .debug_csr_save_o             ( debug_csr_save       ),
-    .debug_req_i                  ( debug_req_i          ),
-    .debug_single_step_i          ( debug_single_step    ),
-    .debug_ebreakm_i              ( debug_ebreakm        ),
-    .debug_ebreaku_i              ( debug_ebreaku        ),
-    .trigger_match_i              ( trigger_match        ),
-    .debug_p_elw_no_sleep_o       ( debug_p_elw_no_sleep ),
+    .debug_mode_o                 ( debug_mode              ),
+    .debug_cause_o                ( debug_cause             ),
+    .debug_csr_save_o             ( debug_csr_save       	),
+    .debug_req_i                  ( debug_req_i          	),
+    .debug_single_step_i          ( debug_single_step    	),
+    .debug_ebreakm_i              ( debug_ebreakm       	),
+    .debug_ebreaku_i              ( debug_ebreaku       	),
+    .trigger_match_i              ( trigger_match        	),
+    .debug_p_elw_no_sleep_o       ( debug_p_elw_no_sleep_o  ),
 
     // Wakeup Signal
-    .wake_from_sleep_o            ( wake_from_sleep      ),
+    .wake_from_sleep_o            ( wake_from_sleep      	),
 
     // Forward Signals
-    .regfile_waddr_wb_i           ( regfile_waddr_fw_wb_o),  // Write address ex-wb pipeline
-    .regfile_we_wb_i              ( regfile_we_wb        ),  // write enable for the register file
-    .regfile_wdata_wb_i           ( regfile_wdata        ),  // write data to commit in the register file
+    .regfile_waddr_wb_i           ( regfile_waddr_fw_wb_o	),  // Write address ex-wb pipeline
+    .regfile_we_wb_i              ( regfile_we_wb        	),  // write enable for the register file
+    .regfile_wdata_wb_i           ( regfile_wdata        	),  // write data to commit in the register file
 
-    .regfile_alu_waddr_fw_i       ( regfile_alu_waddr_fw ),
-    .regfile_alu_we_fw_i          ( regfile_alu_we_fw    ),
-    .regfile_alu_wdata_fw_i       ( regfile_alu_wdata_fw ),
+    .regfile_alu_waddr_fw_i       ( regfile_alu_waddr_fw 	),
+    .regfile_alu_we_fw_i          ( regfile_alu_we_fw    	),
+    .regfile_alu_wdata_fw_i       ( regfile_alu_wdata_fw 	),
 
     // from ALU
-    .mult_multicycle_i            ( mult_multicycle      ),
+    .mult_multicycle_i            ( mult_multicycle         ),
 
     // Performance Counters
-    .perf_jump_o                  ( perf_jump            ),
-    .perf_jr_stall_o              ( perf_jr_stall        ),
-    .perf_ld_stall_o              ( perf_ld_stall        ),
-    .perf_pipeline_stall_o        ( perf_pipeline_stall  ),
-    .mcounteren_i                 ( mcounteren           ),
+    .perf_jump_o                  ( perf_jump               ),
+    .perf_jr_stall_o              ( perf_jr_stall           ),
+    .perf_ld_stall_o              ( perf_ld_stall           ),
+    .perf_pipeline_stall_o        ( perf_pipeline_stall     ),
+    .mcounteren_i                 ( mcounteren              ),
 
-    .permanent_faulty_alu_i       ( permanent_faulty_alu   ),  // one for each fsm: 4 ALU and 9 subpart of ALU
-    .permanent_faulty_alu_s_i     ( permanent_faulty_alu_s ), 
-    .sel_mux_ex_o                 ( sel_mux_ex ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-    .clock_enable_alu_o           ( clock_enable_alu ),
-    .pc_ex_voted                  ( pc_ex_core ),
-    .alu_operand_a_ex_voted       ( alu_operand_a_ex_core ),
-    .alu_operand_c_ex_voted       ( alu_operand_c_ex_core ),
-    .apu_flags_ex_voted           ( apu_flags_ex_core ),
-    .data_type_ex_voted           ( data_type_ex_core ),
-    .data_sign_ext_ex_voted       ( data_sign_ext_ex_core ),
+    .permanent_faulty_alu_i       ( permanent_faulty_alu    ),  // one for each fsm: 4 ALU and 9 subpart of ALU
+    .permanent_faulty_alu_s_i     ( permanent_faulty_alu_s  ), 
+    .sel_mux_ex_o                 ( sel_mux_ex              ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
+    .clock_enable_alu_o           ( clock_enable_alu        ),
+    .pc_ex_voted                  ( pc_ex_core              ),
+    .alu_operand_a_ex_voted       ( alu_operand_a_ex_core   ),
+    .alu_operand_c_ex_voted       ( alu_operand_c_ex_core   ),
+    .apu_flags_ex_voted           ( apu_flags_ex_core       ),
+    .data_type_ex_voted           ( data_type_ex_core       ),
+    .data_sign_ext_ex_voted       ( data_sign_ext_ex_core   ),
     .data_load_event_ex_voted     ( data_load_event_ex_core ),
     .data_reg_offset_ex_voted     ( data_reg_offset_ex_core ),
     .data_misaligned_ex_voted     ( data_misaligned_ex_core ),
-    .useincr_addr_ex_voted        ( useincr_addr_ex_core ),
-    .atop_ex_voted                ( data_atop_ex_core ),
-    .csr_access_ex_voted          ( csr_access_ex_core ),
-    .data_req_ex_voted            ( data_req_ex_core ),   
-    .data_we_ex_voted             ( data_we_ex_core ), 
-    .branch_in_ex_voted           ( branch_in_ex_core ),
-    .alu_operand_b_ex_voted       ( alu_operand_b_ex_core ),
-    .apu_en_ex_voted              ( apu_en_ex_core ),
-    .apu_lat_ex_voted             ( apu_lat_ex_core ),
-    .regfile_waddr_ex_voted       ( regfile_waddr_ex_core ),
-    .regfile_we_ex_voted          ( regfile_we_ex_core ),
+    .useincr_addr_ex_voted        ( useincr_addr_ex_core    ),
+    .atop_ex_voted                ( data_atop_ex_core       ),
+    .csr_access_ex_voted          ( csr_access_ex_core      ),
+    .csr_op_ex_voted              ( csr_op_ex_core          ),
+    .data_req_ex_voted            ( data_req_ex_core        ),   
+    .data_we_ex_voted             ( data_we_ex_core         ), 
+    .branch_in_ex_voted           ( branch_in_ex_core       ),
+    .alu_operand_b_ex_voted       ( alu_operand_b_ex_core   ),
+    .apu_en_ex_voted              ( apu_en_ex_core          ),
+    .apu_lat_ex_voted             ( apu_lat_ex_core         ),
+    .regfile_waddr_ex_voted       ( regfile_waddr_ex_core   ),
+    .regfile_we_ex_voted          ( regfile_we_ex_core      ),
 
     // signal output of the voters for the outputs of id_stage that are used into the ex_stage
-    .alu_en_ex_voted              ( alu_en_ex_core ),
+    .alu_en_ex_voted              ( alu_en_ex_core          ),
     /*.mult_operator_ex_voted       ( mult_operator_ex_core ),   
     .mult_operand_a_ex_voted      ( mult_operand_a_ex_core ), 
     .mult_operand_b_ex_voted      ( mult_operand_b_ex_core ),
@@ -841,11 +844,11 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mult_clpx_shift_ex_voted     ( mult_clpx_shift_ex_core ),
     .mult_clpx_img_ex_voted       ( mult_clpx_img_ex_core ),
     */
-    .apu_op_ex_voted              ( apu_op_ex_core ),
-    .apu_operands_ex_voted        ( apu_operands_ex_core ),
-    .apu_waddr_ex_voted           ( apu_waddr_ex_core ),
+    .apu_op_ex_voted              ( apu_op_ex_core 			),
+    .apu_operands_ex_voted        ( apu_operands_ex_core 	),
+    .apu_waddr_ex_voted           ( apu_waddr_ex_core 		),
     .regfile_alu_waddr_ex_voted   ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core )
+    .regfile_alu_we_ex_voted      ( regfile_alu_we_ex_core 	)
     
     /*.alu_operator_ex_voted        ( alu_operator_ex_core ),
     .alu_vec_mode_ex_voted            ( vector_mode_core ),
@@ -1240,7 +1243,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   //  CSR access
   assign csr_addr     =  csr_addr_int;
   assign csr_wdata    =  alu_operand_a_ex_core;
-  assign csr_op       =  csr_op_ex;
+  assign csr_op       =  csr_op_ex_core;
 
   assign csr_addr_int = csr_num_e'(csr_access_ex_core ? alu_operand_b_ex_core[11:0] : '0);
 

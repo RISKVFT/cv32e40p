@@ -264,6 +264,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [5:0]           atop_ex_voted,
 
     output logic                 csr_access_ex_voted,
+    output logic [1:0]           csr_op_ex_voted,
     output logic                 data_req_ex_voted,   
     output logic                 data_we_ex_voted, 
     output logic                 branch_in_ex_voted,
@@ -574,10 +575,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   //logic [5:0]           regfile_waddr_ex_voted;
   //logic                 regfile_we_ex_voted;
   //logic                 csr_access_ex_voted;  // is actually an output
-  logic [1:0]           csr_op_ex_voted;
+  //logic [1:0]           csr_op_ex_voted;
   //logic                 data_req_ex_voted;    // is actually an output
   //logic                 data_we_ex_voted;     // is actually an output
-  logic [6:0]           alu_operator_ex_voted;
+  //logic [6:0]           alu_operator_ex_voted;
   //logic                 apu_en_ex_voted;
   //logic [1:0]           apu_lat_ex_voted;
   //logic                 branch_in_ex_voted; // is actually an output
@@ -1884,9 +1885,11 @@ endgenerate
         assign data_we_ex_voter_in[1] = sel_mux_ex_o[1] ? data_we_ex_o[1] : data_we_ex_o[3];
         assign data_we_ex_voter_in[2] = sel_mux_ex_o[2] ? data_we_ex_o[2] : data_we_ex_o[3];
 
+        /*
         assign alu_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
         assign alu_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
         assign alu_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
+        */
 
         assign apu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
         assign apu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
@@ -2157,6 +2160,7 @@ endgenerate
         .err_detected_o   (  )
         );
 
+        /* This voter is unuseful because alu_operator_ex_o is not used inside the ID_STAGE
         cv32e40p_3voter #(7,1) voter_alu_operator_ex
         (
         .in_1_i           ( alu_operator_ex_voter_in[0] ),
@@ -2168,7 +2172,7 @@ endgenerate
         .err_detected_3   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
-        );
+        );*/
 
         cv32e40p_3voter #(1,1) voter_apu_en_ex
         (
@@ -2948,7 +2952,7 @@ endgenerate
             assign csr_op_ex_voted          = csr_op_ex_o[0];
             assign data_req_ex_voted        = data_req_ex_o[0];
             assign data_we_ex_voted         = data_we_ex_o[0];
-            assign alu_operator_ex_voted    = alu_operator_ex_o[0];
+            //assign alu_operator_ex_voted    = alu_operator_ex_o[0];
             assign apu_en_ex_voted          = apu_en_ex_o[0];
             assign apu_lat_ex_voted         = apu_lat_ex_o[0];
             assign branch_in_ex_voted       = branch_in_ex_o[0];

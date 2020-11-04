@@ -23,6 +23,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 )
 (
   input  logic                     clk,
+  input  logic [3:0]               clk_g,
   input  logic                     rst_n,
   input  logic [3:0]                    enable_i,
   input  logic [3:0][ALU_OP_WIDTH-1:0]  operator_i,
@@ -152,7 +153,8 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        cv32e40p_alu alu_ft_4_i[3:0] // four identical ALU replicas if FT=1 
 	        (
-	         .clk                 ( clk         ),
+	         //.clk                 ( clk         ),
+	         .clk                 ( clk_g       ),
 	         .rst_n               ( rst_n       ),
 	         .enable_i            ( enable_i    ),
 	         .operator_i          ( operator_i  ),
