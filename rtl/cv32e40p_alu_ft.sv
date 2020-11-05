@@ -184,17 +184,17 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        // Insantiate 3 mux to select 3 of the 4 units available
 
-	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[0] : result_o_ft[3];
-	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[1] : result_o_ft[3];
-	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[2] : result_o_ft[3];
+	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
+	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
+	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
 
-	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[0] : comparison_result_o_ft[3];
-	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[1] : comparison_result_o_ft[3];
-	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[2] : comparison_result_o_ft[3];
+	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[3] : comparison_result_o_ft[0];
+	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[3] : comparison_result_o_ft[1];
+	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[3] : comparison_result_o_ft[2];
 
-	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[0] : ready_o_ft[3];
-	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[1] : ready_o_ft[3];
-	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[2] : ready_o_ft[3];
+	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[3] : ready_o_ft[0];
+	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[3] : ready_o_ft[1];
+	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[3] : ready_o_ft[2];
 
 
 	        // VOTER 
@@ -370,6 +370,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
 			  .clk 									(clk),
+	         //.clk                                   ( clk_g       ),
 			  .clock_en 							(clock_en_i),
 			  .rst_n								(rst_n),
 			  .alu_enable_i 						(enable_i),

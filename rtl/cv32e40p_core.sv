@@ -776,7 +776,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .debug_ebreakm_i              ( debug_ebreakm       	),
     .debug_ebreaku_i              ( debug_ebreaku       	),
     .trigger_match_i              ( trigger_match        	),
-    .debug_p_elw_no_sleep_o       ( debug_p_elw_no_sleep_o  ),
+    .debug_p_elw_no_sleep_o       ( debug_p_elw_no_sleep    ),
 
     // Wakeup Signal
     .wake_from_sleep_o            ( wake_from_sleep      	),

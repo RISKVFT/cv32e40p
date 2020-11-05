@@ -1676,13 +1676,13 @@ endgenerate
         //assign clock_en = 4'b0111;
 
         // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
-        /*cv32e40p_clock_gate clk_gate_4[3:0]
+        cv32e40p_clock_gate clk_gate_4[3:0]
         (
          .clk_i        ( clk ),
          .en_i         ( clock_en[3:0] ),
          .scan_cg_en_i ( 1'b0 ), // not used here
          .clk_o        ( clk_gated_ft[3:0] )
-        );*/
+        );
 
         /*
         assign clk_gated_ft[0] = clock_en[0] & clk; 
@@ -1691,10 +1691,10 @@ endgenerate
         assign clk_gated_ft[3] = clock_en[3] & clk;
         */  
         
-        assign clk_gated_ft[0] = clk; 
+        /*assign clk_gated_ft[0] = clk; 
         assign clk_gated_ft[1] = clk; 
         assign clk_gated_ft[2] = clk; 
-        assign clk_gated_ft[3] = clk;
+        assign clk_gated_ft[3] = clk;*/
         
 
 
@@ -1857,213 +1857,213 @@ endgenerate
         // MUXs
 
         // output signals used inside ID_stage itself
-        assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_b_ex_o[0] : alu_operand_b_ex_o[3];
-        assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_b_ex_o[1] : alu_operand_b_ex_o[3];
-        assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_b_ex_o[2] : alu_operand_b_ex_o[3];
+        assign alu_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_b_ex_o[3] : alu_operand_b_ex_o[0];
+        assign alu_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_b_ex_o[3] : alu_operand_b_ex_o[1];
+        assign alu_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_b_ex_o[3] : alu_operand_b_ex_o[2];
 
-        assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_waddr_ex_o[0] : regfile_waddr_ex_o[3];
-        assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_waddr_ex_o[1] : regfile_waddr_ex_o[3];
-        assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_waddr_ex_o[2] : regfile_waddr_ex_o[3];
+        assign regfile_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_waddr_ex_o[3] : regfile_waddr_ex_o[0];
+        assign regfile_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_waddr_ex_o[3] : regfile_waddr_ex_o[1];
+        assign regfile_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_waddr_ex_o[3] : regfile_waddr_ex_o[2];
 
-        assign regfile_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_we_ex_o[0] : regfile_we_ex_o[3];
-        assign regfile_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_we_ex_o[1] : regfile_we_ex_o[3];
-        assign regfile_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_we_ex_o[2] : regfile_we_ex_o[3];
+        assign regfile_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_we_ex_o[3] : regfile_we_ex_o[0];
+        assign regfile_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_we_ex_o[3] : regfile_we_ex_o[1];
+        assign regfile_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_we_ex_o[3] : regfile_we_ex_o[2];
 
-        assign csr_access_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_access_ex_o[0] : csr_access_ex_o[3];
-        assign csr_access_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_access_ex_o[1] : csr_access_ex_o[3];
-        assign csr_access_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_access_ex_o[2] : csr_access_ex_o[3];
+        assign csr_access_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_access_ex_o[3] : csr_access_ex_o[0];
+        assign csr_access_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_access_ex_o[3] : csr_access_ex_o[1];
+        assign csr_access_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_access_ex_o[3] : csr_access_ex_o[2];
 
-        assign csr_op_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_op_ex_o[0] : csr_op_ex_o[3];
-        assign csr_op_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_op_ex_o[1] : csr_op_ex_o[3];
-        assign csr_op_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_op_ex_o[2] : csr_op_ex_o[3];
+        assign csr_op_ex_voter_in[0] = sel_mux_ex_o[0] ? csr_op_ex_o[3] : csr_op_ex_o[0];
+        assign csr_op_ex_voter_in[1] = sel_mux_ex_o[1] ? csr_op_ex_o[3] : csr_op_ex_o[1];
+        assign csr_op_ex_voter_in[2] = sel_mux_ex_o[2] ? csr_op_ex_o[3] : csr_op_ex_o[2];
 
-        assign data_req_ex_voter_in[0] = sel_mux_ex_o[0] ? data_req_ex_o[0] : data_req_ex_o[3];
-        assign data_req_ex_voter_in[1] = sel_mux_ex_o[1] ? data_req_ex_o[1] : data_req_ex_o[3];
-        assign data_req_ex_voter_in[2] = sel_mux_ex_o[2] ? data_req_ex_o[2] : data_req_ex_o[3];
+        assign data_req_ex_voter_in[0] = sel_mux_ex_o[0] ? data_req_ex_o[3] : data_req_ex_o[0];
+        assign data_req_ex_voter_in[1] = sel_mux_ex_o[1] ? data_req_ex_o[3] : data_req_ex_o[1];
+        assign data_req_ex_voter_in[2] = sel_mux_ex_o[2] ? data_req_ex_o[3] : data_req_ex_o[2];
 
-        assign data_we_ex_voter_in[0] = sel_mux_ex_o[0] ? data_we_ex_o[0] : data_we_ex_o[3];
-        assign data_we_ex_voter_in[1] = sel_mux_ex_o[1] ? data_we_ex_o[1] : data_we_ex_o[3];
-        assign data_we_ex_voter_in[2] = sel_mux_ex_o[2] ? data_we_ex_o[2] : data_we_ex_o[3];
+        assign data_we_ex_voter_in[0] = sel_mux_ex_o[0] ? data_we_ex_o[3] : data_we_ex_o[0];
+        assign data_we_ex_voter_in[1] = sel_mux_ex_o[1] ? data_we_ex_o[3] : data_we_ex_o[1];
+        assign data_we_ex_voter_in[2] = sel_mux_ex_o[2] ? data_we_ex_o[3] : data_we_ex_o[2];
 
         /*
-        assign alu_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operator_ex_o[0] : alu_operator_ex_o[3];
-        assign alu_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operator_ex_o[1] : alu_operator_ex_o[3];
-        assign alu_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operator_ex_o[2] : alu_operator_ex_o[3];
+        assign alu_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operator_ex_o[3] : alu_operator_ex_o[3];
+        assign alu_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operator_ex_o[3] : alu_operator_ex_o[3];
+        assign alu_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operator_ex_o[3] : alu_operator_ex_o[3];
         */
 
-        assign apu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_en_ex_o[0] : apu_en_ex_o[3];
-        assign apu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_en_ex_o[1] : apu_en_ex_o[3];
-        assign apu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_en_ex_o[2] : apu_en_ex_o[3];
+        assign apu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_en_ex_o[3] : apu_en_ex_o[0];
+        assign apu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_en_ex_o[3] : apu_en_ex_o[1];
+        assign apu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_en_ex_o[3] : apu_en_ex_o[2];
 
-        assign apu_lat_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_lat_ex_o[0] : apu_lat_ex_o[3];
-        assign apu_lat_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_lat_ex_o[1] : apu_lat_ex_o[3];
-        assign apu_lat_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_lat_ex_o[2] : apu_lat_ex_o[3];
+        assign apu_lat_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_lat_ex_o[3] : apu_lat_ex_o[0];
+        assign apu_lat_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_lat_ex_o[3] : apu_lat_ex_o[1];
+        assign apu_lat_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_lat_ex_o[3] : apu_lat_ex_o[2];
 
-        assign branch_in_ex_voter_in[0] = sel_mux_ex_o[0] ? branch_in_ex_o[0] : branch_in_ex_o[3];
-        assign branch_in_ex_voter_in[1] = sel_mux_ex_o[1] ? branch_in_ex_o[1] : branch_in_ex_o[3];
-        assign branch_in_ex_voter_in[2] = sel_mux_ex_o[2] ? branch_in_ex_o[2] : branch_in_ex_o[3];
+        assign branch_in_ex_voter_in[0] = sel_mux_ex_o[0] ? branch_in_ex_o[3] : branch_in_ex_o[0];
+        assign branch_in_ex_voter_in[1] = sel_mux_ex_o[1] ? branch_in_ex_o[3] : branch_in_ex_o[1];
+        assign branch_in_ex_voter_in[2] = sel_mux_ex_o[2] ? branch_in_ex_o[3] : branch_in_ex_o[2];
 
 
         // output signals used inside core
 
-        assign pc_ex_voter_in[0] = sel_mux_ex_o[0] ? pc_ex_o[0] : pc_ex_o[3];
-        assign pc_ex_voter_in[1] = sel_mux_ex_o[1] ? pc_ex_o[1] : pc_ex_o[3];
-        assign pc_ex_voter_in[2] = sel_mux_ex_o[2] ? pc_ex_o[2] : pc_ex_o[3];
+        assign pc_ex_voter_in[0] = sel_mux_ex_o[0] ? pc_ex_o[3] : pc_ex_o[3];
+        assign pc_ex_voter_in[1] = sel_mux_ex_o[1] ? pc_ex_o[3] : pc_ex_o[3];
+        assign pc_ex_voter_in[2] = sel_mux_ex_o[2] ? pc_ex_o[3] : pc_ex_o[3];
 
-        assign alu_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_a_ex_o[0] : alu_operand_a_ex_o[3];
-        assign alu_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_a_ex_o[1] : alu_operand_a_ex_o[3];
-        assign alu_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_a_ex_o[2] : alu_operand_a_ex_o[3];
+        assign alu_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_a_ex_o[3] : alu_operand_a_ex_o[0];
+        assign alu_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_a_ex_o[3] : alu_operand_a_ex_o[1];
+        assign alu_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_a_ex_o[3] : alu_operand_a_ex_o[2];
 
-        assign alu_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_c_ex_o[0] : alu_operand_c_ex_o[3];
-        assign alu_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_c_ex_o[1] : alu_operand_c_ex_o[3];
-        assign alu_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_c_ex_o[2] : alu_operand_c_ex_o[3];
+        assign alu_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_operand_c_ex_o[3] : alu_operand_c_ex_o[0];
+        assign alu_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_operand_c_ex_o[3] : alu_operand_c_ex_o[1];
+        assign alu_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_operand_c_ex_o[3] : alu_operand_c_ex_o[2];
 
-        assign apu_flags_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_flags_ex_o[0] : apu_flags_ex_o[3];
-        assign apu_flags_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_flags_ex_o[1] : apu_flags_ex_o[3];
-        assign apu_flags_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_flags_ex_o[2] : apu_flags_ex_o[3];
+        assign apu_flags_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_flags_ex_o[3] : apu_flags_ex_o[0];
+        assign apu_flags_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_flags_ex_o[3] : apu_flags_ex_o[1];
+        assign apu_flags_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_flags_ex_o[3] : apu_flags_ex_o[2];
 
-        assign data_type_ex_voter_in[0] = sel_mux_ex_o[0] ? data_type_ex_o[0] : data_type_ex_o[3];
-        assign data_type_ex_voter_in[1] = sel_mux_ex_o[1] ? data_type_ex_o[1] : data_type_ex_o[3];
-        assign data_type_ex_voter_in[2] = sel_mux_ex_o[2] ? data_type_ex_o[2] : data_type_ex_o[3];
+        assign data_type_ex_voter_in[0] = sel_mux_ex_o[0] ? data_type_ex_o[3] : data_type_ex_o[0];
+        assign data_type_ex_voter_in[1] = sel_mux_ex_o[1] ? data_type_ex_o[3] : data_type_ex_o[1];
+        assign data_type_ex_voter_in[2] = sel_mux_ex_o[2] ? data_type_ex_o[3] : data_type_ex_o[2];
 
-        assign data_sign_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? data_sign_ext_ex_o[0] : data_sign_ext_ex_o[3];
-        assign data_sign_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? data_sign_ext_ex_o[1] : data_sign_ext_ex_o[3];
-        assign data_sign_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? data_sign_ext_ex_o[2] : data_sign_ext_ex_o[3];
+        assign data_sign_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? data_sign_ext_ex_o[3] : data_sign_ext_ex_o[0];
+        assign data_sign_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? data_sign_ext_ex_o[3] : data_sign_ext_ex_o[1];
+        assign data_sign_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? data_sign_ext_ex_o[3] : data_sign_ext_ex_o[2];
 
-        assign data_load_event_ex_voter_in[0] = sel_mux_ex_o[0] ? data_load_event_ex_o[0] : data_load_event_ex_o[3];
-        assign data_load_event_ex_voter_in[1] = sel_mux_ex_o[1] ? data_load_event_ex_o[1] : data_load_event_ex_o[3];
-        assign data_load_event_ex_voter_in[2] = sel_mux_ex_o[2] ? data_load_event_ex_o[2] : data_load_event_ex_o[3];
+        assign data_load_event_ex_voter_in[0] = sel_mux_ex_o[0] ? data_load_event_ex_o[3] : data_load_event_ex_o[0];
+        assign data_load_event_ex_voter_in[1] = sel_mux_ex_o[1] ? data_load_event_ex_o[3] : data_load_event_ex_o[1];
+        assign data_load_event_ex_voter_in[2] = sel_mux_ex_o[2] ? data_load_event_ex_o[3] : data_load_event_ex_o[2];
 
-        assign data_reg_offset_ex_voter_in[0] = sel_mux_ex_o[0] ? data_reg_offset_ex_o[0] : data_reg_offset_ex_o[3];
-        assign data_reg_offset_ex_voter_in[1] = sel_mux_ex_o[1] ? data_reg_offset_ex_o[1] : data_reg_offset_ex_o[3];
-        assign data_reg_offset_ex_voter_in[2] = sel_mux_ex_o[2] ? data_reg_offset_ex_o[2] : data_reg_offset_ex_o[3];
+        assign data_reg_offset_ex_voter_in[0] = sel_mux_ex_o[0] ? data_reg_offset_ex_o[3] : data_reg_offset_ex_o[0];
+        assign data_reg_offset_ex_voter_in[1] = sel_mux_ex_o[1] ? data_reg_offset_ex_o[3] : data_reg_offset_ex_o[1];
+        assign data_reg_offset_ex_voter_in[2] = sel_mux_ex_o[2] ? data_reg_offset_ex_o[3] : data_reg_offset_ex_o[2];
 
-        assign data_misaligned_ex_voter_in[0] = sel_mux_ex_o[0] ? data_misaligned_ex_o[0] : data_misaligned_ex_o[3];
-        assign data_misaligned_ex_voter_in[1] = sel_mux_ex_o[1] ? data_misaligned_ex_o[1] : data_misaligned_ex_o[3];
-        assign data_misaligned_ex_voter_in[2] = sel_mux_ex_o[2] ? data_misaligned_ex_o[2] : data_misaligned_ex_o[3];
+        assign data_misaligned_ex_voter_in[0] = sel_mux_ex_o[0] ? data_misaligned_ex_o[3] : data_misaligned_ex_o[0];
+        assign data_misaligned_ex_voter_in[1] = sel_mux_ex_o[1] ? data_misaligned_ex_o[3] : data_misaligned_ex_o[1];
+        assign data_misaligned_ex_voter_in[2] = sel_mux_ex_o[2] ? data_misaligned_ex_o[3] : data_misaligned_ex_o[2];
 
-        assign useincr_addr_ex_voter_in[0] = sel_mux_ex_o[0] ? prepost_useincr_ex_o[0] : prepost_useincr_ex_o[3];
-        assign useincr_addr_ex_voter_in[1] = sel_mux_ex_o[1] ? prepost_useincr_ex_o[1] : prepost_useincr_ex_o[3];
-        assign useincr_addr_ex_voter_in[2] = sel_mux_ex_o[2] ? prepost_useincr_ex_o[2] : prepost_useincr_ex_o[3];
+        assign useincr_addr_ex_voter_in[0] = sel_mux_ex_o[0] ? prepost_useincr_ex_o[3] : prepost_useincr_ex_o[0];
+        assign useincr_addr_ex_voter_in[1] = sel_mux_ex_o[1] ? prepost_useincr_ex_o[3] : prepost_useincr_ex_o[1];
+        assign useincr_addr_ex_voter_in[2] = sel_mux_ex_o[2] ? prepost_useincr_ex_o[3] : prepost_useincr_ex_o[2];
 
-        assign atop_ex_voter_in[0] = sel_mux_ex_o[0] ? atop_ex_o[0] : atop_ex_o[3];
-        assign atop_ex_voter_in[1] = sel_mux_ex_o[1] ? atop_ex_o[1] : atop_ex_o[3];
-        assign atop_ex_voter_in[2] = sel_mux_ex_o[2] ? atop_ex_o[2] : atop_ex_o[3];
+        assign atop_ex_voter_in[0] = sel_mux_ex_o[0] ? atop_ex_o[3] : atop_ex_o[0];
+        assign atop_ex_voter_in[1] = sel_mux_ex_o[1] ? atop_ex_o[3] : atop_ex_o[1];
+        assign atop_ex_voter_in[2] = sel_mux_ex_o[2] ? atop_ex_o[3] : atop_ex_o[2];
 
         // output signals used inside ex_stage but not in the ALU
 
-        assign alu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_en_ex_o[0] : alu_en_ex_o[3];
-        assign alu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_en_ex_o[1] : alu_en_ex_o[3];
-        assign alu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_en_ex_o[2] : alu_en_ex_o[3];
+        assign alu_en_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_en_ex_o[3] : alu_en_ex_o[0];
+        assign alu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_en_ex_o[3] : alu_en_ex_o[1];
+        assign alu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_en_ex_o[3] : alu_en_ex_o[2];
 
-        assign mult_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operator_ex_o[0] : mult_operator_ex_o[3];
-        assign mult_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operator_ex_o[1] : mult_operator_ex_o[3];
-        assign mult_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operator_ex_o[2] : mult_operator_ex_o[3];
+        assign mult_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operator_ex_o[3] : mult_operator_ex_o[0];
+        assign mult_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operator_ex_o[3] : mult_operator_ex_o[1];
+        assign mult_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operator_ex_o[3] : mult_operator_ex_o[2];
 
-        assign mult_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_a_ex_o[0] : mult_operand_a_ex_o[3];
-        assign mult_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_a_ex_o[1] : mult_operand_a_ex_o[3];
-        assign mult_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_a_ex_o[2] : mult_operand_a_ex_o[3];
+        assign mult_operand_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_a_ex_o[3] : mult_operand_a_ex_o[0];
+        assign mult_operand_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_a_ex_o[3] : mult_operand_a_ex_o[1];
+        assign mult_operand_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_a_ex_o[3] : mult_operand_a_ex_o[2];
 
-        assign mult_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_b_ex_o[0] : mult_operand_b_ex_o[3];
-        assign mult_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_b_ex_o[1] : mult_operand_b_ex_o[3];
-        assign mult_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_b_ex_o[2] : mult_operand_b_ex_o[3];
+        assign mult_operand_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_b_ex_o[3] : mult_operand_b_ex_o[0];
+        assign mult_operand_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_b_ex_o[3] : mult_operand_b_ex_o[1];
+        assign mult_operand_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_b_ex_o[3] : mult_operand_b_ex_o[2];
 
-        assign mult_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_c_ex_o[0] : mult_operand_c_ex_o[3];
-        assign mult_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_c_ex_o[1] : mult_operand_c_ex_o[3];
-        assign mult_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_c_ex_o[2] : mult_operand_c_ex_o[3];
+        assign mult_operand_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operand_c_ex_o[3] : mult_operand_c_ex_o[0];
+        assign mult_operand_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operand_c_ex_o[3] : mult_operand_c_ex_o[1];
+        assign mult_operand_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operand_c_ex_o[3] : mult_operand_c_ex_o[2];
 
-        assign mult_en_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_en_ex_o[0] : mult_en_ex_o[3];
-        assign mult_en_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_en_ex_o[1] : mult_en_ex_o[3];
-        assign mult_en_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_en_ex_o[2] : mult_en_ex_o[3];
+        assign mult_en_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_en_ex_o[3] : mult_en_ex_o[0];
+        assign mult_en_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_en_ex_o[3] : mult_en_ex_o[1];
+        assign mult_en_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_en_ex_o[3] : mult_en_ex_o[2];
 
-        assign mult_sel_subword_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_sel_subword_ex_o[0] : mult_sel_subword_ex_o[3];
-        assign mult_sel_subword_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_sel_subword_ex_o[1] : mult_sel_subword_ex_o[3];
-        assign mult_sel_subword_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_sel_subword_ex_o[2] : mult_sel_subword_ex_o[3];
+        assign mult_sel_subword_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_sel_subword_ex_o[3] : mult_sel_subword_ex_o[0];
+        assign mult_sel_subword_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_sel_subword_ex_o[3] : mult_sel_subword_ex_o[1];
+        assign mult_sel_subword_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_sel_subword_ex_o[3] : mult_sel_subword_ex_o[2];
 
-        assign mult_signed_mode_voter_in[0] = sel_mux_ex_o[0] ? mult_signed_mode_ex_o[0] : mult_signed_mode_ex_o[3];
-        assign mult_signed_mode_voter_in[1] = sel_mux_ex_o[1] ? mult_signed_mode_ex_o[1] : mult_signed_mode_ex_o[3];
-        assign mult_signed_mode_voter_in[2] = sel_mux_ex_o[2] ? mult_signed_mode_ex_o[2] : mult_signed_mode_ex_o[3];
+        assign mult_signed_mode_voter_in[0] = sel_mux_ex_o[0] ? mult_signed_mode_ex_o[3] : mult_signed_mode_ex_o[0];
+        assign mult_signed_mode_voter_in[1] = sel_mux_ex_o[1] ? mult_signed_mode_ex_o[3] : mult_signed_mode_ex_o[1];
+        assign mult_signed_mode_voter_in[2] = sel_mux_ex_o[2] ? mult_signed_mode_ex_o[3] : mult_signed_mode_ex_o[2];
 
-        assign mult_imm_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_imm_ex_o[0] : mult_imm_ex_o[3];
-        assign mult_imm_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_imm_ex_o[1] : mult_imm_ex_o[3];
-        assign mult_imm_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_imm_ex_o[2] : mult_imm_ex_o[3];
+        assign mult_imm_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_imm_ex_o[3] : mult_imm_ex_o[0];
+        assign mult_imm_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_imm_ex_o[3] : mult_imm_ex_o[1];
+        assign mult_imm_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_imm_ex_o[3] : mult_imm_ex_o[2];
 
-        assign mult_dot_op_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_a_ex_o[0] : mult_dot_op_a_ex_o[3];
-        assign mult_dot_op_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_a_ex_o[1] : mult_dot_op_a_ex_o[3];
-        assign mult_dot_op_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_a_ex_o[2] : mult_dot_op_a_ex_o[3];
+        assign mult_dot_op_a_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_a_ex_o[3] : mult_dot_op_a_ex_o[0];
+        assign mult_dot_op_a_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_a_ex_o[3] : mult_dot_op_a_ex_o[1];
+        assign mult_dot_op_a_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_a_ex_o[3] : mult_dot_op_a_ex_o[2];
 
-        assign mult_dot_op_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_b_ex_o[0] : mult_dot_op_b_ex_o[3];
-        assign mult_dot_op_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_b_ex_o[1] : mult_dot_op_b_ex_o[3];
-        assign mult_dot_op_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_b_ex_o[2] : mult_dot_op_b_ex_o[3];
+        assign mult_dot_op_b_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_b_ex_o[3] : mult_dot_op_b_ex_o[0];
+        assign mult_dot_op_b_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_b_ex_o[3] : mult_dot_op_b_ex_o[1];
+        assign mult_dot_op_b_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_b_ex_o[3] : mult_dot_op_b_ex_o[2];
 
-        assign mult_dot_op_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_c_ex_o[0] : mult_dot_op_c_ex_o[3];
-        assign mult_dot_op_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_c_ex_o[1] : mult_dot_op_c_ex_o[3];
-        assign mult_dot_op_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_c_ex_o[2] : mult_dot_op_c_ex_o[3];
+        assign mult_dot_op_c_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_op_c_ex_o[3] : mult_dot_op_c_ex_o[0];
+        assign mult_dot_op_c_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_op_c_ex_o[3] : mult_dot_op_c_ex_o[1];
+        assign mult_dot_op_c_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_op_c_ex_o[3] : mult_dot_op_c_ex_o[2];
 
-        assign mult_dot_signed_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_signed_ex_o[0] : mult_dot_signed_ex_o[3];
-        assign mult_dot_signed_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_signed_ex_o[1] : mult_dot_signed_ex_o[3];
-        assign mult_dot_signed_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_signed_ex_o[2] : mult_dot_signed_ex_o[3];
+        assign mult_dot_signed_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_dot_signed_ex_o[3] : mult_dot_signed_ex_o[0];
+        assign mult_dot_signed_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_dot_signed_ex_o[3] : mult_dot_signed_ex_o[1];
+        assign mult_dot_signed_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_dot_signed_ex_o[3] : mult_dot_signed_ex_o[2];
 
-        assign mult_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_is_clpx_ex_o[0] : mult_is_clpx_ex_o[3];
-        assign mult_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_is_clpx_ex_o[1] : mult_is_clpx_ex_o[3];
-        assign mult_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_is_clpx_ex_o[2] : mult_is_clpx_ex_o[3];
+        assign mult_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_is_clpx_ex_o[3] : mult_is_clpx_ex_o[0];
+        assign mult_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_is_clpx_ex_o[3] : mult_is_clpx_ex_o[1];
+        assign mult_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_is_clpx_ex_o[3] : mult_is_clpx_ex_o[2];
 
-        assign mult_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_shift_ex_o[0] : mult_clpx_shift_ex_o[3];
-        assign mult_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_shift_ex_o[1] : mult_clpx_shift_ex_o[3];
-        assign mult_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_shift_ex_o[2] : mult_clpx_shift_ex_o[3];
+        assign mult_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_shift_ex_o[3] : mult_clpx_shift_ex_o[0];
+        assign mult_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_shift_ex_o[3] : mult_clpx_shift_ex_o[1];
+        assign mult_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_shift_ex_o[3] : mult_clpx_shift_ex_o[2];
 
-        assign mult_clpx_img_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_img_ex_o[0] : mult_clpx_img_ex_o[3];
-        assign mult_clpx_img_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_img_ex_o[1] : mult_clpx_img_ex_o[3];
-        assign mult_clpx_img_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_img_ex_o[2] : mult_clpx_img_ex_o[3];
+        assign mult_clpx_img_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[0];
+        assign mult_clpx_img_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[1];
+        assign mult_clpx_img_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[2];
 
-        assign apu_op_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_op_ex_o[0] : apu_op_ex_o[3];
-        assign apu_op_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_op_ex_o[1] : apu_op_ex_o[3];
-        assign apu_op_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_op_ex_o[2] : apu_op_ex_o[3];
+        assign apu_op_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_op_ex_o[3] : apu_op_ex_o[0];
+        assign apu_op_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_op_ex_o[3] : apu_op_ex_o[1];
+        assign apu_op_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_op_ex_o[3] : apu_op_ex_o[2];
 
-        assign apu_operands_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_operands_ex_o[0] : apu_operands_ex_o[3];
-        assign apu_operands_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_operands_ex_o[1] : apu_operands_ex_o[3];
-        assign apu_operands_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_operands_ex_o[2] : apu_operands_ex_o[3];
+        assign apu_operands_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_operands_ex_o[3] : apu_operands_ex_o[0];
+        assign apu_operands_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_operands_ex_o[3] : apu_operands_ex_o[1];
+        assign apu_operands_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_operands_ex_o[3] : apu_operands_ex_o[2];
 
-        assign apu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_waddr_ex_o[0] : apu_waddr_ex_o[3];
-        assign apu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_waddr_ex_o[1] : apu_waddr_ex_o[3];
-        assign apu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_waddr_ex_o[2] : apu_waddr_ex_o[3];
+        assign apu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_waddr_ex_o[3] : apu_waddr_ex_o[0];
+        assign apu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_waddr_ex_o[3] : apu_waddr_ex_o[1];
+        assign apu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? apu_waddr_ex_o[3] : apu_waddr_ex_o[2];
 
-        assign regfile_alu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_waddr_ex_o[0] : regfile_alu_waddr_ex_o[3];
-        assign regfile_alu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_waddr_ex_o[1] : regfile_alu_waddr_ex_o[3];
-        assign regfile_alu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_waddr_ex_o[2] : regfile_alu_waddr_ex_o[3];
+        assign regfile_alu_waddr_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_waddr_ex_o[3] : regfile_alu_waddr_ex_o[0];
+        assign regfile_alu_waddr_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_waddr_ex_o[3] : regfile_alu_waddr_ex_o[1];
+        assign regfile_alu_waddr_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_waddr_ex_o[3] : regfile_alu_waddr_ex_o[2];
 
-        assign regfile_alu_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_we_ex_o[0] : regfile_alu_we_ex_o[3];
-        assign regfile_alu_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_we_ex_o[1] : regfile_alu_we_ex_o[3];
-        assign regfile_alu_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_we_ex_o[2] : regfile_alu_we_ex_o[3];
+        assign regfile_alu_we_ex_voter_in[0] = sel_mux_ex_o[0] ? regfile_alu_we_ex_o[3] : regfile_alu_we_ex_o[0];
+        assign regfile_alu_we_ex_voter_in[1] = sel_mux_ex_o[1] ? regfile_alu_we_ex_o[3] : regfile_alu_we_ex_o[1];
+        assign regfile_alu_we_ex_voter_in[2] = sel_mux_ex_o[2] ? regfile_alu_we_ex_o[3] : regfile_alu_we_ex_o[2];
 
         /*// for those signals used by the single alu in case FT==0
-        assign bmask_a_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_a_ex_o[0] : bmask_a_ex_o[3];
-        assign bmask_a_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_a_ex_o[1] : bmask_a_ex_o[3];
-        assign bmask_a_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_a_ex_o[2] : bmask_a_ex_o[3];
+        assign bmask_a_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_a_ex_o[3] : bmask_a_ex_o[0];
+        assign bmask_a_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_a_ex_o[3] : bmask_a_ex_o[1];
+        assign bmask_a_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_a_ex_o[3] : bmask_a_ex_o[2];
 
-        assign bmask_b_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_b_ex_o[0] : bmask_b_ex_o[3];
-        assign bmask_b_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_b_ex_o[1] : bmask_b_ex_o[3];
-        assign bmask_b_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_b_ex_o[2] : bmask_b_ex_o[3];
+        assign bmask_b_ex_voter_in[0] = sel_mux_ex_o[0] ? bmask_b_ex_o[3] : bmask_b_ex_o[0];
+        assign bmask_b_ex_voter_in[1] = sel_mux_ex_o[1] ? bmask_b_ex_o[3] : bmask_b_ex_o[1];
+        assign bmask_b_ex_voter_in[2] = sel_mux_ex_o[2] ? bmask_b_ex_o[3] : bmask_b_ex_o[2];
 
-        assign imm_vec_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? imm_vec_ext_ex_o[0] : imm_vec_ext_ex_o[3];
-        assign imm_vec_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? imm_vec_ext_ex_o[1] : imm_vec_ext_ex_o[3];
-        assign imm_vec_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? imm_vec_ext_ex_o[2] : imm_vec_ext_ex_o[3];
+        assign imm_vec_ext_ex_voter_in[0] = sel_mux_ex_o[0] ? imm_vec_ext_ex_o[3] : imm_vec_ext_ex_o[0];
+        assign imm_vec_ext_ex_voter_in[1] = sel_mux_ex_o[1] ? imm_vec_ext_ex_o[3] : imm_vec_ext_ex_o[1];
+        assign imm_vec_ext_ex_voter_in[2] = sel_mux_ex_o[2] ? imm_vec_ext_ex_o[3] : imm_vec_ext_ex_o[2];
 
-        assign alu_vec_mode_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_vec_mode_ex_o[0] : alu_vec_mode_ex_o[3];
-        assign alu_vec_mode_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_vec_mode_ex_o[1] : alu_vec_mode_ex_o[3];
-        assign alu_vec_mode_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_vec_mode_ex_o[2] : alu_vec_mode_ex_o[3];
+        assign alu_vec_mode_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_vec_mode_ex_o[3] : alu_vec_mode_ex_o[0];
+        assign alu_vec_mode_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_vec_mode_ex_o[3] : alu_vec_mode_ex_o[1];
+        assign alu_vec_mode_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_vec_mode_ex_o[3] : alu_vec_mode_ex_o[2];
 
-        assign alu_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_clpx_ex_o[0] : alu_is_clpx_ex_o[3];
-        assign alu_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_clpx_ex_o[1] : alu_is_clpx_ex_o[3];
-        assign alu_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_clpx_ex_o[2] : alu_is_clpx_ex_o[3];
+        assign alu_is_clpx_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_clpx_ex_o[3] : alu_is_clpx_ex_o[0];
+        assign alu_is_clpx_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_clpx_ex_o[3] : alu_is_clpx_ex_o[1];
+        assign alu_is_clpx_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_clpx_ex_o[3] : alu_is_clpx_ex_o[2];
 
-        assign alu_is_subrot_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_subrot_ex_o[0] : alu_is_subrot_ex_o[3];
-        assign alu_is_subrot_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_subrot_ex_o[1] : alu_is_subrot_ex_o[3];
-        assign alu_is_subrot_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_subrot_ex_o[2] : alu_is_subrot_ex_o[3];
+        assign alu_is_subrot_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_is_subrot_ex_o[3] : alu_is_subrot_ex_o[0];
+        assign alu_is_subrot_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_is_subrot_ex_o[3] : alu_is_subrot_ex_o[1];
+        assign alu_is_subrot_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_is_subrot_ex_o[3] : alu_is_subrot_ex_o[2];
 
-        assign alu_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_clpx_shift_ex_o[0] : alu_clpx_shift_ex_o[3];
-        assign alu_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_clpx_shift_ex_o[1] : alu_clpx_shift_ex_o[3];
-        assign alu_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_clpx_shift_ex_o[2] : alu_clpx_shift_ex_o[3];*/
+        assign alu_clpx_shift_ex_voter_in[0] = sel_mux_ex_o[0] ? alu_clpx_shift_ex_o[3] : alu_clpx_shift_ex_o[0];
+        assign alu_clpx_shift_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_clpx_shift_ex_o[3] : alu_clpx_shift_ex_o[1];
+        assign alu_clpx_shift_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_clpx_shift_ex_o[3] : alu_clpx_shift_ex_o[2];*/
 
 
 

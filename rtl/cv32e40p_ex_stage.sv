@@ -325,6 +325,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   );
 
 
+
   ////////////////////////////
   //     _    _    _   _    //
   //    / \  | |  | | | |   //

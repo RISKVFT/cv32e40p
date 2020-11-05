@@ -161,65 +161,65 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 
 	        
 			// MUXs of inputs, to redirect three of the four inputs coming from the four pipelines to the right three MULTs
-			assign enable_in[0] = sel_mux_ex_i[0] ? enable_i[0] : enable_i[3];
-	        assign enable_in[1] = sel_mux_ex_i[1] ? enable_i[1] : enable_i[3];
-	        assign enable_in[2] = sel_mux_ex_i[2] ? enable_i[2] : enable_i[3];
+			assign enable_in[0] = sel_mux_ex_i[0] ? enable_i[3] : enable_i[0];
+	        assign enable_in[1] = sel_mux_ex_i[1] ? enable_i[3] : enable_i[1];
+	        assign enable_in[2] = sel_mux_ex_i[2] ? enable_i[3] : enable_i[2];
 
-	        assign operator_in[0] = sel_mux_ex_i[0] ? operator_i[0] : operator_i[3];
-	        assign operator_in[1] = sel_mux_ex_i[1] ? operator_i[1] : operator_i[3];
-	        assign operator_in[2] = sel_mux_ex_i[2] ? operator_i[2] : operator_i[3];
+	        assign operator_in[0] = sel_mux_ex_i[0] ? operator_i[3] : operator_i[0];
+	        assign operator_in[1] = sel_mux_ex_i[1] ? operator_i[3] : operator_i[1];
+	        assign operator_in[2] = sel_mux_ex_i[2] ? operator_i[3] : operator_i[2];
 
-	        assign short_subword_in[0] = sel_mux_ex_i[0] ? short_subword_i[0] : short_subword_i[3];
-	        assign short_subword_in[1] = sel_mux_ex_i[1] ? short_subword_i[1] : short_subword_i[3];
-	        assign short_subword_in[2] = sel_mux_ex_i[2] ? short_subword_i[2] : short_subword_i[3];
+	        assign short_subword_in[0] = sel_mux_ex_i[0] ? short_subword_i[3] : short_subword_i[0];
+	        assign short_subword_in[1] = sel_mux_ex_i[1] ? short_subword_i[3] : short_subword_i[1];
+	        assign short_subword_in[2] = sel_mux_ex_i[2] ? short_subword_i[3] : short_subword_i[2];
 
-	        assign short_signed_in[0] = sel_mux_ex_i[0] ? short_signed_i[0] : short_signed_i[3];
-	        assign short_signed_in[1] = sel_mux_ex_i[1] ? short_signed_i[1] : short_signed_i[3];
-	        assign short_signed_in[2] = sel_mux_ex_i[2] ? short_signed_i[2] : short_signed_i[3];
+	        assign short_signed_in[0] = sel_mux_ex_i[0] ? short_signed_i[3] : short_signed_i[0];
+	        assign short_signed_in[1] = sel_mux_ex_i[1] ? short_signed_i[3] : short_signed_i[1];
+	        assign short_signed_in[2] = sel_mux_ex_i[2] ? short_signed_i[3] : short_signed_i[2];
 
-	        assign op_a_in[0] = sel_mux_ex_i[0] ? op_a_i[0] : op_a_i[3];
-	        assign op_a_in[1] = sel_mux_ex_i[1] ? op_a_i[1] : op_a_i[3];
-	        assign op_a_in[2] = sel_mux_ex_i[2] ? op_a_i[2] : op_a_i[3];
+	        assign op_a_in[0] = sel_mux_ex_i[0] ? op_a_i[3] : op_a_i[0];
+	        assign op_a_in[1] = sel_mux_ex_i[1] ? op_a_i[3] : op_a_i[1];
+	        assign op_a_in[2] = sel_mux_ex_i[2] ? op_a_i[3] : op_a_i[2];
 
-	        assign op_c_in[0] = sel_mux_ex_i[0] ? op_c_i[0] : op_c_i[3];
-	        assign op_c_in[1] = sel_mux_ex_i[1] ? op_c_i[1] : op_c_i[3];
-	        assign op_c_in[2] = sel_mux_ex_i[2] ? op_c_i[2] : op_c_i[3];
+	        assign op_c_in[0] = sel_mux_ex_i[0] ? op_c_i[3] : op_c_i[0];
+	        assign op_c_in[1] = sel_mux_ex_i[1] ? op_c_i[3] : op_c_i[1];
+	        assign op_c_in[2] = sel_mux_ex_i[2] ? op_c_i[3] : op_c_i[2];
 
-	        assign op_b_in[0] = sel_mux_ex_i[0] ? op_b_i[0] : op_b_i[3];
-	        assign op_b_in[1] = sel_mux_ex_i[1] ? op_b_i[1] : op_b_i[3];
-	        assign op_b_in[2] = sel_mux_ex_i[2] ? op_b_i[2] : op_b_i[3];
+	        assign op_b_in[0] = sel_mux_ex_i[0] ? op_b_i[3] : op_b_i[0];
+	        assign op_b_in[1] = sel_mux_ex_i[1] ? op_b_i[3] : op_b_i[1];
+	        assign op_b_in[2] = sel_mux_ex_i[2] ? op_b_i[3] : op_b_i[2];
 
-	        assign imm_in[0] = sel_mux_ex_i[0] ? imm_i[0] : imm_i[3];
-	        assign imm_in[1] = sel_mux_ex_i[1] ? imm_i[1] : imm_i[3];
-	        assign imm_in[2] = sel_mux_ex_i[2] ? imm_i[2] : imm_i[3];
+	        assign imm_in[0] = sel_mux_ex_i[0] ? imm_i[3] : imm_i[0];
+	        assign imm_in[1] = sel_mux_ex_i[1] ? imm_i[3] : imm_i[1];
+	        assign imm_in[2] = sel_mux_ex_i[2] ? imm_i[3] : imm_i[2];
 
-	        assign dot_signed_in[0] = sel_mux_ex_i[0] ? dot_signed_i[0] : dot_signed_i[3];
-	        assign dot_signed_in[1] = sel_mux_ex_i[1] ? dot_signed_i[1] : dot_signed_i[3];
-	        assign dot_signed_in[2] = sel_mux_ex_i[2] ? dot_signed_i[2] : dot_signed_i[3];
+	        assign dot_signed_in[0] = sel_mux_ex_i[0] ? dot_signed_i[3] : dot_signed_i[0];
+	        assign dot_signed_in[1] = sel_mux_ex_i[1] ? dot_signed_i[3] : dot_signed_i[1];
+	        assign dot_signed_in[2] = sel_mux_ex_i[2] ? dot_signed_i[3] : dot_signed_i[2];
 
-	        assign dot_op_a_in[0] = sel_mux_ex_i[0] ? dot_op_a_i[0] : dot_op_a_i[3];
-	        assign dot_op_a_in[1] = sel_mux_ex_i[1] ? dot_op_a_i[1] : dot_op_a_i[3];
-	        assign dot_op_a_in[2] = sel_mux_ex_i[2] ? dot_op_a_i[2] : dot_op_a_i[3];
+	        assign dot_op_a_in[0] = sel_mux_ex_i[0] ? dot_op_a_i[3] : dot_op_a_i[0];
+	        assign dot_op_a_in[1] = sel_mux_ex_i[1] ? dot_op_a_i[3] : dot_op_a_i[1];
+	        assign dot_op_a_in[2] = sel_mux_ex_i[2] ? dot_op_a_i[3] : dot_op_a_i[2];
 
-	        assign dot_op_b_in[0] = sel_mux_ex_i[0] ? dot_op_b_i[0] : dot_op_b_i[3];
-	        assign dot_op_b_in[1] = sel_mux_ex_i[1] ? dot_op_b_i[1] : dot_op_b_i[3];
-	        assign dot_op_b_in[2] = sel_mux_ex_i[2] ? dot_op_b_i[2] : dot_op_b_i[3];
+	        assign dot_op_b_in[0] = sel_mux_ex_i[0] ? dot_op_b_i[3] : dot_op_b_i[0];
+	        assign dot_op_b_in[1] = sel_mux_ex_i[1] ? dot_op_b_i[3] : dot_op_b_i[1];
+	        assign dot_op_b_in[2] = sel_mux_ex_i[2] ? dot_op_b_i[3] : dot_op_b_i[2];
 
-	        assign dot_op_c_in[0] = sel_mux_ex_i[0] ? dot_op_c_i[0] : dot_op_c_i[3];
-	        assign dot_op_c_in[1] = sel_mux_ex_i[1] ? dot_op_c_i[1] : dot_op_c_i[3];
-	        assign dot_op_c_in[2] = sel_mux_ex_i[2] ? dot_op_c_i[2] : dot_op_c_i[3];
+	        assign dot_op_c_in[0] = sel_mux_ex_i[0] ? dot_op_c_i[3] : dot_op_c_i[0];
+	        assign dot_op_c_in[1] = sel_mux_ex_i[1] ? dot_op_c_i[3] : dot_op_c_i[1];
+	        assign dot_op_c_in[2] = sel_mux_ex_i[2] ? dot_op_c_i[3] : dot_op_c_i[2];
 
-	        assign is_clpx_in[0] = sel_mux_ex_i[0] ? is_clpx_i[0] : is_clpx_i[3];
-	        assign is_clpx_in[1] = sel_mux_ex_i[1] ? is_clpx_i[1] : is_clpx_i[3];
-	        assign is_clpx_in[2] = sel_mux_ex_i[2] ? is_clpx_i[2] : is_clpx_i[3];
+	        assign is_clpx_in[0] = sel_mux_ex_i[0] ? is_clpx_i[3] : is_clpx_i[0];
+	        assign is_clpx_in[1] = sel_mux_ex_i[1] ? is_clpx_i[3] : is_clpx_i[1];
+	        assign is_clpx_in[2] = sel_mux_ex_i[2] ? is_clpx_i[3] : is_clpx_i[2];
 
-	        assign clpx_shift_in[0] = sel_mux_ex_i[0] ? clpx_shift_i[0] : clpx_shift_i[3];
-	        assign clpx_shift_in[1] = sel_mux_ex_i[1] ? clpx_shift_i[1] : clpx_shift_i[3];
-	        assign clpx_shift_in[2] = sel_mux_ex_i[2] ? clpx_shift_i[2] : clpx_shift_i[3];
+	        assign clpx_shift_in[0] = sel_mux_ex_i[0] ? clpx_shift_i[3] : clpx_shift_i[0];
+	        assign clpx_shift_in[1] = sel_mux_ex_i[1] ? clpx_shift_i[3] : clpx_shift_i[1];
+	        assign clpx_shift_in[2] = sel_mux_ex_i[2] ? clpx_shift_i[3] : clpx_shift_i[2];
 
-	        assign clpx_img_in[0] = sel_mux_ex_i[0] ? clpx_img_i[0] : clpx_img_i[3];
-	        assign clpx_img_in[1] = sel_mux_ex_i[1] ? clpx_img_i[1] : clpx_img_i[3];
-	        assign clpx_img_in[2] = sel_mux_ex_i[2] ? clpx_img_i[2] : clpx_img_i[3];
+	        assign clpx_img_in[0] = sel_mux_ex_i[0] ? clpx_img_i[3] : clpx_img_i[0];
+	        assign clpx_img_in[1] = sel_mux_ex_i[1] ? clpx_img_i[3] : clpx_img_i[1];
+	        assign clpx_img_in[2] = sel_mux_ex_i[2] ? clpx_img_i[3] : clpx_img_i[2];
 
 
 
@@ -322,7 +322,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 
 			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU
 	        assign err_detected_mult[0] = (err_detected_res_1 || err_detected_multicycle_1 || err_detected_ready_1);
-	        assign err_detected_mult[1] = (err_detected_res_1 || err_detected_multicycle_2 || err_detected_ready_2);
+	        assign err_detected_mult[1] = (err_detected_res_2 || err_detected_multicycle_2 || err_detected_ready_2);
 	        assign err_detected_mult[2] = (err_detected_res_3 || err_detected_multicycle_3 || err_detected_ready_3);
 
 	        
@@ -358,7 +358,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        endgenerate*/
 
 
-	        always_ff @(posedge clk or negedge rst_n) begin : counter_0
+	        /*always_ff @(posedge clk or negedge rst_n) begin : counter_0
 	        	if(~rst_n) begin
 	        		perf_counter_permanent_faulty_mult_o[0] <= 1'b0;
 	        		counter_mult[0] <= 8'b0;
@@ -427,11 +427,48 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
         			enable_count[2] <= 'b0;
         		end
 	        end
+	        */
 
+			always_ff @(posedge clk or negedge rst_n) begin : counter_0
+	        	if(~rst_n) begin
+	        		enable_count[0] <= 1'b0;
+	        	end 
+	        	else if (enable_i[0] & err_detected_mult[0]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
+	        		enable_count[0] <= 1'b1;
+	         	end
+	         	else begin
+        			enable_count[0] <= 1'b0;
+        		end
+	        end
+
+	        always_ff @(posedge clk or negedge rst_n) begin : counter_1
+	        	if(~rst_n) begin
+	        		enable_count[1] <= 1'b0;
+	        	end 
+	        	else if (enable_i[1] & err_detected_mult[1]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
+	        		enable_count[1] <= 1'b1;
+	         	end
+	         	else begin
+        			enable_count[1] <= 1'b0;
+        		end
+	        end
+
+	        always_ff @(posedge clk or negedge rst_n) begin : counter_2
+	        	if(~rst_n) begin
+	        		enable_count[2] <= 1'b0;
+	        	end 
+	        	else if (enable_i[2] & err_detected_mult[2]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
+	        		enable_count[2] <= 1'b1;
+	         	end
+	         	else begin
+        			enable_count[2] <= 1'b0;
+        		end
+	        end
 
 
 	        assign err_detected_o = (err_detected_res || err_detected_multicycle || err_detected_ready);
 	        assign err_corrected_o = (err_corrected_res || err_corrected_multicycle || err_corrected_ready);
+	        assign perf_counter_permanent_faulty_mult_o = 4'b0;
 
 
 
