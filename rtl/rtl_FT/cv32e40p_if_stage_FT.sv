@@ -271,7 +271,7 @@ module cv32e40p_if_stage_ft
   // IF-ID pipeline registers, frozen when the ID stage is stalled
 
 generate
-	if (ID_FAULT_TOLERANT[2]==1) begin
+	if (ID_FAULT_TOLERANCE[2]==1) begin
 	// SOFT ERRORS FAULT TOLERANCE
 		for (genvar i=0; i<3; i++) begin
 		  ////////////////// TMR of pipeline //////////////////////////////

@@ -77,7 +77,7 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 	// FT signals to/from performance counters
 	input  logic [31:0]			   regfile_location_valid_i, // input coming from performance counter (?)
 	output logic [31:0]			   regfile_location_valid_o, // updated valid locations info to send to the performance counter (?)
-	output logic				   write_performance_counter_o // write enable to update performance counter register
+	output logic				   write_performance_counter_o, // write enable to update performance counter register
 
 	// Start of original entity
     input  logic        clk,                    // Gated clock

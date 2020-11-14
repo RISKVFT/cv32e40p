@@ -122,7 +122,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   //	2. pipeline if/id
   //	1. decoder
   //	0. controller
-  output logic[3:0][1:0]  erros_ft_o // 0 = corrected, 1 = detected but not corrected
+  output logic[3:0][1:0]  errors_ft_o // 0 = corrected, 1 = detected but not corrected
 );
 
   import cv32e40p_pkg::*;
