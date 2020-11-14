@@ -178,6 +178,10 @@ module cv32e40p_decoder import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
   logic                      fpu_vec_op; // fpu vectorial operation
   // unittypes for latencies to help us decode for APU
   enum logic[1:0] {ADDMUL, DIVSQRT, NONCOMP, CONV} fp_op_group;
+  
+  // aggiungo un segnale per vedere l'opcode
+  logic [6:0] opcode_tb;
+  assign opcode_tb = instr_rdata_i[6:0];
 
 
   /////////////////////////////////////////////
