@@ -245,10 +245,20 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic [31:0] mcounteren_i,
 
     // FT
-    input  logic [3:0][8:0]   permanent_faulty_alu_i,  // one for each fsm: 4 ALU and 9 subpart of ALU
+    input  logic [3:0][8:0]   permanent_faulty_alu_i,  // one for each counter: 4 ALU and 9 subpart of ALU
     input  logic [3:0][8:0]   permanent_faulty_alu_s_i,
+
+    //HO DEFINITO QUESTI COME DEI SIGNAL SOLO PER FAR FUNZIONARE LE COSE PER IL MOMENTO VISTO CHE NON SO ANCORA COME FARE STI CAZZ DI PERFORMANCE COUNTERS
+    //input  logic [2:0]        permanent_faulty_mult_i,  // one for each counter: 4 ALU and 9 subpart of ALU
+    //input  logic [2:0]        permanent_faulty_mult_s_i,
+    
+
     output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     output logic [3:0]        clock_enable_alu_o,
+    output logic [1:0]		  sel_bypass_alu_ex_o,
+    output logic [1:0]		  sel_bypass_mult_ex_o,
+    output logic 			  alu_totally_defective_o, // set to '1' if all the ALUs are permanently faulty for that operation
+    output logic 			  mult_totally_defective_o, // set to '1' if all the MULTs are permanently faulty for that operation
 
     // signal output of the voters for the outputs of the id_stage that are used into the core
     output logic [31:0]          pc_ex_voted,
@@ -545,6 +555,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [3:0]      clock_en;  // used for gating clock of one of the pipeline replicas for FT version
   logic [3:0]      clk_gated_ft;
   logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
+  logic [1:0]	   sel_bypass_mult_ex_s; // mux selectors used when there are 2 out of 3 faulty MULTs
+  logic [1:0]	   sel_bypass_alu_ex_s;  // mux selectors used when there are 3 out of 4 faulty ALUs
   // signals input to the voters for the outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
   logic [2:0][5:0]      regfile_waddr_ex_voter_in;
@@ -553,7 +565,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][1:0]      csr_op_ex_voter_in;
   logic [2:0]           data_req_ex_voter_in;
   logic [2:0]           data_we_ex_voter_in;
-  logic [2:0][ALU_OP_WIDTH-1:0]      alu_operator_ex_voter_in;
+  //logic [2:0][ALU_OP_WIDTH-1:0]      alu_operator_ex_voter_in;
   logic [2:0]           apu_en_ex_voter_in;
   logic [2:0][1:0]      apu_lat_ex_voter_in;
   logic [2:0]           branch_in_ex_voter_in;
@@ -625,6 +637,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [8:0][3:0]            permanent_faulty_alu_trans_s;
   logic [3:0]				  permanent_faulty_alu_in_decoder;
 
+  logic [2:0]                 permanent_faulty_mult_i;  // one for each counter: 4 ALU and 9 subpart of ALU
+  logic [2:0]       		  permanent_faulty_mult_s_i;
+  logic [2:0]			      permanent_faulty_mult_in_decoder;
+
   /*// for those signal used in ex stage and in particular by the single alu incase FT==0
   logic [2:0][ 4:0] bmask_a_ex_voter_in;       
   logic [2:0][ 4:0] bmask_b_ex_voter_in;        
@@ -636,7 +652,20 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0][ 1:0] alu_clpx_shift_ex_voter_in;*/
 
 
-////////////////////////////////////////////////////////////77
+//////////////////////////////////////////////////////////////
+
+
+int fw;
+
+initial begin
+    fw = $fopen("/home/thesis/luca.fiore/Desktop/opcode_vs_Inst.txt","w");
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+    $fwrite(fw,"INSTRUCTION: %b - Opcode: %b\n", instr, instr[6:0]);
+end
+
+//////////////////////////////////////////////////////////////
 
   assign instr = instr_rdata_i;
 
@@ -1609,7 +1638,7 @@ endgenerate
 
     if(FT==1) begin // EX stage units dispatcher: it select the unit to use for the TMR in EX stage based on the specific operation and on the components able to compute it discarding those permanently faulty for that operation.
       
-        always_comb begin: EX_dispatcher
+        always_comb begin: EX_ALU_dispatcher_init
 
             case (alu_operator) 
 
@@ -1662,18 +1691,43 @@ endgenerate
 
             endcase // case (alu_operator)
 
-        end // end always_comb EX_dispatcher
+        end // end always_comb EX_ALU_dispatcher_init
 
 
-        cv32e40p_decoder_faulty_alu decoder_faulty_alu 
+        // PER ORA HO FISSATO QUESTI SEGNALI A '0' MA POI SARANNO DEGLI INPUT QUANDO CAPIRO' COME FARE I PERFORMANCE COUNTERS
+        assign permanent_faulty_mult_i = 2'b0;  // one for each counter: 4 ALU and 9 subpart of ALU
+        assign permanent_faulty_mult_s_i = 2'b0;
+
+
+        always_comb begin: EX_MULT_dispatcher_init
+
+            case (mult_operator) 
+
+                MUL_MAC32, MUL_MSU32, MUL_I, MUL_IR, MUL_DOT8, MUL_DOT16, MUL_H:
+                permanent_faulty_mult_in_decoder = permanent_faulty_mult_s_i[0] | permanent_faulty_mult_i[0];
+
+                default:  permanent_faulty_mult_in_decoder = 4'b0000;        
+
+            endcase // case (mult_operator)
+
+        end // end always_comb EX_MULT_dispatcher_init
+
+
+
+        cv32e40p_decoder_faulty_alu decoder_faulty_alu // THE REAL DISPATCHER
         ( 
-         .alu_enable                 ( alu_en ),
+         .alu_used                   ( alu_en_ex_voted  ),
+         .mult_used                  ( mult_used_ex_o ),
          .permanent_faulty_alu_i     ( permanent_faulty_alu_in_decoder ),
-         .clock_gate_pipe_replica_o  ( clock_en ),
-         .sel_mux_ex_o               ( sel_mux_ex_s )
+         .permanent_faulty_mult_i    ( permanent_faulty_mult_in_decoder ),
+         .clock_gate_pipe_replica_o  ( clock_en     ),
+         .sel_mux_ex_o               ( sel_mux_ex_s ),
+         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s ),
+         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s ),
+         .alu_totally_defective_o    ( alu_totally_defective_o ), 
+         .mult_totally_defective_o   ( mult_totally_defective_o )
         );
-        //assign sel_mux_ex_s = 4'b000;
-        //assign clock_en = 4'b0111;
+
 
         // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
         cv32e40p_clock_gate clk_gate_4[3:0]
@@ -1683,18 +1737,6 @@ endgenerate
          .scan_cg_en_i ( 1'b0 ), // not used here
          .clk_o        ( clk_gated_ft[3:0] )
         );
-
-        /*
-        assign clk_gated_ft[0] = clock_en[0] & clk; 
-        assign clk_gated_ft[1] = clock_en[1] & clk; 
-        assign clk_gated_ft[2] = clock_en[2] & clk; 
-        assign clk_gated_ft[3] = clock_en[3] & clk;
-        */  
-        
-        /*assign clk_gated_ft[0] = clk; 
-        assign clk_gated_ft[1] = clk; 
-        assign clk_gated_ft[2] = clk; 
-        assign clk_gated_ft[3] = clk;*/
         
 
 
@@ -1848,9 +1890,13 @@ endgenerate
           if(~rst_n) begin
             sel_mux_ex_o <= 3'b0;
             clock_enable_alu_o <= 3'b0;
+            sel_bypass_alu_ex_o <= 2'b0;
+            sel_bypass_mult_ex_o <= 2'b0;
           end else begin
             sel_mux_ex_o <= sel_mux_ex_s;
             clock_enable_alu_o <= clock_en;
+            sel_bypass_alu_ex_o <= sel_bypass_alu_ex_s;
+            sel_bypass_mult_ex_o <= sel_bypass_mult_ex_s;
           end
         end
 
@@ -2874,6 +2920,8 @@ endgenerate
 
             assign sel_mux_ex_o = 3'b0;
             assign clock_enable_alu_o = 3'b0;
+            assign sel_mux_alu_o = 2'b0;
+            assign sel_mux_mult_o = 2'b0;
 
 
             assign pc_ex_o[3:1] = 3'b000;

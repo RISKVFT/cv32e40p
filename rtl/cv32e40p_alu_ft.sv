@@ -376,6 +376,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .alu_enable_i 						(enable_i),
 			  .alu_operator_i 						(operator_i),
 			  .error_detected_i						({err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0}), 
+			  .ready_o_div_count                    ( ready_o ),
 			  .permanent_faulty_alu_o     			(permanent_faulty_alu_o),
 			  .permanent_faulty_alu_s               (permanent_faulty_alu_s),  
 			  .perf_counter_permanent_faulty_alu_o	(perf_counter_permanent_faulty_alu_o)

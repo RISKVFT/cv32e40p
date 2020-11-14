@@ -360,6 +360,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [3:0][8:0]   permanent_faulty_alu_s; 
   logic [2:0]        sel_mux_ex;            // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
   logic [3:0]        clock_enable_alu;		// FT: output of quadruplicated pipe
+  logic [1:0]        sel_bypass_alu;
+  logic [1:0]        sel_bypass_mult;
 
   // FT - EX stage
   logic             err_corrected_alu;
@@ -804,6 +806,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .permanent_faulty_alu_s_i     ( permanent_faulty_alu_s  ), 
     .sel_mux_ex_o                 ( sel_mux_ex              ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
     .clock_enable_alu_o           ( clock_enable_alu        ),
+    .sel_bypass_alu_ex_o          ( sel_bypass_alu          ),
+    .sel_bypass_mult_ex_o         ( sel_bypass_mult         ),
+    .alu_totally_defective_o      ( alu_totally_defective   ),
+    .mult_totally_defective_o     ( multu_totally_defective ),
     .pc_ex_voted                  ( pc_ex_core              ),
     .alu_operand_a_ex_voted       ( alu_operand_a_ex_core   ),
     .alu_operand_c_ex_voted       ( alu_operand_c_ex_core   ),
