@@ -40,7 +40,8 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
   parameter NUM_MHPMCOUNTERS = 1,
   parameter PULP_XPULP       = 0,
   parameter PULP_CLUSTER     = 0,
-  parameter DEBUG_TRIGGER_EN = 1
+  parameter DEBUG_TRIGGER_EN = 1,
+  parameter FT               = 0
 )
 (
   // Clock and Reset
@@ -149,6 +150,7 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
 );
 
   localparam NUM_HPM_EVENTS    =   16;
+  localparam NUM_HPM_EVENTS_FT =   36;
 
   localparam MTVEC_MODE        = 2'b01;
 
@@ -278,6 +280,9 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
   logic [31:0]               mhpmcounter_write_lower;          // write 32 lower bits of mhpmcounter_q
   logic [31:0]               mhpmcounter_write_upper;          // write 32 upper bits mhpmcounter_q
   logic [31:0]               mhpmcounter_write_increment;      // write increment of mhpmcounter_q
+
+  logic [NUM_HPM_EVENTS_FT-1:0] hpm_events_ft;                 // events for performance counters for FT
+  logic [31:0] [63:0]        mhpmcounter_increment;            // increment of mhpmcounter_q
 
   assign is_irq = csr_cause_i[5];
 
@@ -502,6 +507,53 @@ if(PULP_SECURE==1) begin
 
       // current priv level (not official)
       CSR_PRIVLV: csr_rdata_int = !PULP_XPULP ? 'b0 : {30'h0, priv_lvl_q};
+
+
+      if (FT): begin
+        CSR_MCOUNTEREN_FT: csr_rdata_int = mcounteren_q;
+
+        // Hardware Performance Monitor
+        CSR_MCYCLE_FT,
+        CSR_MINSTRET_FT,
+        CSR_MHPMCOUNTER3_FT,
+        CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
+        CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT,
+        CSR_MHPMCOUNTER12_FT, CSR_MHPMCOUNTER13_FT, CSR_MHPMCOUNTER14_FT, CSR_MHPMCOUNTER15_FT,
+        CSR_MHPMCOUNTER16_FT, CSR_MHPMCOUNTER17_FT, CSR_MHPMCOUNTER18_FT, CSR_MHPMCOUNTER19_FT,
+        CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
+        CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
+        CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
+        CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+          csr_rdata_int = mhpmcounter_q_ft[csr_addr_i[4:0]][31:0];
+
+        CSR_MCYCLEH_FT,
+        CSR_MINSTRETH_FT,
+        CSR_MHPMCOUNTER3H_FT,
+        CSR_MHPMCOUNTER4H_FT,  CSR_MHPMCOUNTER5H_FT,  CSR_MHPMCOUNTER6H_FT,  CSR_MHPMCOUNTER7H_FT,
+        CSR_MHPMCOUNTER8H_FT,  CSR_MHPMCOUNTER9H_FT,  CSR_MHPMCOUNTER10H_FT, CSR_MHPMCOUNTER11H_FT,
+        CSR_MHPMCOUNTER12H_FT, CSR_MHPMCOUNTER13H_FT, CSR_MHPMCOUNTER14H_FT, CSR_MHPMCOUNTER15H_FT,
+        CSR_MHPMCOUNTER16H_FT, CSR_MHPMCOUNTER17H_FT, CSR_MHPMCOUNTER18H_FT, CSR_MHPMCOUNTER19H_FT,
+        CSR_MHPMCOUNTER20H_FT, CSR_MHPMCOUNTER21H_FT, CSR_MHPMCOUNTER22H_FT, CSR_MHPMCOUNTER23H_FT,
+        CSR_MHPMCOUNTER24H_FT, CSR_MHPMCOUNTER25H_FT, CSR_MHPMCOUNTER26H_FT, CSR_MHPMCOUNTER27H_FT,
+        CSR_MHPMCOUNTER28H_FT, CSR_MHPMCOUNTER29H_FT, CSR_MHPMCOUNTER30H_FT, CSR_MHPMCOUNTER31H_FT,
+        CSR_MHPMCOUNTER32H_FT, CSR_MHPMCOUNTER33H_FT, CSR_MHPMCOUNTER34H_FT, CSR_MHPMCOUNTER35H_FT:
+          csr_rdata_int = mhpmcounter_q_ft[csr_addr_i[4:0]][63:32];
+
+        CSR_MCOUNTINHIBIT_FT: csr_rdata_int = mcountinhibit_q;
+
+        CSR_MHPMEVENT3_FT,
+        CSR_MHPMEVENT4_FT,  CSR_MHPMEVENT5_FT,  CSR_MHPMEVENT6_FT,  CSR_MHPMEVENT7_FT,
+        CSR_MHPMEVENT8_FT,  CSR_MHPMEVENT9_FT,  CSR_MHPMEVENT10_FT, CSR_MHPMEVENT11_FT,
+        CSR_MHPMEVENT12_FT, CSR_MHPMEVENT13_FT, CSR_MHPMEVENT14_FT, CSR_MHPMEVENT15_FT,
+        CSR_MHPMEVENT16_FT, CSR_MHPMEVENT17_FT, CSR_MHPMEVENT18_FT, CSR_MHPMEVENT19_FT,
+        CSR_MHPMEVENT20_FT, CSR_MHPMEVENT21_FT, CSR_MHPMEVENT22_FT, CSR_MHPMEVENT23_FT,
+        CSR_MHPMEVENT24_FT, CSR_MHPMEVENT25_FT, CSR_MHPMEVENT26_FT, CSR_MHPMEVENT27_FT,
+        CSR_MHPMEVENT28_FT, CSR_MHPMEVENT29_FT, CSR_MHPMEVENT30_FT, CSR_MHPMEVENT31_FT,
+        CSR_MHPMEVENT32_FT, CSR_MHPMEVENT33_FT, CSR_MHPMEVENT34_FT, CSR_MHPMEVENT35_FT:
+          csr_rdata_int = mhpmevent_q_ft[csr_addr_i[4:0]];
+      end
+
+
 
       default:
         csr_rdata_int = '0;
@@ -1398,7 +1450,27 @@ end //PULP_SECURE
   assign hpm_events[13] = !APU ? 1'b0 : apu_contention_i;
   assign hpm_events[14] = !APU ? 1'b0 : apu_dep_i && !apu_contention_i;
   assign hpm_events[15] = !APU ? 1'b0 : apu_wb_i;
-  //assign hpm_events[16] = pipeline_stall_i;    
+  
+  // FT: Events to count
+  // 36 events to count errors on the 9 subsets of operations in which each of the 4 ALUs is divided.
+  genvar cnt_alu_set;
+  generate
+    for (cnt_alu_set = 0; cnt_alu_set < 36; cnt_alu_set++) begin
+      assign hpm_events_ft[cnt_alu_set]  = alu_err_i[cnt_alu_set];
+    end
+  endgenerate
+
+  /* Comment for the moment because I don't know how to subdivide the multiplier 
+  // 4 events to count errors on each of the 3 MULTs
+  genvar cnt_mult_set;
+  generate
+    for (cnt_mult_set = 0; cnt_mult_set < 4; cnt_mult_set++) begin
+      assign hpm_events_ft[cnt_mult_set]  = mult_err_i[cnt_mult_set];
+    end
+  endgenerate
+  */
+
+ 
 
   // ------------------------
   // address decoder for performance counter registers
@@ -1446,6 +1518,58 @@ end //PULP_SECURE
       for(int cnt_idx=0; cnt_idx<32; cnt_idx++)
         mhpmcounter_increment[cnt_idx] = mhpmcounter_q[cnt_idx] + 1;
     end
+
+  generate
+    if (FT): begin
+      // FT: address decoder for performance counter registers
+      logic mcounteren_we_ft;
+      logic mcountinhibit_we_ft;
+      logic mhpmevent_we_ft;
+
+      assign mcounteren_we_ft    = csr_we_int & (  csr_addr_i == CSR_MCOUNTEREN_FT);
+      assign mcountinhibit_we_ft = csr_we_int & (  csr_addr_i == CSR_MCOUNTINHIBIT_FT);
+      assign mhpmevent_we_ft     = csr_we_int & ( (csr_addr_i == CSR_MHPMEVENT3_FT  )||
+                                               (csr_addr_i == CSR_MHPMEVENT4_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT5_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT6_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT7_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT8_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT9_FT  ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT10_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT11_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT12_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT13_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT14_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT15_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT16_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT17_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT18_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT19_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT20_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT21_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT22_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT23_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT24_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT25_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT26_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT27_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT28_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT29_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT30_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT31_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT32_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT33_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT34_FT ) ||
+                                               (csr_addr_i == CSR_MHPMEVENT35_FT ) );// FT: Increment value for performance counters
+
+      always_comb
+        begin
+          // Increment counters
+          for(int cnt_idx=0; cnt_idx<32; cnt_idx++)
+            mhpmcounter_increment_ft[cnt_idx] = mhpmcounter_q_ft[cnt_idx] + 1;
+        end
+    end
+  endgenerate
 
   // ------------------------
   // next value for performance counters and control registers

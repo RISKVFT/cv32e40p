@@ -1714,18 +1714,18 @@ endgenerate
 
 
 
-        cv32e40p_decoder_faulty_alu decoder_faulty_alu // THE REAL DISPATCHER
+        cv32e40p_dispatcher_ft dispatcher_ft // DISPATCHER
         ( 
-         .alu_used                   ( alu_en_ex_voted  ),
-         .mult_used                  ( mult_used_ex_o ),
-         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_decoder ),
+         .alu_used                   ( alu_en_ex_voted  				),
+         .mult_used                  ( mult_used_ex_o 					),
+         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_decoder 	),
          .permanent_faulty_mult_i    ( permanent_faulty_mult_in_decoder ),
-         .clock_gate_pipe_replica_o  ( clock_en     ),
-         .sel_mux_ex_o               ( sel_mux_ex_s ),
-         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s ),
-         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s ),
-         .alu_totally_defective_o    ( alu_totally_defective_o ), 
-         .mult_totally_defective_o   ( mult_totally_defective_o )
+         .clock_gate_pipe_replica_o  ( clock_en     					),
+         .sel_mux_ex_o               ( sel_mux_ex_s 					),
+         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s 				),
+         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s     		),
+         .alu_totally_defective_o    ( alu_totally_defective_o  		), 
+         .mult_totally_defective_o   ( mult_totally_defective_o 		)
         );
 
 

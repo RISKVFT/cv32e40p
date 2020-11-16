@@ -1144,7 +1144,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .NUM_MHPMCOUNTERS ( NUM_MHPMCOUNTERS      ),
     .PULP_XPULP       ( PULP_XPULP            ),
     .PULP_CLUSTER     ( PULP_CLUSTER          ),
-    .DEBUG_TRIGGER_EN ( DEBUG_TRIGGER_EN      )
+    .DEBUG_TRIGGER_EN ( DEBUG_TRIGGER_EN      ),
+    .FT               ( FT                    )
   )
   cs_registers_i
   (

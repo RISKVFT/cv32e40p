@@ -8,7 +8,7 @@
 //                 Marcello Neri - s257090@studenti.polito.it                 //
 //                 Elia Ribaldone - s265613@studenti.polito.it                //
 //                                                                            //
-// Design Name:    cv32e40p_decoder_faulty_alu                                //
+// Design Name:    cv32e40p_dispatcher_ft                                     //
 // Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////// 
 
 
-module cv32e40p_decoder_faulty_alu(
+module cv32e40p_dispatcher_ft(
   input  logic 			  alu_used,
   input  logic            mult_used,
   input  logic [3:0] 	  permanent_faulty_alu_i,  // one for each ALU
@@ -103,56 +103,56 @@ always_comb begin : proc_decoder_faulty_alu
 	end else if (mult_used) begin
 		unique case (permanent_faulty_mult_i)
 			4'b000: begin
-				//clock_gate_pipe_replica_o = 4'b0111;
-				//sel_mux_ex_o = 3'b000;
+				clock_gate_pipe_replica_o = 4'b0111;
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b001: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b001;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b001;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b010: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b010;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b010;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b011: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b010;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b010;
 				sel_bypass_mult_o = 2'b11;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b100: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b100;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b101: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b100;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+			    sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b10;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b110: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b100;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b01;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b111: begin
-				//clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
-				//sel_mux_ex_o = 3'b100;
+				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b1; // In this case it is activated the mechanism to compute the multiplication as sequence of sums and shifts
 			end
 			default : begin
-				//clock_gate_pipe_replica_o = 4'b0111;
-				//sel_mux_ex_o = 3'b000;
+				clock_gate_pipe_replica_o = 4'b0111;
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
