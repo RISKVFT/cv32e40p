@@ -49,7 +49,7 @@ logic [31:0]     threshold;
 
 //logic [3:0][8:0] permanent_faulty_alu_s; // one for each counter: 4 ALU and 9 subpart of ALU
 
-logic [3:0]      clock_gated;
+logic [3:0]    clock_gated;
 logic [1:0]		 error_increase;
 logic [1:0]		 error_decrease;
 

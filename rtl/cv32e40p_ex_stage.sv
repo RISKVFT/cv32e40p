@@ -199,6 +199,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic                 csr_access_ex_voted_i,
   input logic 		            lsu_en_voted_i
 
+
+
   /*// for those single signal (not quadruplicated used by the ALU)
   input  logic                     enable_single_i,
   input  logic [ALU_OP_WIDTH-1:0]  operator_single_i,
@@ -372,7 +374,6 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .permanent_faulty_alu_s                 (permanent_faulty_alu_s_o), 
     .perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
     .sel_mux_ex_i        (sel_mux_ex_i)
-
     /*// for those single signal (not quadruplicated used by the ALU)
     .enable_single_i      ( enable_single_i ),
     .operator_single_i    ( operator_single_i ),
