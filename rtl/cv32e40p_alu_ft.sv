@@ -53,7 +53,14 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
   output logic [3:0][8:0]          permanent_faulty_alu_s,  // one for each counter: 4 ALU and 9 subpart of ALU 
   output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
-  input  logic [2:0]               sel_mux_ex_i            // selector of the three mux to choose three of the four alu
+  input  logic [2:0]               sel_mux_ex_i,            // selector of the three mux to choose three of the four alu
+
+  // CSR: Performance counters
+  input  logic [11:0]         mhpm_addr_ft_i,    // the address of the perf counter to be written
+  input  logic                mhpm_re_ft_i,      // read enable 
+  output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance counter we want to read
+  input  logic                mhpm_we_ft_i,      // write enable 
+  input  logic [31:0]         mhpm_wdata_ft_i    // the we want to write into the perf counter
 
   /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
   input  logic                     enable_single_i,
@@ -380,7 +387,12 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .ready_o_div_count                    ( ready_o    ),
 			  .permanent_faulty_alu_o     			( permanent_faulty_alu_o   ),
 			  .permanent_faulty_alu_s               ( permanent_faulty_alu_s   ),  
-			  .perf_counter_permanent_faulty_alu_o	( perf_counter_permanent_faulty_alu_o )
+			  .perf_counter_permanent_faulty_alu_o	( perf_counter_permanent_faulty_alu_o ),
+			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
+			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),      // read enable 
+			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
+			  .mhpm_we_ft_i							( mhpm_we_ft_i     ),      // write enable 
+			  .mhpm_wdata_ft_i						( mhpm_wdata_ft_i  )
 			);
 
 	        assign err_detected_o = (err_detected_res || err_detected_comp || err_detected_ready);

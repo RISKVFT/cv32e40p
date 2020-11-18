@@ -149,7 +149,7 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
   input  logic                 mem_store_i,       // store to memory in this cycle
 
   // FT performance counters and status registers
-  output logic [ 7:0]          mhpm_add_ft_o,     // the address of the perf counter to be written
+  output logic [11:0]          mhpm_addr_ft_o,     // the address of the perf counter to be written
   output logic                 mhpm_re_ft_o,      // read enable 
   input  logic [31:0]          mhpm_rdata_ft_i,   // the value of the performance counter we want to read
   output logic                 mhpm_we_ft_o,      // write enable 
@@ -521,14 +521,16 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
-        mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
-        mhpm_add_ft_o = FT ? csr_addr_i[7:0]-8 : 'b0;
-        csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0;  
-
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+        mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+        mhpm_addr_ft_o = FT ? csr_addr_i : 'b0;
+        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+      end
 
       default:
         csr_rdata_int = '0;
+        mhpm_re_ft_o  = 1'b0;
+        mhpm_add_ft_o = '0;
     endcase
   end
 end else begin //PULP_SECURE == 0
@@ -691,10 +693,11 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
-        mhpm_add_ft_o = FT ? csr_addr_i[7:0]-8 : 'b0;
+        mhpm_add_ft_o = FT ? csr_addr_i : 'b0;
         csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
+      end
 
       default:
         csr_rdata_int = '0;
@@ -872,16 +875,17 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
-          mhpm_add_ft_o = csr_addr_i[7:0]-8;
+          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end else begin
           mhpm_we_ft_o = 1'b0;
-          mhpm_add_ft_o = csr_addr_i[7:0]-8;
+          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
+      end
 
     endcase
 
@@ -1134,16 +1138,17 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
-          mhpm_add_ft_o = csr_addr_i[7:0]-8;
+          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end else begin
           mhpm_we_ft_o = 1'b0;
-          mhpm_add_ft_o = csr_addr_i[7:0]-8;
+          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
+      end
         
     endcase
 
