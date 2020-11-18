@@ -24,16 +24,16 @@
 //-----------------------------------------------------
 module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
   (
-  input  logic            clk,
-  input  logic [3:0]      clock_en,
-  input  logic            rst_n,
-  input  logic [3:0]      alu_enable_i,
+  input  logic                clk,
+  input  logic [3:0]          clock_en,
+  input  logic                rst_n,
+  input  logic [3:0]          alu_enable_i,
   input  logic [3:0][ALU_OP_WIDTH-1:0]      alu_operator_i,
-  input  logic [3:0]      error_detected_i,
-  input  logic            ready_o_div_count, 
-  output logic [3:0][8:0] permanent_faulty_alu_o,             // one for each counter: 4 ALU and 9 subpart of ALU
-  output logic [3:0][8:0] permanent_faulty_alu_s,             // one for each counter: 4 ALU and 9 subpart of ALU
-  output logic [3:0]      perf_counter_permanent_faulty_alu_o, // decided to use only four performance counters, one for each ALU and increment them only if there is a permanent error (in any of the subset of istructions) into the corresponding ALU.
+  input  logic [3:0]          error_detected_i,
+  input  logic                ready_o_div_count, 
+  output logic [3:0][8:0]     permanent_faulty_alu_o,             // one for each counter: 4 ALU and 9 subpart of ALU
+  output logic [3:0][8:0]     permanent_faulty_alu_s,             // one for each counter: 4 ALU and 9 subpart of ALU
+  output logic [3:0]          perf_counter_permanent_faulty_alu_o, // decided to use only four performance counters, one for each ALU and increment them only if there is a permanent error (in any of the subset of istructions) into the corresponding ALU.
 
   // CSR: Performance counters
   input  logic [11:0]         mhpm_addr_ft_i,     // the address of the perf counter to be written
@@ -78,20 +78,20 @@ logic [3:0][31:0] count_shuf_nw;
 
 logic [35:0]      sel; // select one between <counter>_n and <counter>_nw
 
-logic [31:0]     threshold;
+logic [31:0]      threshold;
 
 //logic [3:0][8:0] permanent_faulty_alu_s; // one for each counter: 4 ALU and 9 subpart of ALU
 
-logic [3:0]    clock_gated;
-logic [1:0]		 error_increase;
-logic [1:0]		 error_decrease;
+logic [3:0]       clock_gated;
+logic [1:0]		    error_increase;
+logic [1:0]		    error_decrease;
 
 // CLOCK GATING for the counter that have already reached the end.
 cv32e40p_clock_gate CG_counter[3:0]
 (
- .clk_i        ( clk            ),
- .en_i         ( clock_en[3:0]  ),
- .scan_cg_en_i ( 1'b0           ), // not used
+ .clk_i        ( clk              ),
+ .en_i         ( clock_en[3:0]    ),
+ .scan_cg_en_i ( 1'b0             ), // not used
  .clk_o        ( clock_gated[3:0] )
 );
 
@@ -513,107 +513,107 @@ end // for
 endgenerate
 
 
-  /*
-  assign permanent_faulty_alu_o[0] = permanent_faulty[0];
-  assign permanent_faulty_alu_o[1] = permanent_faulty[1];
-  assign permanent_faulty_alu_o[2] = permanent_faulty[2];
-  assign permanent_faulty_alu_o[3] = permanent_faulty[3];
-  */
+/*
+assign permanent_faulty_alu_o[0] = permanent_faulty[0];
+assign permanent_faulty_alu_o[1] = permanent_faulty[1];
+assign permanent_faulty_alu_o[2] = permanent_faulty[2];
+assign permanent_faulty_alu_o[3] = permanent_faulty[3];
+*/
 
 
-  // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.
-  // Because this output signals are combinatorially obtained from the output of the registers of the internal counters, the performance caunter will be incremented one clock cycle after the internal counter increment. 
-  // To CS-Registers
-  assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_s[0];
-  assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_s[1];
-  assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_s[2];
-  assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_s[3];
+// These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.
+// Because this output signals are combinatorially obtained from the output of the registers of the internal counters, the performance caunter will be incremented one clock cycle after the internal counter increment. 
+// To CS-Registers
+assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_s[0];
+assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_s[1];
+assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_s[2];
+assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_s[3];
 
 
-  // PERFORMANCE COUNTERS: READING-WRITING LOGIC 
-  always_comb  begin
-    case (mhpm_addr_ft_i)
+// PERFORMANCE COUNTERS: READING-WRITING LOGIC 
+always_comb  begin
+  case (mhpm_addr_ft_i)
 
-      CSR_MHPMCOUNTER0_FT, CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT, CSR_MHPMCOUNTER3_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_logic_q[mhpm_addr_ft_i[7:0]-8];
-        else if (mhpm_we_ft_i) 
-          count_logic_nw[mhpm_addr_ft_i[7:0]-8] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-8] = 1'b1;
-      end
-      CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_shift_q[mhpm_addr_ft_i[7:0]-12];
-        else if (mhpm_we_ft_i) 
-          count_shift_nw[mhpm_addr_ft_i[7:0]-12] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-12] = 1'b1;
-      end
-      CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_bit_man_q[mhpm_addr_ft_i[7:0]-16];
-        else if (mhpm_we_ft_i) 
-          count_bit_man_nw[mhpm_addr_ft_i[7:0]-16] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-16] = 1'b1;
-      end
-      CSR_MHPMCOUNTER12_FT, CSR_MHPMCOUNTER13_FT, CSR_MHPMCOUNTER14_FT, CSR_MHPMCOUNTER15_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_bit_count_q[mhpm_addr_ft_i[7:0]-20];
-        else if (mhpm_we_ft_i) 
-          count_bit_count_nw[mhpm_addr_ft_i[7:0]-20] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-20] = 1'b1;
-      end
-      CSR_MHPMCOUNTER16_FT, CSR_MHPMCOUNTER17_FT, CSR_MHPMCOUNTER18_FT, CSR_MHPMCOUNTER19_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_comparison_q[mhpm_addr_ft_i[7:0]-24];
-        else if (mhpm_we_ft_i) 
-          count_comparison_nw[mhpm_addr_ft_i[7:0]-24] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-24] = 1'b1;
-      end
-      CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_abs_q[mhpm_addr_ft_i[7:0]-28];
-        else if (mhpm_we_ft_i) 
-          count_abs_nw[mhpm_addr_ft_i[7:0]-28] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-28] = 1'b1;
-      end
-      CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_min_max_q[mhpm_addr_ft_i[7:0]32];
-        else if (mhpm_we_ft_i) 
-          count_min_max_nw[mhpm_addr_ft_i[7:0]-32] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-32] = 1'b1;
-      end     
-      CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_div_rem_q[mhpm_addr_ft_i[7:0]-36];
-        else if (mhpm_we_ft_i) 
-          count_div_rem_nw[mhpm_addr_ft_i[7:0]-36] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-36] = 1'b1;
-      end
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
-        if (mhpm_re_ft_i) 
-          mhpm_rdata_ft_o = count_shuf_q[mhpm_addr_ft_i[7:0]-40];
-        else if (mhpm_we_ft_i) 
-          count_shuf_nw[mhpm_addr_ft_i[7:0]-40] = mhpm_wdata_ft_i;
-          sel[mhpm_addr_ft_i[7:0]-40] = 1'b1;
-      end
+    CSR_MHPMCOUNTER0_FT, CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT, CSR_MHPMCOUNTER3_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_logic_q[mhpm_addr_ft_i[7:0]-8];
+      else if (mhpm_we_ft_i) 
+        count_logic_nw[mhpm_addr_ft_i[7:0]-8] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-8] = 1'b1;
+    end
+    CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_shift_q[mhpm_addr_ft_i[7:0]-12];
+      else if (mhpm_we_ft_i) 
+        count_shift_nw[mhpm_addr_ft_i[7:0]-12] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-12] = 1'b1;
+    end
+    CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_bit_man_q[mhpm_addr_ft_i[7:0]-16];
+      else if (mhpm_we_ft_i) 
+        count_bit_man_nw[mhpm_addr_ft_i[7:0]-16] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-16] = 1'b1;
+    end
+    CSR_MHPMCOUNTER12_FT, CSR_MHPMCOUNTER13_FT, CSR_MHPMCOUNTER14_FT, CSR_MHPMCOUNTER15_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_bit_count_q[mhpm_addr_ft_i[7:0]-20];
+      else if (mhpm_we_ft_i) 
+        count_bit_count_nw[mhpm_addr_ft_i[7:0]-20] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-20] = 1'b1;
+    end
+    CSR_MHPMCOUNTER16_FT, CSR_MHPMCOUNTER17_FT, CSR_MHPMCOUNTER18_FT, CSR_MHPMCOUNTER19_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_comparison_q[mhpm_addr_ft_i[7:0]-24];
+      else if (mhpm_we_ft_i) 
+        count_comparison_nw[mhpm_addr_ft_i[7:0]-24] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-24] = 1'b1;
+    end
+    CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_abs_q[mhpm_addr_ft_i[7:0]-28];
+      else if (mhpm_we_ft_i) 
+        count_abs_nw[mhpm_addr_ft_i[7:0]-28] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-28] = 1'b1;
+    end
+    CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_min_max_q[mhpm_addr_ft_i[7:0]32];
+      else if (mhpm_we_ft_i) 
+        count_min_max_nw[mhpm_addr_ft_i[7:0]-32] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-32] = 1'b1;
+    end     
+    CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_div_rem_q[mhpm_addr_ft_i[7:0]-36];
+      else if (mhpm_we_ft_i) 
+        count_div_rem_nw[mhpm_addr_ft_i[7:0]-36] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-36] = 1'b1;
+    end
+    CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+      if (mhpm_re_ft_i) 
+        mhpm_rdata_ft_o = count_shuf_q[mhpm_addr_ft_i[7:0]-40];
+      else if (mhpm_we_ft_i) 
+        count_shuf_nw[mhpm_addr_ft_i[7:0]-40] = mhpm_wdata_ft_i;
+        sel[mhpm_addr_ft_i[7:0]-40] = 1'b1;
+    end
 
-      default: begin
-        count_logic_nw       = count_logic_q;
-        count_shift_nw       = count_shift_q;
-        count_bit_man_nw     = count_bit_man_q;
-        count_bit_count_nw   = count_bit_count_q;
-        count_comparison_nw  = count_comparison_q;
-        count_abs_nw         = count_abs_q;
-        count_min_max_nw     = count_min_max_q;
-        count_div_rem_nw     = count_div_rem_q;
-        count_shuf_nw        = count_shuf_q;
+    default: begin
+      count_logic_nw       = count_logic_q;
+      count_shift_nw       = count_shift_q;
+      count_bit_man_nw     = count_bit_man_q;
+      count_bit_count_nw   = count_bit_count_q;
+      count_comparison_nw  = count_comparison_q;
+      count_abs_nw         = count_abs_q;
+      count_min_max_nw     = count_min_max_q;
+      count_div_rem_nw     = count_div_rem_q;
+      count_shuf_nw        = count_shuf_q;
 
-        mhpm_rdata_ft_o     = 'b0;
-        sel = 'b0;
-      end
+      mhpm_rdata_ft_o     = 'b0;
+      sel = 'b0;
+    end
 
-    endcase
-  end
+  endcase
+end
 
 endmodule

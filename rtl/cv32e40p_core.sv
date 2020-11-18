@@ -428,6 +428,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic is_subrot_single_core;
   logic [1:0] clpx_shift_single_core;*/
 
+
+  // Performance Counters
+  logic [11:0]          mhpm_addr_ft,    // the address of the perf counter to be written
+  logic                 mhpm_re_ft,      // read enable 
+  logic [31:0]          mhpm_rdata_ft,   // the value of the performance counter we want to read
+  logic                 mhpm_we_ft,      // write enable 
+  logic [31:0]          mhpm_wdata_ft    // the we want to write into the perf counter
+
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
   assign u_exc_vec_pc_mux_id = (utvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -1056,6 +1064,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .is_clpx_single_i         ( is_clpx_single_core ),
     .is_subrot_single_i       ( is_subrot_single_core ),
     .clpx_shift_single_i      ( clpx_shift_single_core )*/
+
+    // Performance counters
+    .mhpm_addr_ft_i          ( mhpm_addr_ft  ),    // the address of the perf counter to be written
+    .mhpm_re_ft_i            ( mhpm_re_ft    ),    // read enable 
+    .mhpm_rdata_ft_o         ( mhpm_rdata_ft ),    // the value of the performance counter we want to read
+    .mhpm_we_ft_i            ( mhpm_we_ft    ),    // write enable 
+    .mhpm_wdata_ft_i         ( mhpm_wdata_ft )     // the we want to write into the perf counter
+
   );
 
 
@@ -1244,7 +1260,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .apu_wb_i                ( perf_apu_wb        ),
 
     .mem_load_i              ( data_req_o & data_gnt_i & (~data_we_o) ),
-    .mem_store_i             ( data_req_o & data_gnt_i & data_we_o    )
+    .mem_store_i             ( data_req_o & data_gnt_i & data_we_o    ),
+
+    // Performance counters
+    .mhpm_addr_ft_o          ( mhpm_addr_ft  ),    // the address of the perf counter to be written
+    .mhpm_re_ft_o            ( mhpm_re_ft    ),    // read enable 
+    .mhpm_rdata_ft_i         ( mhpm_rdata_ft ),    // the value of the performance counter we want to read
+    .mhpm_we_ft_o            ( mhpm_we_ft    ),    // write enable 
+    .mhpm_wdata_ft_o         ( mhpm_wdata_ft )     // the we want to write into the perf counter
   );
 
   //  CSR access
