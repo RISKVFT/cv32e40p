@@ -235,49 +235,15 @@ typedef enum logic[11:0] {
   // Privilege
   CSR_PRIVLV         = 12'hCC1,         // Custom CSR. Privilege Level
 
-  //FT: fault tolerant Performance counters
-  // Performance counters
-  CSR_MCOUNTEREN_FT     = 12'hCC2,
-  CSR_MCOUNTINHIBIT_FT  = 12'hCC3,
-  CSR_MHPMEVENT0_FT     = 12'hCC4,
-  CSR_MHPMEVENT1_FT     = 12'hCC5,
-  CSR_MHPMEVENT2_FT     = 12'hCC6,
-  CSR_MHPMEVENT3_FT     = 12'hCC7,
-  CSR_MHPMEVENT4_FT     = 12'hCC8,
-  CSR_MHPMEVENT5_FT     = 12'hCC9,
-  CSR_MHPMEVENT6_FT     = 12'hCCA,
-  CSR_MHPMEVENT7_FT     = 12'hCCB,
-  CSR_MHPMEVENT8_FT     = 12'hCCC,
-  CSR_MHPMEVENT9_FT     = 12'hCCD,
-  CSR_MHPMEVENT10_FT    = 12'hCCE,
-  CSR_MHPMEVENT11_FT    = 12'hCCF,
-  CSR_MHPMEVENT12_FT    = 12'hCD0,
-  CSR_MHPMEVENT13_FT    = 12'hCD1,
-  CSR_MHPMEVENT14_FT    = 12'hCD2,
-  CSR_MHPMEVENT15_FT    = 12'hCD3,
-  CSR_MHPMEVENT16_FT    = 12'hCD4,
-  CSR_MHPMEVENT17_FT    = 12'hCD5,
-  CSR_MHPMEVENT18_FT    = 12'hCD6,
-  CSR_MHPMEVENT19_FT    = 12'hCD7,
-  CSR_MHPMEVENT20_FT    = 12'hCD8,
-  CSR_MHPMEVENT21_FT    = 12'hCD9,
-  CSR_MHPMEVENT22_FT    = 12'hCDA,
-  CSR_MHPMEVENT23_FT    = 12'hCDB,
-  CSR_MHPMEVENT24_FT    = 12'hCDC,
-  CSR_MHPMEVENT25_FT    = 12'hCDD,
-  CSR_MHPMEVENT26_FT    = 12'hCDE,
-  CSR_MHPMEVENT27_FT    = 12'hCDF,
-  CSR_MHPMEVENT28_FT    = 12'hCE0,
-  CSR_MHPMEVENT29_FT    = 12'hCE1,
-  CSR_MHPMEVENT30_FT    = 12'hCE2,
-  CSR_MHPMEVENT31_FT    = 12'hCE3,
-  CSR_MHPMEVENT32_FT    = 12'hCE4,
-  CSR_MHPMEVENT33_FT    = 12'hCE5,
-  CSR_MHPMEVENT34_FT    = 12'hCE6,
-  CSR_MHPMEVENT35_FT    = 12'hCE7,
-  // ADD HERE OTHER COUNTERS LOW PART UP TO hCFF
-
-
+  // --------------------------------------- 
+  // FT: fault tolerant Performance Counters
+  // ---------------------------------------
+  /*ALU*/
+  // we need 36 registers to store the information about the status of each subpart of the four ALUs. 
+  // Therefore we use two 32b register using 36b of the available 64.
+  CSR_PERM_FAULTY_ALUL_FT  = 12'hCC2, 
+  CSR_PERM_FAULTY_ALUH_FT  = 12'hCC3,
+  
   // Hardware Performance Monitor
   CSR_MHPMCOUNTER0_FT   = 12'h808,
   CSR_MHPMCOUNTER1_FT   = 12'h809,
