@@ -329,6 +329,7 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
 
    genvar j;
 
+   assign mhpm_addr_ft_o = FT ? csr_addr_i : 'b0;
 
 if(PULP_SECURE==1) begin
   // read logic
@@ -512,7 +513,14 @@ if(PULP_SECURE==1) begin
       // current priv level (not official)
       CSR_PRIVLV: csr_rdata_int = !PULP_XPULP ? 'b0 : {30'h0, priv_lvl_q};
 
-      // FT Hardware Performance Monitor
+
+      // FT: Tables of permanent faulty components
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+      end 
+      
+      // FT: Hardware Performance Monitor
       CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
       CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
       CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT,
@@ -523,14 +531,14 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
-        mhpm_addr_ft_o = FT ? csr_addr_i : 'b0;
         csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
       end
 
-      default:
+      default: begin
         csr_rdata_int = '0;
         mhpm_re_ft_o  = 1'b0;
-        mhpm_add_ft_o = '0;
+    end
+
     endcase
   end
 end else begin //PULP_SECURE == 0
@@ -684,7 +692,13 @@ end else begin //PULP_SECURE == 0
       CSR_PRIVLV: csr_rdata_int = !PULP_XPULP ? 'b0 : {30'h0, priv_lvl_q};
 
 
-      // FT Hardware Performance Monitor
+      // FT: Tables of permanent faulty components
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+      end 
+
+      // FT: Hardware Performance Monitor
       CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
       CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
       CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT,
@@ -695,7 +709,6 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
-        mhpm_add_ft_o = FT ? csr_addr_i : 'b0;
         csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
       end
 
@@ -878,11 +891,9 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
-          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end else begin
           mhpm_we_ft_o = 1'b0;
-          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
       end
@@ -1141,11 +1152,9 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
-          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end else begin
           mhpm_we_ft_o = 1'b0;
-          mhpm_add_ft_o = csr_addr_i;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
       end

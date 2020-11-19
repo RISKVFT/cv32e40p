@@ -22,9 +22,9 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   parameter FT = 0
 )
 (
-  input  logic                     clk,
-  input  logic [3:0]               clk_g,
-  input  logic                     rst_n,
+  input  logic                     		clk,
+  input  logic [3:0]               		clk_g,
+  input  logic                     		rst_n,
   input  logic [3:0]                    enable_i,
   input  logic [3:0][ALU_OP_WIDTH-1:0]  operator_i,
   input  logic [3:0][31:0]              operand_a_i,
@@ -40,27 +40,27 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   input  logic [3:0]                    is_subrot_i,
   input  logic [3:0][ 1:0]              clpx_shift_i,
 
-  output logic [31:0]              result_o,
-  output logic                     comparison_result_o,
+  output logic [31:0]              		result_o,
+  output logic                     		comparison_result_o,
 
-  output logic                     ready_o,
-  input  logic                     ex_ready_i,
+  output logic                     		ready_o,
+  input  logic                     		ex_ready_i,
 
   // ft  
-  input  logic [3:0]			   clock_en_i,              //enable/disable clock through clock gating on input pipe registers
-  output logic                     err_corrected_o,
-  output logic                     err_detected_o,
-  output logic [3:0][8:0] 		   permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
-  output logic [3:0][8:0]          permanent_faulty_alu_s,  // one for each counter: 4 ALU and 9 subpart of ALU 
-  output logic [3:0]      		   perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
-  input  logic [2:0]               sel_mux_ex_i,            // selector of the three mux to choose three of the four alu
+  input  logic [3:0]			   		clock_en_i,              //enable/disable clock through clock gating on input pipe registers
+  output logic                     		err_corrected_o,
+  output logic                     		err_detected_o,
+  output logic [3:0][8:0] 		   		permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
+  output logic [3:0][8:0]          		permanent_faulty_alu_s,  // one for each counter: 4 ALU and 9 subpart of ALU 
+  //output logic [3:0]      		   	perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
+  input  logic [2:0]               		sel_mux_ex_i,            // selector of the three mux to choose three of the four alu
 
   // CSR: Performance counters
-  input  logic [11:0]         mhpm_addr_ft_i,    // the address of the perf counter to be written
-  input  logic                mhpm_re_ft_i,      // read enable 
-  output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance counter we want to read
-  input  logic                mhpm_we_ft_i,      // write enable 
-  input  logic [31:0]         mhpm_wdata_ft_i    // the we want to write into the perf counter
+  input  logic [11:0]         			mhpm_addr_ft_i,    // the address of the perf counter to be written
+  input  logic                			mhpm_re_ft_i,      // read enable 
+  output logic [31:0]         			mhpm_rdata_ft_o,   // the value of the performance counter we want to read
+  input  logic                			mhpm_we_ft_i,      // write enable 
+  input  logic [31:0]         			mhpm_wdata_ft_i    // the we want to write into the perf counter
 
   /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
   input  logic                     enable_single_i,
@@ -373,7 +373,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        assign err_detected_alu2 = (err_detected_res_alu2 || err_detected_comp_alu2 || err_detected_ready_alu2);
 	        assign err_detected_alu3 = (err_detected_res_alu3 || err_detected_comp_alu3 || err_detected_ready_alu3);
 
-	        assign err_detected_alu_event_o = {err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0};
+	        
 
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
@@ -383,15 +383,15 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .rst_n								( rst_n      ),
 			  .alu_enable_i 						( enable_i   ),
 			  .alu_operator_i 						( operator_i ),
-			  .error_detected_i						( err_detected_alu_event_o ), 
+			  .error_detected_i						( {err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0} ), 
 			  .ready_o_div_count                    ( ready_o    ),
 			  .permanent_faulty_alu_o     			( permanent_faulty_alu_o   ),
 			  .permanent_faulty_alu_s               ( permanent_faulty_alu_s   ),  
-			  .perf_counter_permanent_faulty_alu_o	( perf_counter_permanent_faulty_alu_o ),
+			  //.perf_counter_permanent_faulty_alu_o	( perf_counter_permanent_faulty_alu_o ),
 			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
-			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),      // read enable 
-			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
-			  .mhpm_we_ft_i							( mhpm_we_ft_i     ),      // write enable 
+			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),     // read enable 
+			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),     // the value of the performance counter we want to read
+			  .mhpm_we_ft_i							( mhpm_we_ft_i     ),     // write enable 
 			  .mhpm_wdata_ft_i						( mhpm_wdata_ft_i  )
 			);
 
@@ -439,34 +439,35 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        cv32e40p_alu alu_i
 	        (
-	         .clk                 ( clk             ),
-	         .rst_n               ( rst_n           ),
-	         .enable_i            ( enable_i[0]    ),
-	         .operator_i          ( operator_i[0]  ),
-	         .operand_a_i         ( operand_a_i[0] ),
-	         .operand_b_i         ( operand_b_i[0] ),
-	         .operand_c_i         ( operand_c_i[0] ),
+	         .clk                 ( clk            		),
+	         .rst_n               ( rst_n          		),
+	         .enable_i            ( enable_i[0]    		),
+	         .operator_i          ( operator_i[0]  		),
+	         .operand_a_i         ( operand_a_i[0] 		),
+	         .operand_b_i         ( operand_b_i[0] 		),
+	         .operand_c_i         ( operand_c_i[0] 		),
 
-	         .vector_mode_i       ( vector_mode_i[0]   ),
-	         .bmask_a_i           ( bmask_a_i[0]       ),
-	         .bmask_b_i           ( bmask_b_i[0]       ),
-	         .imm_vec_ext_i       ( imm_vec_ext_i[0]   ),
+	         .vector_mode_i       ( vector_mode_i[0]  	),
+	         .bmask_a_i           ( bmask_a_i[0]      	),
+	         .bmask_b_i           ( bmask_b_i[0]      	),
+	         .imm_vec_ext_i       ( imm_vec_ext_i[0]   	),
 
-	         .is_clpx_i           ( is_clpx_i[0]   ),
-	         .clpx_shift_i        ( clpx_shift_i[0]),
-	         .is_subrot_i         ( is_subrot_i[0] ),
+	         .is_clpx_i           ( is_clpx_i[0]   		),
+	         .clpx_shift_i        ( clpx_shift_i[0]		),
+	         .is_subrot_i         ( is_subrot_i[0]      ),
 
-	         .result_o            ( result_o      ),
-	         .comparison_result_o ( comparison_result_o  ),
+	         .result_o            ( result_o            ),
+	         .comparison_result_o ( comparison_result_o ),
 
-	         .ready_o             ( ready_o       ),
-	         .ex_ready_i          ( ex_ready_i       )
+	         .ready_o             ( ready_o          	),
+	         .ex_ready_i          ( ex_ready_i       	)
 	        );
 
-			assign err_corrected_o = 1'b0;
-	  		assign err_detected_o  = 1'b0;
+			assign err_corrected_o 		  = 1'b0;
+	  		assign err_detected_o  		  = 1'b0;
 			assign permanent_faulty_alu_o = 36'b0; 
-			assign perf_counter_permanent_faulty_alu_o = 4'b0;
+			//assign perf_counter_permanent_faulty_alu_o = 4'b0;
+			assign mhpm_rdata_ft_o        = 32'b0;
    
          end
 

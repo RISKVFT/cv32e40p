@@ -36,7 +36,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter FT 		            =  1
+  parameter FT 		              =  0
   //parameter APU_NARGS_CPU       =  APU_NARGS_CPU,
   //parameter APU_WOP_CPU         =  APU_WOP_CPU,
   //parameter APU_NDSFLAGS_CPU    =  APU_NDSFLAGS_CPU,
@@ -366,7 +366,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   // FT - EX stage
   logic             err_corrected_alu;
   logic             err_detected_alu;
-  logic [ 3:0]      perf_counter_permanent_faulty_alu; // trigger the performance counter relative to the specif ALU
+  //logic [ 3:0]      perf_counter_permanent_faulty_alu; // trigger the performance counter relative to the specif ALU
   logic             err_corrected_mult;
   logic             err_detected_mult; 
   logic [ 2:0]      perf_counter_permanent_faulty_mult;
@@ -430,11 +430,11 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
 
   // Performance Counters
-  logic [11:0]          mhpm_addr_ft,    // the address of the perf counter to be written
-  logic                 mhpm_re_ft,      // read enable 
-  logic [31:0]          mhpm_rdata_ft,   // the value of the performance counter we want to read
-  logic                 mhpm_we_ft,      // write enable 
-  logic [31:0]          mhpm_wdata_ft    // the we want to write into the perf counter
+  logic [11:0]          mhpm_addr_ft;    // the address of the perf counter to be written
+  logic                 mhpm_re_ft;      // read enable 
+  logic [31:0]          mhpm_rdata_ft;   // the value of the performance counter we want to read
+  logic                 mhpm_we_ft;      // write enable 
+  logic [31:0]          mhpm_wdata_ft;    // the we want to write into the perf counter
 
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -1013,7 +1013,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .err_detected_alu_o         ( err_detected_alu         ),
     .permanent_faulty_alu_o     ( permanent_faulty_alu     ),  // set of 4 9bit register for a each ALU 
     .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   ),  // set of 4 9bit register for a each ALU 
-    .perf_counter_permanent_faulty_alu_o    ( perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
+    //.perf_counter_permanent_faulty_alu_o    ( perf_counter_permanent_faulty_alu), // trigger the performance counter relative to the specif ALU
     .clock_enable_alu_i         ( clock_enable_alu         ),
     .alu_en_ex_voted_i          ( alu_en_ex_core           ),
     /*
@@ -1049,7 +1049,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core ),
     .regfile_we_ex_voted_i      ( regfile_we_ex_core ),
     .csr_access_ex_voted_i      ( csr_access_ex_core),
-    .lsu_en_voted_i		          ( data_req_ex_core )
+    .lsu_en_voted_i		          ( data_req_ex_core ),
 
     /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
     .enable_single_i          ( apu_en_ex_core ),

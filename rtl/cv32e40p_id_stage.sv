@@ -1750,7 +1750,7 @@ endgenerate
         (
           // INPUTS //
           .clk                      ( clk_gated_ft ),// Gated clock
-          .clk_en                   ( clock_en ),
+          //.clk_en                   ( clock_en ),
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -2787,7 +2787,7 @@ endgenerate
             (
               // INPUTS //
               .clk                      ( clk ),// Gated clock
-              .clk_en                   ( clock_en ),
+              //.clk_en                   ( clock_en[0] ),
               .rst_n                    ( rst_n ),
               .data_misaligned_i        ( data_misaligned_i ),
               .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction

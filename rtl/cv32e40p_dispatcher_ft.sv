@@ -22,7 +22,7 @@ module cv32e40p_dispatcher_ft(
   input  logic 			  alu_used,
   input  logic            mult_used,
   input  logic [3:0] 	  permanent_faulty_alu_i,  // one for each ALU
-  input  logic [3:0] 	  permanent_faulty_mult_i,  // one for each MULT
+  input  logic [2:0] 	  permanent_faulty_mult_i,  // one for each MULT
   output logic [3:0]      clock_gate_pipe_replica_o,
   output logic [2:0]	  sel_mux_ex_o,
   output logic [1:0]	  sel_bypass_alu_o,
@@ -161,7 +161,4 @@ always_comb begin : proc_decoder_faulty_alu
 
 end
 
-
-
-
-endmodule : cv32e40p_decoder_faulty_alu
+endmodule : cv32e40p_dispatcher_ft

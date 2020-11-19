@@ -21,7 +21,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 (
   // INPUTS //
   input logic         clk,                  // Gated clock
-  input logic         clk_en,
+  //input logic         clk_en,
   input logic 	      rst_n,
   input logic         data_misaligned_i,
   input logic         ex_ready_i,           // EX stage is ready for the next instruction
