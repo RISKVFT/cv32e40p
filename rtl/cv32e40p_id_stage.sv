@@ -303,7 +303,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [ 1:0]          mult_clpx_shift_ex_voted,
     output logic                 mult_clpx_img_ex_voted,
     */
-    output logic [APU_WOP_CPU-1:0]              apu_op_ex_voted,
+    output logic [APU_WOP_CPU-1:0]                  apu_op_ex_voted,
     output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted,
     output logic [ 5:0]          apu_waddr_ex_voted,
     output logic [ 5:0]          regfile_alu_waddr_ex_voted,
@@ -551,12 +551,14 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic        dret_dec;
 
   // Fault Tolerant
-  // CLock gating on replicas of pipeline for FT versione
+  // CLock gating on replicas of pipeline for FT version
   logic [3:0]      clock_en;  // used for gating clock of one of the pipeline replicas for FT version
   logic [3:0]      clk_gated_ft;
   logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
   logic [1:0]	   sel_bypass_mult_ex_s; // mux selectors used when there are 2 out of 3 faulty MULTs
   logic [1:0]	   sel_bypass_alu_ex_s;  // mux selectors used when there are 3 out of 4 faulty ALUs
+  logic            alu_totally_defective_s;
+  logic            mult_totally_defective_s;
   // signals input to the voters for the outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
   logic [2:0][5:0]      regfile_waddr_ex_voter_in;
@@ -635,11 +637,11 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   logic [8:0][3:0]            permanent_faulty_alu_trans;
   logic [8:0][3:0]            permanent_faulty_alu_trans_s;
-  logic [3:0]				  permanent_faulty_alu_in_decoder;
+  logic [3:0]				  permanent_faulty_alu_in_dispatcher;
 
   logic [2:0]                 permanent_faulty_mult_i;  // one for each counter: 4 ALU and 9 subpart of ALU
   logic [2:0]       		  permanent_faulty_mult_s_i;
-  logic [2:0]			      permanent_faulty_mult_in_decoder;
+  logic [2:0]			      permanent_faulty_mult_in_dispatcher;
 
   /*// for those signal used in ex stage and in particular by the single alu incase FT==0
   logic [2:0][ 4:0] bmask_a_ex_voter_in;       
@@ -1634,7 +1636,7 @@ generate //transpose the permanent_faulty_alu matrix
 endgenerate
 
 
-  generate
+generate
 
     if(FT==1) begin // EX stage units dispatcher: it select the unit to use for the TMR in EX stage based on the specific operation and on the components able to compute it discarding those permanently faulty for that operation.
       
@@ -1644,50 +1646,50 @@ endgenerate
 
                 // shift
                 ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[0] | permanent_faulty_alu_trans_s[0]; 
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[0] | permanent_faulty_alu_trans_s[0]; 
 
 
                 // Logic
                 ALU_XOR, ALU_OR, ALU_AND:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[1] | permanent_faulty_alu_trans_s[1];  
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[1] | permanent_faulty_alu_trans_s[1];  
 
 
                 // Bit manipulation
                 ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[2] | permanent_faulty_alu_trans_s[2];
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[2] | permanent_faulty_alu_trans_s[2];
 
 
                 // Bit counting
                 ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[3] | permanent_faulty_alu_trans_s[3];
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[3] | permanent_faulty_alu_trans_s[3];
 
 
                 // Shuffle
                 ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS: 
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[4] | permanent_faulty_alu_trans_s[4]; 
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[4] | permanent_faulty_alu_trans_s[4]; 
 
 
                 // Comparisons
                 ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[5] | permanent_faulty_alu_trans_s[5];
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[5] | permanent_faulty_alu_trans_s[5];
 
 
                 // Absolute value
                 ALU_ABS, ALU_CLIP, ALU_CLIPU:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[6] | permanent_faulty_alu_trans_s[6]; 
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[6] | permanent_faulty_alu_trans_s[6]; 
 
 
                 // min/max
                 ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[7] | permanent_faulty_alu_trans_s[7];
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[7] | permanent_faulty_alu_trans_s[7];
 
 
                 // div/rem
                 ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:
-                permanent_faulty_alu_in_decoder = permanent_faulty_alu_trans[8] | permanent_faulty_alu_trans_s[8];  
+                permanent_faulty_alu_in_dispatcher = permanent_faulty_alu_trans[8] | permanent_faulty_alu_trans_s[8];  
 
 
-                default:  permanent_faulty_alu_in_decoder = 4'b0000;        
+                default:  permanent_faulty_alu_in_dispatcher = 4'b0000;        
 
             endcase // case (alu_operator)
 
@@ -1704,9 +1706,9 @@ endgenerate
             case (mult_operator) 
 
                 MUL_MAC32, MUL_MSU32, MUL_I, MUL_IR, MUL_DOT8, MUL_DOT16, MUL_H:
-                permanent_faulty_mult_in_decoder = permanent_faulty_mult_s_i[0] | permanent_faulty_mult_i[0];
+                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_s_i[0] | permanent_faulty_mult_i[0];
 
-                default:  permanent_faulty_mult_in_decoder = 4'b0000;        
+                default:  permanent_faulty_mult_in_dispatcher = 4'b0000;        
 
             endcase // case (mult_operator)
 
@@ -1716,16 +1718,16 @@ endgenerate
 
         cv32e40p_dispatcher_ft dispatcher_ft // DISPATCHER
         ( 
-         .alu_used                   ( alu_en_ex_voted  				),
-         .mult_used                  ( mult_used_ex_o 					),
-         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_decoder 	),
-         .permanent_faulty_mult_i    ( permanent_faulty_mult_in_decoder ),
-         .clock_gate_pipe_replica_o  ( clock_en     					),
-         .sel_mux_ex_o               ( sel_mux_ex_s 					),
-         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s 				),
-         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s     		),
-         .alu_totally_defective_o    ( alu_totally_defective_o  		), 
-         .mult_totally_defective_o   ( mult_totally_defective_o 		)
+         .alu_used                   ( alu_en           					),
+         .mult_used                  ( mult_en      						),
+         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_dispatcher 	),
+         .permanent_faulty_mult_i    ( permanent_faulty_mult_in_dispatcher  ),
+         .clock_gate_pipe_replica_o  ( clock_en     						),
+         .sel_mux_ex_o               ( sel_mux_ex_s 						),
+         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s 					),
+         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s     			),
+         .alu_totally_defective_o    ( alu_totally_defective_s  			), 
+         .mult_totally_defective_o   ( mult_totally_defective_s 			)
         );
 
 
@@ -1888,15 +1890,17 @@ endgenerate
         // WE NEED A VOTER OF SEL_MUX_EX AND CLOCK_ENABLE BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
         always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
           if(~rst_n) begin
-            sel_mux_ex_o <= 3'b0;
-            clock_enable_alu_o <= 3'b0;
-            sel_bypass_alu_ex_o <= 2'b0;
+            sel_mux_ex_o         <= 3'b0;
+            clock_enable_alu_o   <= 3'b0;
+            sel_bypass_alu_ex_o  <= 2'b0;
             sel_bypass_mult_ex_o <= 2'b0;
           end else begin
-            sel_mux_ex_o <= sel_mux_ex_s;
-            clock_enable_alu_o <= clock_en;
-            sel_bypass_alu_ex_o <= sel_bypass_alu_ex_s;
-            sel_bypass_mult_ex_o <= sel_bypass_mult_ex_s;
+            sel_mux_ex_o             <= sel_mux_ex_s;
+            clock_enable_alu_o       <= clock_en;
+            sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
+            sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
+             alu_totally_defective_o <= alu_totally_defective_s; 
+            mult_totally_defective_o <= mult_totally_defective_s;
           end
         end
 
@@ -2776,275 +2780,277 @@ endgenerate
         */
 
 
-        end else begin
-            cv32e40p_ID_EX_pipeline 
-            #(
-             .APU_NARGS_CPU    ( APU_NARGS_CPU     ),
-             .APU_WOP_CPU      ( APU_WOP_CPU       ),
-             .APU_NDSFLAGS_CPU ( APU_NDSFLAGS_CPU  )
-            )
-            ID_EX_pipeline
-            (
-              // INPUTS //
-              .clk                      ( clk ),// Gated clock
-              //.clk_en                   ( clock_en[0] ),
-              .rst_n                    ( rst_n ),
-              .data_misaligned_i        ( data_misaligned_i ),
-              .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
-              .mult_multicycle_i        ( mult_multicycle_i ),// from ALU: when we need multiple cycles in the multiplier and use op c as storage
-              .id_valid_o               ( id_valid_o ),// ID stage is done
-              .alu_en                   ( alu_en ),// ALU control  
-              .mult_int_en              ( mult_int_en ),// Multiplier control: use integer multiplier
-              .mult_dot_en              ( mult_dot_en ),// use dot product
-              .apu_en                   ( apu_en ),
-              .regfile_we_id            ( regfile_we_id ),// Register Write Control
-              .regfile_alu_we_id        ( regfile_alu_we_id ),
-              .data_req_id              ( data_req_id ),// Data Memory Control
-              .ctrl_transfer_insn_in_id ( ctrl_transfer_insn_in_id ),
+    end else begin
+        cv32e40p_ID_EX_pipeline 
+        #(
+         .APU_NARGS_CPU    ( APU_NARGS_CPU     ),
+         .APU_WOP_CPU      ( APU_WOP_CPU       ),
+         .APU_NDSFLAGS_CPU ( APU_NDSFLAGS_CPU  )
+        )
+        ID_EX_pipeline
+        (
+          // INPUTS //
+          .clk                      ( clk ),// Gated clock
+          //.clk_en                   ( clock_en[0] ),
+          .rst_n                    ( rst_n ),
+          .data_misaligned_i        ( data_misaligned_i ),
+          .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
+          .mult_multicycle_i        ( mult_multicycle_i ),// from ALU: when we need multiple cycles in the multiplier and use op c as storage
+          .id_valid_o               ( id_valid_o ),// ID stage is done
+          .alu_en                   ( alu_en ),// ALU control  
+          .mult_int_en              ( mult_int_en ),// Multiplier control: use integer multiplier
+          .mult_dot_en              ( mult_dot_en ),// use dot product
+          .apu_en                   ( apu_en ),
+          .regfile_we_id            ( regfile_we_id ),// Register Write Control
+          .regfile_alu_we_id        ( regfile_alu_we_id ),
+          .data_req_id              ( data_req_id ),// Data Memory Control
+          .ctrl_transfer_insn_in_id ( ctrl_transfer_insn_in_id ),
 
-              .operand_a_fw_id           (operand_a_fw_id),
-              .operand_c_fw_id           (operand_c_fw_id),
-              .alu_operator              (alu_operator),
-              .alu_operand_a             (alu_operand_a),
-              .alu_operand_b             (alu_operand_b),
-              .alu_operand_c             (alu_operand_c),
-              .bmask_a_id                (bmask_a_id),
-              .bmask_b_id                (bmask_b_id),
-              .imm_vec_ext_id            (imm_vec_ext_id),
-              .alu_vec_mode              (alu_vec_mode),
-              .is_clpx                   (is_clpx),         
-              .instr                     (instr),
-              .is_subrot                 (is_subrot),
-              .mult_en                   (mult_en),
-              .mult_operator             (mult_operator),
-              .mult_sel_subword          (mult_sel_subword),
-              .mult_signed_mode          (mult_signed_mode),
-              .mult_imm_id               (mult_imm_id),
-              .mult_dot_signed           (mult_dot_signed),
-              .apu_op                    (apu_op),
-              .apu_lat                   (apu_lat),
-              .apu_operands              (apu_operands),
-              .apu_flags                 (apu_flags),
-              .apu_waddr                 (apu_waddr),
-              .regfile_waddr_id          (regfile_waddr_id),
-              .regfile_alu_waddr_id      (regfile_alu_waddr_id),
-              .prepost_useincr           (prepost_useincr),
-              .csr_access                (csr_access),
-              .csr_op                    (csr_op),
-              .data_we_id                (data_we_id),
-              .data_type_id              (data_type_id),
-              .data_sign_ext_id          (data_sign_ext_id),
-              .data_reg_offset_id        (data_reg_offset_id),
-              .data_load_event_id        (data_load_event_id),
-              .atop_id                   (atop_id),
-              .pc_id_i                   (pc_id_i),
-              
-              // OUTPUTS //
-              // Pipeline ID/EX
-              .pc_ex_o                  ( pc_ex_o[0] ),
+          .operand_a_fw_id           (operand_a_fw_id),
+          .operand_c_fw_id           (operand_c_fw_id),
+          .alu_operator              (alu_operator),
+          .alu_operand_a             (alu_operand_a),
+          .alu_operand_b             (alu_operand_b),
+          .alu_operand_c             (alu_operand_c),
+          .bmask_a_id                (bmask_a_id),
+          .bmask_b_id                (bmask_b_id),
+          .imm_vec_ext_id            (imm_vec_ext_id),
+          .alu_vec_mode              (alu_vec_mode),
+          .is_clpx                   (is_clpx),         
+          .instr                     (instr),
+          .is_subrot                 (is_subrot),
+          .mult_en                   (mult_en),
+          .mult_operator             (mult_operator),
+          .mult_sel_subword          (mult_sel_subword),
+          .mult_signed_mode          (mult_signed_mode),
+          .mult_imm_id               (mult_imm_id),
+          .mult_dot_signed           (mult_dot_signed),
+          .apu_op                    (apu_op),
+          .apu_lat                   (apu_lat),
+          .apu_operands              (apu_operands),
+          .apu_flags                 (apu_flags),
+          .apu_waddr                 (apu_waddr),
+          .regfile_waddr_id          (regfile_waddr_id),
+          .regfile_alu_waddr_id      (regfile_alu_waddr_id),
+          .prepost_useincr           (prepost_useincr),
+          .csr_access                (csr_access),
+          .csr_op                    (csr_op),
+          .data_we_id                (data_we_id),
+          .data_type_id              (data_type_id),
+          .data_sign_ext_id          (data_sign_ext_id),
+          .data_reg_offset_id        (data_reg_offset_id),
+          .data_load_event_id        (data_load_event_id),
+          .atop_id                   (atop_id),
+          .pc_id_i                   (pc_id_i),
+          
+          // OUTPUTS //
+          // Pipeline ID/EX
+          .pc_ex_o                  ( pc_ex_o[0] ),
 
-              .alu_operand_a_ex_o       ( alu_operand_a_ex_o[0] ),
-              .alu_operand_b_ex_o       ( alu_operand_b_ex_o[0] ),
-              .alu_operand_c_ex_o       ( alu_operand_c_ex_o[0] ),
-              .bmask_a_ex_o             ( bmask_a_ex_o[0] ),
-              .bmask_b_ex_o             ( bmask_b_ex_o[0] ),
-              .imm_vec_ext_ex_o         ( imm_vec_ext_ex_o[0] ),
-              .alu_vec_mode_ex_o        ( alu_vec_mode_ex_o[0] ),
+          .alu_operand_a_ex_o       ( alu_operand_a_ex_o[0] ),
+          .alu_operand_b_ex_o       ( alu_operand_b_ex_o[0] ),
+          .alu_operand_c_ex_o       ( alu_operand_c_ex_o[0] ),
+          .bmask_a_ex_o             ( bmask_a_ex_o[0] ),
+          .bmask_b_ex_o             ( bmask_b_ex_o[0] ),
+          .imm_vec_ext_ex_o         ( imm_vec_ext_ex_o[0] ),
+          .alu_vec_mode_ex_o        ( alu_vec_mode_ex_o[0] ),
 
-              .regfile_waddr_ex_o       ( regfile_waddr_ex_o[0] ),
-              .regfile_we_ex_o          ( regfile_we_ex_o[0]),
+          .regfile_waddr_ex_o       ( regfile_waddr_ex_o[0] ),
+          .regfile_we_ex_o          ( regfile_we_ex_o[0]),
 
-              .regfile_alu_waddr_ex_o   ( regfile_alu_waddr_ex_o[0] ),
-              .regfile_alu_we_ex_o      ( regfile_alu_we_ex_o[0] ),
-              .prepost_useincr_ex_o     ( prepost_useincr_ex_o[0] ),
+          .regfile_alu_waddr_ex_o   ( regfile_alu_waddr_ex_o[0] ),
+          .regfile_alu_we_ex_o      ( regfile_alu_we_ex_o[0] ),
+          .prepost_useincr_ex_o     ( prepost_useincr_ex_o[0] ),
 
-              // CSR ID/EX
-              .csr_access_ex_o          ( csr_access_ex_o[0] ),
-              .csr_op_ex_o              ( csr_op_ex_o[0] ),
+          // CSR ID/EX
+          .csr_access_ex_o          ( csr_access_ex_o[0] ),
+          .csr_op_ex_o              ( csr_op_ex_o[0] ),
 
-              // Interface to load store unit
-              .data_req_ex_o            ( data_req_ex_o[0] ),
-              .data_we_ex_o             ( data_we_ex_o[0] ),
-              .data_type_ex_o           ( data_type_ex_o[0] ),
-              .data_sign_ext_ex_o       ( data_sign_ext_ex_o[0] ),
-              .data_reg_offset_ex_o     ( data_reg_offset_ex_o[0] ),
-              .data_load_event_ex_o     ( data_load_event_ex_o[0] ),
-              .atop_ex_o                ( atop_ex_o[0] ),
+          // Interface to load store unit
+          .data_req_ex_o            ( data_req_ex_o[0] ),
+          .data_we_ex_o             ( data_we_ex_o[0] ),
+          .data_type_ex_o           ( data_type_ex_o[0] ),
+          .data_sign_ext_ex_o       ( data_sign_ext_ex_o[0] ),
+          .data_reg_offset_ex_o     ( data_reg_offset_ex_o[0] ),
+          .data_load_event_ex_o     ( data_load_event_ex_o[0] ),
+          .atop_ex_o                ( atop_ex_o[0] ),
 
-              .data_misaligned_ex_o     ( data_misaligned_ex_o[0] ),
+          .data_misaligned_ex_o     ( data_misaligned_ex_o[0] ),
 
-              // ALU    
-              .alu_en_ex_o              ( alu_en_ex_o[0] ),
-              .alu_operator_ex_o        ( alu_operator_ex_o[0] ),
-              .alu_is_clpx_ex_o         ( alu_is_clpx_ex_o[0] ),
-              .alu_is_subrot_ex_o       ( alu_is_subrot_ex_o[0] ),
-              .alu_clpx_shift_ex_o      ( alu_clpx_shift_ex_o[0] ),
+          // ALU    
+          .alu_en_ex_o              ( alu_en_ex_o[0] ),
+          .alu_operator_ex_o        ( alu_operator_ex_o[0] ),
+          .alu_is_clpx_ex_o         ( alu_is_clpx_ex_o[0] ),
+          .alu_is_subrot_ex_o       ( alu_is_subrot_ex_o[0] ),
+          .alu_clpx_shift_ex_o      ( alu_clpx_shift_ex_o[0] ),
 
-              // MUL
-              .mult_operator_ex_o       ( mult_operator_ex_o[0] ),
-              .mult_operand_a_ex_o      ( mult_operand_a_ex_o[0] ),
-              .mult_operand_b_ex_o      ( mult_operand_b_ex_o[0] ),
-              .mult_operand_c_ex_o      ( mult_operand_c_ex_o[0] ),
-              .mult_en_ex_o             ( mult_en_ex_o[0] ),
-              .mult_sel_subword_ex_o    ( mult_sel_subword_ex_o[0] ),
-              .mult_signed_mode_ex_o    ( mult_signed_mode_ex_o[0] ),
-              .mult_imm_ex_o            ( mult_imm_ex_o[0] ),
+          // MUL
+          .mult_operator_ex_o       ( mult_operator_ex_o[0] ),
+          .mult_operand_a_ex_o      ( mult_operand_a_ex_o[0] ),
+          .mult_operand_b_ex_o      ( mult_operand_b_ex_o[0] ),
+          .mult_operand_c_ex_o      ( mult_operand_c_ex_o[0] ),
+          .mult_en_ex_o             ( mult_en_ex_o[0] ),
+          .mult_sel_subword_ex_o    ( mult_sel_subword_ex_o[0] ),
+          .mult_signed_mode_ex_o    ( mult_signed_mode_ex_o[0] ),
+          .mult_imm_ex_o            ( mult_imm_ex_o[0] ),
 
-              .mult_dot_op_a_ex_o       ( mult_dot_op_a_ex_o[0] ),
-              .mult_dot_op_b_ex_o       ( mult_dot_op_b_ex_o[0] ),
-              .mult_dot_op_c_ex_o       ( mult_dot_op_c_ex_o[0] ),
-              .mult_dot_signed_ex_o     ( mult_dot_signed_ex_o[0] ),
-              .mult_is_clpx_ex_o        ( mult_is_clpx_ex_o[0] ),
-              .mult_clpx_shift_ex_o     ( mult_clpx_shift_ex_o[0] ),
-              .mult_clpx_img_ex_o       ( mult_clpx_img_ex_o[0] ),
+          .mult_dot_op_a_ex_o       ( mult_dot_op_a_ex_o[0] ),
+          .mult_dot_op_b_ex_o       ( mult_dot_op_b_ex_o[0] ),
+          .mult_dot_op_c_ex_o       ( mult_dot_op_c_ex_o[0] ),
+          .mult_dot_signed_ex_o     ( mult_dot_signed_ex_o[0] ),
+          .mult_is_clpx_ex_o        ( mult_is_clpx_ex_o[0] ),
+          .mult_clpx_shift_ex_o     ( mult_clpx_shift_ex_o[0] ),
+          .mult_clpx_img_ex_o       ( mult_clpx_img_ex_o[0] ),
 
-              // APU
-              .apu_en_ex_o              ( apu_en_ex_o[0] ),
-              .apu_op_ex_o              ( apu_op_ex_o[0] ),
-              .apu_lat_ex_o             ( apu_lat_ex_o[0] ),
-              .apu_operands_ex_o        ( apu_operands_ex_o[0] ),
-              .apu_flags_ex_o           ( apu_flags_ex_o[0] ),
-              .apu_waddr_ex_o           ( apu_waddr_ex_o[0] ),
+          // APU
+          .apu_en_ex_o              ( apu_en_ex_o[0] ),
+          .apu_op_ex_o              ( apu_op_ex_o[0] ),
+          .apu_lat_ex_o             ( apu_lat_ex_o[0] ),
+          .apu_operands_ex_o        ( apu_operands_ex_o[0] ),
+          .apu_flags_ex_o           ( apu_flags_ex_o[0] ),
+          .apu_waddr_ex_o           ( apu_waddr_ex_o[0] ),
 
-              // Jumps and branches
-              .branch_in_ex_o           ( branch_in_ex_o[0] )
+          // Jumps and branches
+          .branch_in_ex_o           ( branch_in_ex_o[0] )
 
-              /*// Fault tolerant, select 3 of the 4 ALU in the EX stage
-              .sel_mux_ex_i          ( sel_mux_alu_s ),
-              .sel_mux_ex_o          ( sel_mux_alu_o ),
-              .clock_enable_alu_i        ( clk_enable_ft ),
-              .clock_enable_alu_o        ( clock_enable_alu_o )*/
+          /*// Fault tolerant, select 3 of the 4 ALU in the EX stage
+          .sel_mux_ex_i          ( sel_mux_alu_s ),
+          .sel_mux_ex_o          ( sel_mux_alu_o ),
+          .clock_enable_alu_i        ( clk_enable_ft ),
+          .clock_enable_alu_o        ( clock_enable_alu_o )*/
 
-            );
-
-
-            assign sel_mux_ex_o = 3'b0;
-            assign clock_enable_alu_o = 3'b0;
-            assign sel_mux_alu_o = 2'b0;
-            assign sel_mux_mult_o = 2'b0;
+        );
 
 
-            assign pc_ex_o[3:1] = 3'b000;
+        assign sel_mux_ex_o             = 3'b0;
+        assign clock_enable_alu_o       = 4'b0;
+        assign sel_bypass_alu_ex_o 		= 2'b0;
+        assign sel_bypass_mult_ex_o 	= 2'b0;
+        assign alu_totally_defective_o	= 1'b0;
+        assign mult_totally_defective_o = 1'b0;
 
-            assign alu_operand_a_ex_o[3:1] = 3'b000;
-            assign alu_operand_b_ex_o[3:1] = 3'b000;
-            assign alu_operand_c_ex_o[3:1] = 3'b000;
-            assign bmask_a_ex_o[3:1] = 3'b000;
-            assign bmask_b_ex_o[3:1] = 3'b000;
-            assign imm_vec_ext_ex_o[3:1] = 3'b000;
-            assign alu_vec_mode_ex_o[3:1] = 3'b000;
 
-            assign regfile_waddr_ex_o[3:1] = 3'b000;
-            assign regfile_we_ex_o[3:1] = 3'b000;
+        assign pc_ex_o[3:1] 			= 3'b000;
 
-            assign regfile_alu_waddr_ex_o[3:1] = 3'b000;
-            assign regfile_alu_we_ex_o[3:1] = 3'b000;
-            assign prepost_useincr_ex_o[3:1] = 3'b000;
+        assign alu_operand_a_ex_o[3:1] 	= 3'b000;
+        assign alu_operand_b_ex_o[3:1] 	= 3'b000;
+        assign alu_operand_c_ex_o[3:1] 	= 3'b000;
+        assign bmask_a_ex_o[3:1] 		= 3'b000;
+        assign bmask_b_ex_o[3:1] 		= 3'b000;
+        assign imm_vec_ext_ex_o[3:1]	= 3'b000;
+        assign alu_vec_mode_ex_o[3:1] 	= 3'b000;
 
-            // CSR ID/EX
-            assign csr_access_ex_o[3:1] = 3'b000;
-            assign csr_op_ex_o[3:1] = 3'b000;
+        assign regfile_waddr_ex_o[3:1]	 = 3'b000;
+        assign regfile_we_ex_o[3:1]		 = 3'b000;
 
-            // Interface to load store unit
-            assign data_req_ex_o[3:1] = 3'b000;
-            assign data_we_ex_o[3:1] = 3'b000;
-            assign data_type_ex_o[3:1] = 3'b000;
-            assign data_sign_ext_ex_o[3:1] = 3'b000;
-            assign data_reg_offset_ex_o[3:1] = 3'b000;
-            assign data_load_event_ex_o[3:1] = 3'b000;
-            assign atop_ex_o[3:1] = 3'b000;
+        assign regfile_alu_waddr_ex_o[3:1] 	= 3'b000;
+        assign regfile_alu_we_ex_o[3:1] 	= 3'b000;
+        assign prepost_useincr_ex_o[3:1] 	= 3'b000;
 
-            assign data_misaligned_ex_o[3:1] = 3'b000;
+        // CSR ID/EX
+        assign csr_access_ex_o[3:1] 	= 3'b000;
+        assign csr_op_ex_o[3:1] 		= 3'b000;
 
-            // ALU    
-            assign alu_en_ex_o[3:1] = 3'b000;
-            assign alu_operator_ex_o[3:1] = 3'b000;
-            assign alu_is_clpx_ex_o[3:1] = 3'b000;
-            assign alu_is_subrot_ex_o[3:1] = 3'b000;
-            assign alu_clpx_shift_ex_o[3:1] = 3'b000;
+        // Interface to load store unit
+        assign data_req_ex_o[3:1]			= 3'b000;
+        assign data_we_ex_o[3:1] 			= 3'b000;
+        assign data_type_ex_o[3:1] 			= 3'b000;
+        assign data_sign_ext_ex_o[3:1] 		= 3'b000;
+        assign data_reg_offset_ex_o[3:1] 	= 3'b000;
+        assign data_load_event_ex_o[3:1] 	= 3'b000;
+        assign atop_ex_o[3:1] = 3'b000;
 
-            // MUL
-            assign mult_operator_ex_o[3:1] = 3'b000;
-            assign mult_operand_a_ex_o[3:1] = 3'b000;
-            assign mult_operand_b_ex_o[3:1] = 3'b000;
-            assign mult_operand_c_ex_o[3:1] = 3'b000;
-            assign mult_en_ex_o[3:1] = 3'b000;
-            assign mult_sel_subword_ex_o[3:1] = 3'b000;
-            assign mult_signed_mode_ex_o[3:1] = 3'b000;
-            assign mult_imm_ex_o[3:1] = 3'b000;
+        assign data_misaligned_ex_o[3:1] 	= 3'b000;
 
-            assign mult_dot_op_a_ex_o[3:1] = 3'b000;
-            assign mult_dot_op_b_ex_o[3:1] = 3'b000;
-            assign mult_dot_op_c_ex_o[3:1] = 3'b000;
-            assign mult_dot_signed_ex_o[3:1] = 3'b000;
-            assign mult_is_clpx_ex_o[3:1] = 3'b000;
-            assign mult_clpx_shift_ex_o[3:1] = 3'b000;
-            assign mult_clpx_img_ex_o[3:1] = 3'b000;
+        // ALU    
+        assign alu_en_ex_o[3:1] 		= 3'b000;
+        assign alu_operator_ex_o[3:1] 	= 3'b000;
+        assign alu_is_clpx_ex_o[3:1] 	= 3'b000;
+        assign alu_is_subrot_ex_o[3:1] 	= 3'b000;
+        assign alu_clpx_shift_ex_o[3:1] = 3'b000;
 
-            // APU
-            assign apu_en_ex_o[3:1] = 3'b000;
-            assign apu_op_ex_o[3:1] = 3'b000;
-            assign apu_lat_ex_o[3:1] = 3'b000;
-            assign apu_operands_ex_o[3:1] = 3'b000;
-            assign apu_flags_ex_o[3:1] = 3'b000;
-            assign apu_waddr_ex_o[3:1] = 3'b000;
+        // MUL
+        assign mult_operator_ex_o[3:1] 		= 3'b000;
+        assign mult_operand_a_ex_o[3:1] 	= 3'b000;
+        assign mult_operand_b_ex_o[3:1]	 	= 3'b000;
+        assign mult_operand_c_ex_o[3:1] 	= 3'b000;
+        assign mult_en_ex_o[3:1] 			= 3'b000;
+        assign mult_sel_subword_ex_o[3:1] 	= 3'b000;
+        assign mult_signed_mode_ex_o[3:1] 	= 3'b000;
+        assign mult_imm_ex_o[3:1] 			= 3'b000;
 
-            // Jumps and branches
-            assign branch_in_ex_o[3:1] = 3'b000;
+        assign mult_dot_op_a_ex_o[3:1] 		= 3'b000;
+        assign mult_dot_op_b_ex_o[3:1] 		= 3'b000;
+        assign mult_dot_op_c_ex_o[3:1] 		= 3'b000;
+        assign mult_dot_signed_ex_o[3:1] 	= 3'b000;
+        assign mult_is_clpx_ex_o[3:1] 		= 3'b000;
+        assign mult_clpx_shift_ex_o[3:1] 	= 3'b000;
+        assign mult_clpx_img_ex_o[3:1]		= 3'b000;
 
-            // output signals used inside ID_stage itself
-            assign alu_operand_b_ex_voted   = alu_operand_b_ex_o[0];
-            assign regfile_waddr_ex_voted   = regfile_waddr_ex_o[0];
-            assign regfile_we_ex_voted      = regfile_we_ex_o[0];
-            assign csr_access_ex_voted      = csr_access_ex_o[0];
-            assign csr_op_ex_voted          = csr_op_ex_o[0];
-            assign data_req_ex_voted        = data_req_ex_o[0];
-            assign data_we_ex_voted         = data_we_ex_o[0];
-            //assign alu_operator_ex_voted    = alu_operator_ex_o[0];
-            assign apu_en_ex_voted          = apu_en_ex_o[0];
-            assign apu_lat_ex_voted         = apu_lat_ex_o[0];
-            assign branch_in_ex_voted       = branch_in_ex_o[0];
+        // APU
+        assign apu_en_ex_o[3:1] 		= 3'b000;
+        assign apu_op_ex_o[3:1] 		= 3'b000;
+        assign apu_lat_ex_o[3:1] 		= 3'b000;
+        assign apu_operands_ex_o[3:1] 	= 3'b000;
+        assign apu_flags_ex_o[3:1] 		= 3'b000;
+        assign apu_waddr_ex_o[3:1] 		= 3'b000;
 
-            // output signals used inside core
+        // Jumps and branches
+        assign branch_in_ex_o[3:1] 		= 3'b000;
 
-            assign pc_ex_voted              = pc_ex_o[0];
-            assign alu_operand_a_ex_voted   = alu_operand_a_ex_o[0];
-            assign alu_operand_c_ex_voted   = alu_operand_c_ex_o[0];
-            assign apu_flags_ex_voted       = apu_flags_ex_o[0];
-            assign data_type_ex_voted       = data_type_ex_o[0];
-            assign data_sign_ext_ex_voted   = data_sign_ext_ex_o[0];;
-            assign data_load_event_ex_voted = data_load_event_ex_o[0];
-            assign data_reg_offset_ex_voted = data_reg_offset_ex_o[0];
-            assign data_misaligned_ex_voted = data_misaligned_ex_o[0];
-            assign useincr_addr_ex_voted    = prepost_useincr_ex_o[0];
-            assign atop_ex_voted            = atop_ex_o[0];
+        // output signals used inside ID_stage itself
+        assign alu_operand_b_ex_voted   = alu_operand_b_ex_o[0];
+        assign regfile_waddr_ex_voted   = regfile_waddr_ex_o[0];
+        assign regfile_we_ex_voted      = regfile_we_ex_o[0];
+        assign csr_access_ex_voted      = csr_access_ex_o[0];
+        assign csr_op_ex_voted          = csr_op_ex_o[0];
+        assign data_req_ex_voted        = data_req_ex_o[0];
+        assign data_we_ex_voted         = data_we_ex_o[0];
+        //assign alu_operator_ex_voted    = alu_operator_ex_o[0];
+        assign apu_en_ex_voted          = apu_en_ex_o[0];
+        assign apu_lat_ex_voted         = apu_lat_ex_o[0];
+        assign branch_in_ex_voted       = branch_in_ex_o[0];
 
-            // output signals used inside ex_stage but not in the ALU
-            assign alu_en_ex_voted          = alu_en_ex_o[0];
-            assign mult_operator_ex_voted   = mult_operator_ex_o[0];
-            assign mult_operand_a_ex_voted  = mult_operand_a_ex_o[0];
-            assign mult_operand_b_ex_voted  = mult_operand_b_ex_o[0];
-            assign mult_operand_c_ex_voted  = mult_operand_c_ex_o[0];
-            assign mult_en_ex_voted         = mult_en_ex_o[0];
-            assign mult_sel_subword_ex_voted = mult_sel_subword_ex_o[0];
-            assign mult_signed_mode_voted   = mult_signed_mode_ex_o[0];
-            assign mult_imm_ex_voted        = mult_imm_ex_o[0];
-            assign mult_dot_op_a_ex_voted   = mult_dot_op_a_ex_o[0];
-            assign mult_dot_op_b_ex_voted   = mult_dot_op_b_ex_o[0];
-            assign mult_dot_op_c_ex_voted   = mult_dot_op_c_ex_o[0];
-            assign mult_dot_signed_ex_voted = mult_dot_signed_ex_o[0];
-            assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
-            assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
-            assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];
-            assign apu_op_ex_voted          = apu_op_ex_o[0];
-            assign apu_operands_ex_voted    = apu_operands_ex_o[0];
-            assign apu_waddr_ex_voted       = apu_waddr_ex_o[0];
-            assign regfile_alu_waddr_ex_voted = regfile_alu_waddr_ex_o[0];
-            assign regfile_alu_we_ex_voted  = regfile_alu_we_ex_o[0];
+        // output signals used inside core
 
-        end
+        assign pc_ex_voted              = pc_ex_o[0];
+        assign alu_operand_a_ex_voted   = alu_operand_a_ex_o[0];
+        assign alu_operand_c_ex_voted   = alu_operand_c_ex_o[0];
+        assign apu_flags_ex_voted       = apu_flags_ex_o[0];
+        assign data_type_ex_voted       = data_type_ex_o[0];
+        assign data_sign_ext_ex_voted   = data_sign_ext_ex_o[0];;
+        assign data_load_event_ex_voted = data_load_event_ex_o[0];
+        assign data_reg_offset_ex_voted = data_reg_offset_ex_o[0];
+        assign data_misaligned_ex_voted = data_misaligned_ex_o[0];
+        assign useincr_addr_ex_voted    = prepost_useincr_ex_o[0];
+        assign atop_ex_voted            = atop_ex_o[0];
 
-    endgenerate
+        // output signals used inside ex_stage but not in the ALU
+        assign alu_en_ex_voted          = alu_en_ex_o[0];
+        assign mult_operator_ex_voted   = mult_operator_ex_o[0];
+        assign mult_operand_a_ex_voted  = mult_operand_a_ex_o[0];
+        assign mult_operand_b_ex_voted  = mult_operand_b_ex_o[0];
+        assign mult_operand_c_ex_voted  = mult_operand_c_ex_o[0];
+        assign mult_en_ex_voted         = mult_en_ex_o[0];
+        assign mult_sel_subword_ex_voted = mult_sel_subword_ex_o[0];
+        assign mult_signed_mode_voted   = mult_signed_mode_ex_o[0];
+        assign mult_imm_ex_voted        = mult_imm_ex_o[0];
+        assign mult_dot_op_a_ex_voted   = mult_dot_op_a_ex_o[0];
+        assign mult_dot_op_b_ex_voted   = mult_dot_op_b_ex_o[0];
+        assign mult_dot_op_c_ex_voted   = mult_dot_op_c_ex_o[0];
+        assign mult_dot_signed_ex_voted = mult_dot_signed_ex_o[0];
+        assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
+        assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
+        assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];
+        assign apu_op_ex_voted          = apu_op_ex_o[0];
+        assign apu_operands_ex_voted    = apu_operands_ex_o[0];
+        assign apu_waddr_ex_voted       = apu_waddr_ex_o[0];
+        assign regfile_alu_waddr_ex_voted = regfile_alu_waddr_ex_o[0];
+        assign regfile_alu_we_ex_voted  = regfile_alu_we_ex_o[0];
+
+    end
+
+endgenerate
 
 
  
