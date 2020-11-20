@@ -484,31 +484,31 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	         .short_subword_i     ( short_subword_i[0]),
 	         .short_signed_i      ( short_signed_i[0] ),
 
-	         .op_a_i         	  ( op_a_i[0] ),
-	         .op_b_i              ( op_b_i[0] ),
-	         .op_c_i              ( op_c_i[0] ),
+	         .op_a_i         	  ( op_a_i[0] 		  ),
+	         .op_b_i              ( op_b_i[0] 		  ),
+	         .op_c_i              ( op_c_i[0] 		  ),
 
-			 .imm_i               ( imm_i[0]  ),
+			 .imm_i               ( imm_i[0]          ),
 
 			  // dot multiplier
-			 .dot_signed_i        ( dot_signed_i[0] ),
-			 .dot_op_a_i          ( dot_op_a_i[0]   ),
-			 .dot_op_b_i          ( dot_op_b_i[0]   ),
-			 .dot_op_c_i          ( dot_op_c_i[0]   ),
-			 .is_clpx_i           ( is_clpx_i[0]    ),
-			 .clpx_shift_i        ( clpx_shift_i[0] ),
-			 .clpx_img_i          ( clpx_img_i[0]   ),
+			 .dot_signed_i        ( dot_signed_i[0]   ),
+			 .dot_op_a_i          ( dot_op_a_i[0]     ),
+			 .dot_op_b_i          ( dot_op_b_i[0]     ),
+			 .dot_op_c_i          ( dot_op_c_i[0]     ),
+			 .is_clpx_i           ( is_clpx_i[0]      ),
+			 .clpx_shift_i        ( clpx_shift_i[0]   ),
+			 .clpx_img_i          ( clpx_img_i[0]     ),
 
-	         .result_o            ( result_o     ),
+	         .result_o            ( result_o     	  ),
 
-	         .multicycle_o        ( multicycle_o ),
-	         .ready_o             ( ready_o      ),
-	         .ex_ready_i          ( ex_ready_i      )
+	         .multicycle_o        ( multicycle_o	  ),
+	         .ready_o             ( ready_o      	  ),
+	         .ex_ready_i          ( ex_ready_i        )
 	        );
 
 			assign err_corrected_o = 1'b0;
 	  		assign err_detected_o  = 1'b0;
-			assign perf_counter_permanent_faulty_mult_o = 4'b0;
+			assign perf_counter_permanent_faulty_mult_o = 3'b0;
    
          end
 

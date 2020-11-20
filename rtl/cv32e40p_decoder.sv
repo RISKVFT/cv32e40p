@@ -35,7 +35,8 @@ module cv32e40p_decoder import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
   parameter USE_PMP           = 0,
   parameter WAPUTYPE          = 0,
   parameter APU_WOP_CPU       = 6,
-  parameter DEBUG_TRIGGER_EN  = 1
+  parameter DEBUG_TRIGGER_EN  = 1,
+  parameter FT                = 0
 )
 (
   // singals running to/from controller
@@ -2466,6 +2467,32 @@ module cv32e40p_decoder import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
                 end else begin
                   csr_status_o = 1'b1;
                 end
+
+            // ---------------------------------------------------------------------------------
+            // FT: Performance counters
+            CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT:
+              if ((!FT) || ((csr_op != CSR_OP_READ) && (csr_op != CSR_OP_WRITE))) begin
+                csr_illegal = 1'b1;
+              end else begin
+                csr_status_o = 1'b1;
+              end
+
+            CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
+              CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
+              CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT,
+              CSR_MHPMCOUNTER12_FT, CSR_MHPMCOUNTER13_FT, CSR_MHPMCOUNTER14_FT, CSR_MHPMCOUNTER15_FT,
+              CSR_MHPMCOUNTER16_FT, CSR_MHPMCOUNTER17_FT, CSR_MHPMCOUNTER18_FT, CSR_MHPMCOUNTER19_FT,
+              CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
+              CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
+              CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
+              CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+                if ((!FT) || ((csr_op != CSR_OP_READ) && (csr_op != CSR_OP_WRITE))) begin
+                  csr_illegal = 1'b1;
+                end else begin
+                  csr_status_o = 1'b1;
+                end
+            // End of FT
+            // ---------------------------------------------------------------------------------
 
             // This register only exists in user mode
             CSR_MCOUNTEREN :

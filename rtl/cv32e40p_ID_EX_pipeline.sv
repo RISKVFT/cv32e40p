@@ -240,16 +240,11 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
       branch_in_ex_o              <= 1'b0;
 
-      /*sel_mux_ex_o                <= 3'b0;
-      clock_enable_alu_o          <= 3'b0;*/
-
     end
     //else if (clk_en) begin
     else if (data_misaligned_i) begin
 
       // misaligned data access case
-      /*clock_enable_alu_o           <= clock_enable_alu_i;
-      sel_mux_ex_o                 <= sel_mux_ex_i;*/
 
       if (ex_ready_i)
       begin // misaligned access case, only unstall alu operands
@@ -269,15 +264,11 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
         data_misaligned_ex_o        <= 1'b1;
       end
     end else if (mult_multicycle_i) begin
-      /*clock_enable_alu_o           <= clock_enable_alu_i;
-      sel_mux_ex_o                 <= sel_mux_ex_i;*/
 
       mult_operand_c_ex_o <= operand_c_fw_id;
     end
     else begin
       // normal pipeline unstall case
-      /*clock_enable_alu_o           <= clock_enable_alu_i;
-      sel_mux_ex_o                 <= sel_mux_ex_i;*/
 
       if (id_valid_o)
       begin // unstall the whole pipeline

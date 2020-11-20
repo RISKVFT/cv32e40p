@@ -19,6 +19,7 @@
 
 
 module cv32e40p_dispatcher_ft(
+  input  logic 			  rst_n,
   input  logic 			  alu_used,
   input  logic            mult_used,
   input  logic [3:0] 	  permanent_faulty_alu_i,  // one for each ALU
@@ -39,7 +40,16 @@ module cv32e40p_dispatcher_ft(
 
 
 always_comb begin : proc_decoder_faulty_alu
-	if (alu_used) begin  //only if alu has to be used we have to provide this decoding becasue it is relative to the choice of three of the four ALUs
+
+	if (~rst_n) begin
+		clock_gate_pipe_replica_o = 4'b0111;
+		sel_mux_ex_o = 3'b000;
+		sel_bypass_alu_o = 2'b00;
+		alu_totally_defective_o = 1'b0;
+		sel_bypass_mult_o = 2'b00;
+		mult_totally_defective_o = 1'b0;
+
+	end else if (alu_used) begin  //only if alu has to be used we have to provide this decoding becasue it is relative to the choice of three of the four ALUs
 		unique case (permanent_faulty_alu_i)
 			4'b0000: begin
 				clock_gate_pipe_replica_o = 4'b0111;

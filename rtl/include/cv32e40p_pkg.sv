@@ -241,8 +241,9 @@ typedef enum logic[11:0] {
   /*ALU*/
   // we need 36 registers to store the information about the status of each subpart of the four ALUs. 
   // Therefore we use two 32b register using 36b of the available 64.
-  CSR_PERM_FAULTY_ALUL_FT  = 12'hCC2, 
-  CSR_PERM_FAULTY_ALUH_FT  = 12'hCC3,
+  CSR_PERM_FAULTY_ALUL_FT  = 12'h7C0, 
+  CSR_PERM_FAULTY_ALUH_FT  = 12'h7C1,
+  // add here other CSR read/write in machine mode up to h7FF
   
   // Hardware Performance Monitor
   CSR_MHPMCOUNTER0_FT   = 12'h808,
@@ -281,7 +282,7 @@ typedef enum logic[11:0] {
   CSR_MHPMCOUNTER33_FT  = 12'h829,
   CSR_MHPMCOUNTER34_FT  = 12'h82A,
   CSR_MHPMCOUNTER35_FT  = 12'h82B,
-  // ADD HERE OTHER COUNTERS LOW PART UP TO h8FF
+  // add here other counters read/write in user mode up to h8FF
 
   // Shadow registers are not implemented
   /*

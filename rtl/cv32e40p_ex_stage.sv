@@ -250,6 +250,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic           apu_gnt;
 
   logic [ 3:0]    clk_gated_alu_ft;
+  logic           mult_en_ex_voted;
  
   // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
   cv32e40p_3voter #(1,1) voter_mult_en_ex

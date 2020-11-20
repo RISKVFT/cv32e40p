@@ -1164,7 +1164,8 @@ end
       .USE_PMP             ( USE_PMP              ),
       .WAPUTYPE            ( WAPUTYPE             ),
       .APU_WOP_CPU         ( APU_WOP_CPU          ),
-      .DEBUG_TRIGGER_EN    ( DEBUG_TRIGGER_EN     )
+      .DEBUG_TRIGGER_EN    ( DEBUG_TRIGGER_EN     ),
+      .FT                  ( FT                   )
       )
   decoder_i
   (
@@ -1697,8 +1698,8 @@ generate
 
 
         // PER ORA HO FISSATO QUESTI SEGNALI A '0' MA POI SARANNO DEGLI INPUT QUANDO CAPIRO' COME FARE I PERFORMANCE COUNTERS
-        assign permanent_faulty_mult_i = 2'b0;  // one for each counter: 4 ALU and 9 subpart of ALU
-        assign permanent_faulty_mult_s_i = 2'b0;
+        assign permanent_faulty_mult_i = 3'b0;  // one for each counter: 4 ALU and 9 subpart of ALU
+        assign permanent_faulty_mult_s_i = 3'b0;
 
 
         always_comb begin: EX_MULT_dispatcher_init
@@ -1708,7 +1709,7 @@ generate
                 MUL_MAC32, MUL_MSU32, MUL_I, MUL_IR, MUL_DOT8, MUL_DOT16, MUL_H:
                 permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_s_i[0] | permanent_faulty_mult_i[0];
 
-                default:  permanent_faulty_mult_in_dispatcher = 4'b0000;        
+                default:  permanent_faulty_mult_in_dispatcher = 3'b0;        
 
             endcase // case (mult_operator)
 
@@ -1717,7 +1718,8 @@ generate
 
 
         cv32e40p_dispatcher_ft dispatcher_ft // DISPATCHER
-        ( 
+        (       
+         .rst_n                      ( rst_n                                ),
          .alu_used                   ( alu_en           					),
          .mult_used                  ( mult_en      						),
          .permanent_faulty_alu_i     ( permanent_faulty_alu_in_dispatcher 	),
@@ -1890,16 +1892,18 @@ generate
         // WE NEED A VOTER OF SEL_MUX_EX AND CLOCK_ENABLE BECAUSE AS OUTPUT OF THE PIPE THEY ARE QUADRUPLICATED, OR WE CAN JUST USE MUX SELECTOR BEFORE THEY GOES INTO THE PIPE, WITH A DELAY OG ONE CLOCK CYCLE TO AVOID THE COMPLEX VOTER 
         always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
           if(~rst_n) begin
-            sel_mux_ex_o         <= 3'b0;
-            clock_enable_alu_o   <= 3'b0;
-            sel_bypass_alu_ex_o  <= 2'b0;
-            sel_bypass_mult_ex_o <= 2'b0;
+            sel_mux_ex_o             <= 3'b0;
+            clock_enable_alu_o       <= 3'b0;
+            sel_bypass_alu_ex_o      <= 2'b0;
+            sel_bypass_mult_ex_o     <= 2'b0;
+            alu_totally_defective_o  <= 1'b0; 
+            mult_totally_defective_o <= 1'b0;
           end else begin
             sel_mux_ex_o             <= sel_mux_ex_s;
             clock_enable_alu_o       <= clock_en;
             sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
             sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
-             alu_totally_defective_o <= alu_totally_defective_s; 
+            alu_totally_defective_o  <= alu_totally_defective_s; 
             mult_totally_defective_o <= mult_totally_defective_s;
           end
         end
@@ -3027,7 +3031,7 @@ generate
 
         // output signals used inside ex_stage but not in the ALU
         assign alu_en_ex_voted          = alu_en_ex_o[0];
-        assign mult_operator_ex_voted   = mult_operator_ex_o[0];
+        /*assign mult_operator_ex_voted   = mult_operator_ex_o[0];
         assign mult_operand_a_ex_voted  = mult_operand_a_ex_o[0];
         assign mult_operand_b_ex_voted  = mult_operand_b_ex_o[0];
         assign mult_operand_c_ex_voted  = mult_operand_c_ex_o[0];
@@ -3041,7 +3045,7 @@ generate
         assign mult_dot_signed_ex_voted = mult_dot_signed_ex_o[0];
         assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
         assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
-        assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];
+        assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];*/
         assign apu_op_ex_voted          = apu_op_ex_o[0];
         assign apu_operands_ex_voted    = apu_operands_ex_o[0];
         assign apu_waddr_ex_voted       = apu_waddr_ex_o[0];
