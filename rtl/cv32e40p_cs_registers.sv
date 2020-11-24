@@ -516,8 +516,10 @@ if(PULP_SECURE==1) begin
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
-      	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
-        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+      	if (~csr_we_int) begin
+          mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+          csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0; 
+        end 
       end 
       
       // FT: Hardware Performance Monitor
@@ -535,9 +537,9 @@ if(PULP_SECURE==1) begin
       end
 
       default: begin
-        csr_rdata_int = '0;
+        csr_rdata_int = 32'b0;
         mhpm_re_ft_o  = 1'b0;
-    end
+      end
 
     endcase
   end
@@ -694,8 +696,10 @@ end else begin //PULP_SECURE == 0
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
-      	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
-        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+        if (~csr_we_int) begin
+        	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+          csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+        end
       end 
 
       // FT: Hardware Performance Monitor
@@ -712,8 +716,10 @@ end else begin //PULP_SECURE == 0
         csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
       end
 
-      default:
-        csr_rdata_int = '0;
+      default: begin
+        csr_rdata_int = 32'b0;
+        mhpm_re_ft_o  = 1'b0;
+      end
     endcase
   end
 end //PULP_SECURE
@@ -878,6 +884,16 @@ if(PULP_SECURE==1) begin
       // ucause: exception cause
       CSR_UCAUSE: if (csr_we_int) ucause_n = {csr_wdata_int[31], csr_wdata_int[4:0]};
 
+      // FT: Tables of permanent faulty components
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+        if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
+          mhpm_we_ft_o = 1'b1;
+          mhpm_wdata_ft_o = csr_wdata_int; 
+        end else begin
+          mhpm_we_ft_o = 1'b0;
+          mhpm_wdata_ft_o = csr_wdata_int; 
+        end 
+      end
 
       // FT Hardware Performance Monitor
       CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
@@ -896,6 +912,11 @@ if(PULP_SECURE==1) begin
           mhpm_we_ft_o = 1'b0;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
+      end
+
+      default: begin
+        mhpm_we_ft_o = 1'b0;
+        mhpm_wdata_ft_o = 'b0;
       end
 
     endcase
@@ -1140,6 +1161,17 @@ end else begin //PULP_SECURE == 0
       CSR_LPCOUNT1 : if (PULP_XPULP && csr_we_int) begin hwlp_we_o = 3'b100; hwlp_regid_o = 1'b1; end
 
 
+      // FT: Tables of permanent faulty components
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+        if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
+          mhpm_we_ft_o = 1'b1;
+          mhpm_wdata_ft_o = csr_wdata_int; 
+        end else begin
+          mhpm_we_ft_o = 1'b0;
+          mhpm_wdata_ft_o = csr_wdata_int; 
+        end 
+      end  
+
       // FT Hardware Performance Monitor
       CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
       CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
@@ -1157,6 +1189,11 @@ end else begin //PULP_SECURE == 0
           mhpm_we_ft_o = 1'b0;
           mhpm_wdata_ft_o = csr_wdata_int; 
         end
+      end
+
+      default: begin
+        mhpm_we_ft_o = 1'b0;
+        mhpm_wdata_ft_o = 'b0;
       end
         
     endcase

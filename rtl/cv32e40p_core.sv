@@ -371,6 +371,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic             err_detected_mult; 
   logic [ 2:0]      perf_counter_permanent_faulty_mult;
 
+  logic 			alu_totally_defective;
+  logic 			mult_totally_defective;
+
   // 
   logic [31:0]      pc_ex_core;
   logic [31:0]      alu_operand_a_ex_core;
@@ -817,7 +820,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .sel_bypass_alu_ex_o          ( sel_bypass_alu          ),
     .sel_bypass_mult_ex_o         ( sel_bypass_mult         ),
     .alu_totally_defective_o      ( alu_totally_defective   ),
-    .mult_totally_defective_o     ( multu_totally_defective ),
+    .mult_totally_defective_o     ( mult_totally_defective  ),
     .pc_ex_voted                  ( pc_ex_core              ),
     .alu_operand_a_ex_voted       ( alu_operand_a_ex_core   ),
     .alu_operand_c_ex_voted       ( alu_operand_c_ex_core   ),
@@ -1034,9 +1037,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mult_clpx_img_ex_voted_i   ( mult_clpx_img_ex_core ),
     */
      
-     .err_corrected_mult_o      ( err_corrected_mult ),
-     .err_detected_mult_o       ( err_detected_mult ), 
-     .perf_counter_permanent_faulty_mult_o  ( perf_counter_permanent_faulty_mult ),
+    .err_corrected_mult_o      ( err_corrected_mult ),
+    .err_detected_mult_o       ( err_detected_mult ), 
+    .perf_counter_permanent_faulty_mult_o  ( perf_counter_permanent_faulty_mult ),
 
     .apu_op_ex_voted_i          ( apu_op_ex_core ),
     .apu_operands_ex_voted_i    ( apu_operands_ex_core ),
@@ -1070,7 +1073,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mhpm_re_ft_i            ( mhpm_re_ft    ),    // read enable 
     .mhpm_rdata_ft_o         ( mhpm_rdata_ft ),    // the value of the performance counter we want to read
     .mhpm_we_ft_i            ( mhpm_we_ft    ),    // write enable 
-    .mhpm_wdata_ft_i         ( mhpm_wdata_ft )     // the we want to write into the perf counter
+    .mhpm_wdata_ft_i         ( mhpm_wdata_ft ),     // the we want to write into the perf counter
+
+    .sel_bypass_alu_ex_i     ( sel_bypass_alu          ),
+    .sel_bypass_mult_ex_i    ( sel_bypass_mult         )
 
   );
 

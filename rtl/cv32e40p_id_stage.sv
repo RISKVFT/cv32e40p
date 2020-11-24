@@ -559,6 +559,15 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]	   sel_bypass_alu_ex_s;  // mux selectors used when there are 3 out of 4 faulty ALUs
   logic            alu_totally_defective_s;
   logic            mult_totally_defective_s;
+
+  logic [3:0]      clock_en_sltu;  // used for gating clock of one of the pipeline replicas for FT version
+  logic [2:0]      sel_mux_ex_s_sltu;  // mux selectors generated with the decoding mechanism
+  logic [1:0]      sel_bypass_mult_ex_s_sltu; // mux selectors used when there are 2 out of 3 faulty MULTs
+  logic [1:0]      sel_bypass_alu_ex_s_sltu;  // mux selectors used when there are 3 out of 4 faulty ALUs
+  logic            alu_totally_defective_s_sltu;
+  logic            mult_totally_defective_s_sltu;
+
+  
   // signals input to the voters for the outputs of the module that are still used in Id_stage module
   logic [2:0][31:0]     alu_operand_b_ex_voter_in;
   logic [2:0][5:0]      regfile_waddr_ex_voter_in;
@@ -638,6 +647,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [8:0][3:0]            permanent_faulty_alu_trans;
   logic [8:0][3:0]            permanent_faulty_alu_trans_s;
   logic [3:0]				  permanent_faulty_alu_in_dispatcher;
+  logic [3:0]                 permanent_faulty_alu_in_dispatcher_sltu;
 
   logic [2:0]                 permanent_faulty_mult_i;  // one for each counter: 4 ALU and 9 subpart of ALU
   logic [2:0]       		  permanent_faulty_mult_s_i;
@@ -1696,6 +1706,10 @@ generate
 
         end // end always_comb EX_ALU_dispatcher_init
 
+        //always need the status of ALU about SLTU because sometimes it replace the real alu_operator
+        assign permanent_faulty_alu_in_dispatcher_sltu = permanent_faulty_alu_trans[5] | permanent_faulty_alu_trans_s[5];
+
+
 
         // PER ORA HO FISSATO QUESTI SEGNALI A '0' MA POI SARANNO DEGLI INPUT QUANDO CAPIRO' COME FARE I PERFORMANCE COUNTERS
         assign permanent_faulty_mult_i = 3'b0;  // one for each counter: 4 ALU and 9 subpart of ALU
@@ -1730,6 +1744,21 @@ generate
          .sel_bypass_mult_o          ( sel_bypass_mult_ex_s     			),
          .alu_totally_defective_o    ( alu_totally_defective_s  			), 
          .mult_totally_defective_o   ( mult_totally_defective_s 			)
+        );
+
+        cv32e40p_dispatcher_ft dispatcher_ft_sltu // DISPATCHER SLTU
+        (       
+         .rst_n                      ( rst_n                                   ),
+         .alu_used                   ( alu_en                                  ),
+         .mult_used                  ( mult_en                                 ),
+         .permanent_faulty_alu_i     ( permanent_faulty_alu_in_dispatcher_sltu ),
+         .permanent_faulty_mult_i    ( permanent_faulty_mult_in_dispatcher     ),
+         .clock_gate_pipe_replica_o  ( clock_en_sltu                           ),
+         .sel_mux_ex_o               ( sel_mux_ex_s_sltu                       ),
+         .sel_bypass_alu_o           ( sel_bypass_alu_ex_s_sltu                ),
+         .sel_bypass_mult_o          ( sel_bypass_mult_ex_s_sltu               ),
+         .alu_totally_defective_o    ( alu_totally_defective_s_sltu            ), 
+         .mult_totally_defective_o   ( mult_totally_defective_s_sltu           )
         );
 
 
@@ -1896,15 +1925,23 @@ generate
             clock_enable_alu_o       <= 3'b0;
             sel_bypass_alu_ex_o      <= 2'b0;
             sel_bypass_mult_ex_o     <= 2'b0;
-            alu_totally_defective_o  <= 1'b0; 
+            alu_totally_defective_o  <= 1'b0;
             mult_totally_defective_o <= 1'b0;
-          end else begin
+          end 
+          else if(id_valid_o) begin
             sel_mux_ex_o             <= sel_mux_ex_s;
             clock_enable_alu_o       <= clock_en;
             sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
             sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
             alu_totally_defective_o  <= alu_totally_defective_s; 
             mult_totally_defective_o <= mult_totally_defective_s;
+          end else if(ex_ready_i) begin
+            sel_mux_ex_o             <= sel_mux_ex_s_sltu;
+            clock_enable_alu_o       <= clock_en_sltu;
+            sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s_sltu;
+            sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s_sltu;
+            alu_totally_defective_o  <= alu_totally_defective_s_sltu; 
+            mult_totally_defective_o <= mult_totally_defective_s_sltu;
           end
         end
 

@@ -59,7 +59,10 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   output logic                     err_detected_o,
   //output logic [2:0][8:0] 		   permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU 
   output logic [2:0]      		   perf_counter_permanent_faulty_mult_o, // trigger the performance counter relative to the specific MULT
-  input  logic [2:0]               sel_mux_ex_i // selector of the three mux to choose three of the four alu
+  input  logic [2:0]               sel_mux_ex_i, // selector of the three mux to choose three of the four alu
+
+  // bypass if more than 2 ALU are faulty
+  input  logic [1:0]					sel_bypass_mult_i
 
 );
 

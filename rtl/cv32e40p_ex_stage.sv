@@ -204,7 +204,11 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic                mhpm_re_ft_i,      // read enable 
   output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance counter we want to read
   input  logic                mhpm_we_ft_i,      // write enable 
-  input  logic [31:0]         mhpm_wdata_ft_i    // the we want to write into the perf counter
+  input  logic [31:0]         mhpm_wdata_ft_i,   // the we want to write into the perf counter
+
+  // bypass if more than 2 ALU/MULT are faulty
+  input  logic [1:0]          sel_bypass_alu_ex_i,
+  input  logic [1:0]          sel_bypass_mult_ex_i
 
 
   /*// for those single signal (not quadruplicated used by the ALU)
@@ -385,7 +389,10 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .mhpm_re_ft_i        ( mhpm_re_ft_i     ),   // read enable 
     .mhpm_rdata_ft_o     ( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
     .mhpm_we_ft_i        ( mhpm_we_ft_i     ),   // write enable 
-    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i  )
+    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i  ),
+
+    .sel_bypass_alu_i          ( sel_bypass_alu_ex_i    )
+
     /*// for those single signal (not quadruplicated used by the ALU)
     .enable_single_i      ( enable_single_i ),
     .operator_single_i    ( operator_single_i ),
@@ -450,7 +457,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_corrected_o ( err_corrected_mult_o ),
     .err_detected_o  ( err_detected_mult_o ),
     .perf_counter_permanent_faulty_mult_o ( perf_counter_permanent_faulty_mult_o ),
-    .sel_mux_ex_i        (sel_mux_ex_i)
+    .sel_mux_ex_i              ( sel_mux_ex_i           ),
+    .sel_bypass_mult_i         ( sel_bypass_mult_ex_i   )
   );
 
    generate

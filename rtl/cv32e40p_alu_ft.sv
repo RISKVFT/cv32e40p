@@ -60,7 +60,10 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   input  logic                			mhpm_re_ft_i,      // read enable 
   output logic [31:0]         			mhpm_rdata_ft_o,   // the value of the performance counter we want to read
   input  logic                			mhpm_we_ft_i,      // write enable 
-  input  logic [31:0]         			mhpm_wdata_ft_i    // the we want to write into the perf counter
+  input  logic [31:0]         			mhpm_wdata_ft_i,    // the we want to write into the perf counter
+
+  // bypass if more than 2 ALU are faulty
+  input  logic [1:0]					sel_bypass_alu_i
 
   /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
   input  logic                     enable_single_i,
@@ -143,6 +146,13 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	logic 					  err_detected_ready_alu2;
 	logic 					  err_detected_ready_alu3;
 
+	//
+	logic [31:0]              result_voter;
+	logic                     comparison_result_voter;
+	logic                     ready_voter;
+
+
+
 
 	generate
 
@@ -210,10 +220,10 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        // the voter of result_o. 
 	        cv32e40p_3voter #(32,1) voter_result
 	         (
-	          .in_1_i           ( voter_res_1_in ),
-	          .in_2_i           ( voter_res_2_in ),
-	          .in_3_i           ( voter_res_3_in ),
-	          .voted_o          ( result_o  ),
+	          .in_1_i           ( voter_res_1_in 	 ),
+	          .in_2_i           ( voter_res_2_in     ),
+	          .in_3_i           ( voter_res_3_in     ),
+	          .voted_o          ( result_voter       ),
 	          .err_detected_1 	( err_detected_res_1 ),
 	          .err_detected_2 	( err_detected_res_2 ),
 	          .err_detected_3 	( err_detected_res_3 ),
@@ -223,25 +233,25 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        // voter of comparison_result_o
 	        cv32e40p_3voter #(1,1) voter_comp_res
-	        (
-	         .in_1_i           ( voter_comp_1_in ),
-	         .in_2_i           ( voter_comp_2_in ),
-	         .in_3_i           ( voter_comp_3_in ),
-	         .voted_o          ( comparison_result_o ),
-	         .err_detected_1   ( err_detected_comp_1 ),
-	         .err_detected_2   ( err_detected_comp_2 ),
-	         .err_detected_3   ( err_detected_comp_3 ),
-	         .err_corrected_o  ( err_corrected_comp  ),
-	         .err_detected_o   ( err_detected_comp 	 )
+	        (	
+	         .in_1_i           ( voter_comp_1_in 		  ),
+	         .in_2_i           ( voter_comp_2_in 		  ),
+	         .in_3_i           ( voter_comp_3_in 		  ),
+	         .voted_o          ( comparison_result_voter  ),
+	         .err_detected_1   ( err_detected_comp_1      ),
+	         .err_detected_2   ( err_detected_comp_2      ),
+	         .err_detected_3   ( err_detected_comp_3      ),
+	         .err_corrected_o  ( err_corrected_comp       ),
+	         .err_detected_o   ( err_detected_comp 	      )
 	        );
 
 	        //voter of ready_o
 	        cv32e40p_3voter #(1,1) voter_ready
 	        (
-		     .in_1_i           ( voter_ready_1_in ),
-		     .in_2_i           ( voter_ready_2_in ),
-		     .in_3_i           ( voter_ready_3_in ),
-		     .voted_o          ( ready_o      ),
+		     .in_1_i           ( voter_ready_1_in     ),
+		     .in_2_i           ( voter_ready_2_in     ),
+		     .in_3_i           ( voter_ready_3_in     ),
+		     .voted_o          ( ready_voter          ),
 		     .err_detected_1   ( err_detected_ready_1 ),
 		     .err_detected_2   ( err_detected_ready_2 ),
 		     .err_detected_3   ( err_detected_ready_3 ),
@@ -250,6 +260,9 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        );
 
 
+	        assign result_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_res_3_in : voter_res_2_in) : (sel_bypass_alu_i[0] ? voter_res_1_in : result_voter);
+	        assign comparison_result_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_comp_3_in : voter_comp_2_in) : (sel_bypass_alu_i[0] ? voter_comp_1_in : comparison_result_voter);
+	        assign ready_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_ready_3_in : voter_ready_2_in) : (sel_bypass_alu_i[0] ? voter_ready_1_in : ready_voter);
 
 	        
 			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
