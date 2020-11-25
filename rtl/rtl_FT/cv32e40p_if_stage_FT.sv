@@ -31,7 +31,7 @@ module cv32e40p_if_stage_ft
   parameter PULP_OBI        = 0,                        // Legacy PULP OBI behavior
   parameter PULP_SECURE     = 0,
   parameter FPU             = 0,
-  parameter ID_FAULT_TOLERANCE = 0 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
+  parameter ID_FAULT_TOLERANCE = 31 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
 								   //	0			X			X			X			X
 								   //	1			YES			X			X			X
 								   //	2			X			YES			X			X
@@ -153,12 +153,12 @@ module cv32e40p_if_stage_ft
   logic              instr_compressed_int;
 
 // FT signals
-  reg [2:0]		 	instr_valid_id_ft;
-  reg [2:0][31:0]	instr_rdata_id_ft;
-  reg [2:0]		 	is_fetch_failed_ft;
-  reg [2:0][31:0]	pc_id_ft;
-  reg [2:0]		 	is_compressed_id_ft;
-  reg [2:0]		 	illegal_c_insn_id_ft;
+  logic [2:0]		 	instr_valid_id_ft;
+  logic [2:0][31:0]	instr_rdata_id_ft;
+  logic [2:0]		 	is_fetch_failed_ft;
+  logic [2:0][31:0]	pc_id_ft;
+  logic [2:0]		 	is_compressed_id_ft;
+  logic [2:0]		 	illegal_c_insn_id_ft;
   logic [6:1]	 	err_corrected;
   logic [6:1]	 	err_detected;
 
@@ -324,7 +324,7 @@ generate
 
 			cv32e40p_3voter 
 			#(
-				.L1			( 1	),
+				.L1			( 32	),
 				.L2			( 1		)
 			)
 			voter_result_2
@@ -360,7 +360,7 @@ generate
 
 			cv32e40p_3voter 
 			#(
-				.L1			( 1	),
+				.L1			( 32	),
 				.L2			( 1		)
 			)
 			voter_result_4

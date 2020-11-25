@@ -53,7 +53,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
 									   //	14			X			YES			YES			YES
 									   //	15			YES			YES			YES			YES
 									   //	16			X			X			X			HARD
-									   //   OTHERS CODES LIKE 0
+									   //   ALL INTERMEDIATE COMBINATIONS WITH HARD REGILE
 									   //	31			YES			YES			YES			HARD
 									   //   OTHERS CODES LIKE 0
 )
@@ -381,7 +381,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   logic [31:0]						regfile_location_valid_from_perf_counter, regfile_location_valid_to_perf_counter;
   logic 							regfile_location_valid_we_perf_counter;
 
-
+  assign regfile_location_valid_from_perf_counter = {32{1'b0}};
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
   assign u_exc_vec_pc_mux_id = (utvec_mode == 2'b0) ? 5'h0 : exc_cause;
