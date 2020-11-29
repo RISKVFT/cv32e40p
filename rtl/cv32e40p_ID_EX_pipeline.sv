@@ -20,8 +20,8 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 )
 (
   // INPUTS //
-  input logic         clk,                  // Gated clock
-  //input logic         clk_en,
+  input logic         clk,                  
+  input logic         clk_g,                // Gated clock
   input logic 	      rst_n,
   input logic         data_misaligned_i,
   input logic         ex_ready_i,           // EX stage is ready for the next instruction
@@ -151,16 +151,6 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
 );
 
-  /*logic clk_gated_ft;
-
-  cv32e40p_clock_gate clk_gate_pipeline
-  (
-   .clk_i        ( clk ),
-   .en_i         ( clk_en ),
-   .scan_cg_en_i ( 1'b0 ), // not used here
-   .clk_o        ( clk_gated_ft )
-  );*/
-
 
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -172,11 +162,11 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
   //                                                                             //
   /////////////////////////////////////////////////////////////////////////////////
 
-  always_ff @(posedge clk or negedge rst_n)  begin : ID_EX_PIPE_REGISTERS
+  always_ff @(posedge clk_g or negedge rst_n)  begin : ID_EX_PIPE_REGISTERS
 
     if (~rst_n) begin
 
-      alu_en_ex_o                 <= '0;
+      //alu_en_ex_o                 <= '0;
       alu_operator_ex_o           <= ALU_SLTU;
       alu_operand_a_ex_o          <= '0;
       alu_operand_b_ex_o          <= '0;
@@ -193,7 +183,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       mult_operand_a_ex_o         <= '0;
       mult_operand_b_ex_o         <= '0;
       mult_operand_c_ex_o         <= '0;
-      mult_en_ex_o                <= 1'b0;
+      //mult_en_ex_o                <= 1'b0;
       mult_sel_subword_ex_o       <= 1'b0;
       mult_signed_mode_ex_o       <= 2'b00;
       mult_imm_ex_o               <= '0;
@@ -272,7 +262,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
       if (id_valid_o)
       begin // unstall the whole pipeline
-        alu_en_ex_o                 <= alu_en;
+        //alu_en_ex_o                 <= alu_en;
         if (alu_en)
         begin
           alu_operator_ex_o         <= alu_operator;
@@ -288,7 +278,7 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
           alu_is_subrot_ex_o        <= is_subrot;
         end
 
-        mult_en_ex_o                <= mult_en;
+        //mult_en_ex_o                <= mult_en;
         if (mult_int_en) begin
           mult_operator_ex_o        <= mult_operator;
           mult_sel_subword_ex_o     <= mult_sel_subword;
@@ -376,9 +366,9 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
 
         alu_operator_ex_o           <= ALU_SLTU;
 
-        mult_en_ex_o                <= 1'b0;
+        //mult_en_ex_o                <= 1'b0;
 
-        alu_en_ex_o                 <= 1'b1;
+        //alu_en_ex_o                 <= 1'b1;
 
       end else if (csr_access_ex_o) begin
        //In the EX stage there was a CSR access, to avoid multiple
@@ -388,5 +378,22 @@ module cv32e40p_ID_EX_pipeline import cv32e40p_pkg::*; import cv32e40p_apu_core_
       end
     end
   end
-  //end
+
+  always_ff @(posedge clk or negedge rst_n) begin : proc_enable
+    if(~rst_n) begin
+      alu_en_ex_o  <= 1'b0;
+      mult_en_ex_o <= 1'b0;
+    end else if (~data_misaligned_i && ~mult_multicycle_i) begin 
+      // normal pipeline unstall case
+      if (id_valid_o) begin // unstall the whole pipeline
+        alu_en_ex_o  <= alu_en;
+        mult_en_ex_o <= mult_en;
+      end else if(ex_ready_i) begin
+        mult_en_ex_o                <= 1'b0;
+        alu_en_ex_o                 <= 1'b1;
+      end 
+    end
+  end
+
+
 endmodule

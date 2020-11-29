@@ -260,15 +260,77 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        );
 
 
-	        assign result_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_res_3_in : voter_res_2_in) : (sel_bypass_alu_i[0] ? voter_res_1_in : result_voter);
-	        assign comparison_result_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_comp_3_in : voter_comp_2_in) : (sel_bypass_alu_i[0] ? voter_comp_1_in : comparison_result_voter);
-	        assign ready_o = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_ready_3_in : voter_ready_2_in) : (sel_bypass_alu_i[0] ? voter_ready_1_in : ready_voter);
+	        assign result_o 			= sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_res_3_in 	: voter_res_2_in) 	: (sel_bypass_alu_i[0] ? voter_res_1_in   : result_voter);
+	        assign comparison_result_o  = sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_comp_3_in 	: voter_comp_2_in) 	: (sel_bypass_alu_i[0] ? voter_comp_1_in  : comparison_result_voter);
+	        assign ready_o 				= sel_bypass_alu_i[1] ? (sel_bypass_alu_i[0] ? voter_ready_3_in : voter_ready_2_in) : (sel_bypass_alu_i[0] ? voter_ready_1_in : ready_voter);
 
 	        
 			// assign the three err_detected_()_1, err_detected_()_2 and err_detected_()_3 to three of four err_detected_()_alu0, err_detected_()_alu1, err_detected_()_alu2 or err_detected_()_alu3.
 			// In this way the counter associated to the standby ALU does not increment. --> This is obtained also with clock gatin but for security we provide also this approach.
 			always_comb begin : assign_err_count_to_3_used_alu
 				case (clock_en_i)
+					//4'b0000: // default
+
+					//4'b0001: // default
+
+					//4'b0010: // default
+
+					4'b0011: begin
+						err_detected_res_alu0 = err_detected_res_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_ready_alu0 = err_detected_ready_1;
+
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2 = 1'b0;
+						err_detected_comp_alu2 = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
+
+						err_detected_res_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
+						err_detected_ready_alu3 = 1'b0;
+					end
+
+					//4'b0100: // default
+
+					4'b0101: begin
+						err_detected_res_alu0 = err_detected_res_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_ready_alu0 = err_detected_ready_1;
+
+						err_detected_res_alu1 = 1'b0;
+						err_detected_comp_alu1 = 1'b0;
+						err_detected_ready_alu1 = 1'b0;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
+						err_detected_ready_alu3 = 1'b0;
+					end
+
+					4'b0110: begin
+						err_detected_res_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
+						err_detected_ready_alu3 = 1'b0;
+					end
+
 					4'b0111: begin
 						err_detected_res_alu0 = err_detected_res_1;
 						err_detected_comp_alu0 = err_detected_comp_1;
@@ -287,25 +349,9 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_ready_alu3 = 1'b0;
 					end
 
-					4'b1110: begin
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
-						err_detected_ready_alu0 = 1'b0;
+					//4'b1000: // default
 
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
-						err_detected_ready_alu1 = err_detected_ready_2;
-
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
-						err_detected_ready_alu2 = err_detected_ready_3;
-
-						err_detected_res_alu3 = err_detected_res_1;
-						err_detected_comp_alu3 = err_detected_comp_1;
-						err_detected_ready_alu3 = err_detected_ready_1;
-					end
-
-					4'b1101: begin
+					4'b1001: begin
 						err_detected_res_alu0 = err_detected_res_1;
 						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
@@ -314,13 +360,31 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_comp_alu1 = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
-						err_detected_ready_alu3 = err_detected_ready_3;
+						err_detected_res_alu2 = 1'b0;
+						err_detected_comp_alu2 = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
 
-						err_detected_res_alu3 = err_detected_res_2;
-						err_detected_comp_alu3 = err_detected_comp_2;
-						err_detected_ready_alu3 = err_detected_ready_2;
+						err_detected_res_alu3 = err_detected_res_3;
+						err_detected_comp_alu3 = err_detected_comp_3;
+						err_detected_ready_alu3 = err_detected_ready_3;
+					end
+
+					4'b1010: begin
+						err_detected_res_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2 = 1'b0;
+						err_detected_comp_alu2 = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
+
+						err_detected_res_alu3 = err_detected_res_3;
+						err_detected_comp_alu3 = err_detected_comp_3;
+						err_detected_ready_alu3 = err_detected_ready_3;
 					end
 
 					4'b1011: begin
@@ -341,7 +405,62 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_ready_alu3 = err_detected_ready_3;
 					end
 
-					default: begin 
+					4'b1100: begin
+						err_detected_res_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1 = 1'b0;
+						err_detected_comp_alu1 = 1'b0;
+						err_detected_ready_alu1 = 1'b0;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = err_detected_res_2;
+						err_detected_comp_alu3 = err_detected_comp_2;
+						err_detected_ready_alu3 = err_detected_ready_2;
+					end
+
+					4'b1101: begin
+						err_detected_res_alu0 = err_detected_res_1;
+						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_ready_alu0 = err_detected_ready_1;
+
+						err_detected_res_alu1 = 1'b0;
+						err_detected_comp_alu1 = 1'b0;
+						err_detected_ready_alu1 = 1'b0;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = err_detected_res_2;
+						err_detected_comp_alu3 = err_detected_comp_2;
+						err_detected_ready_alu3 = err_detected_ready_2;
+					end
+
+					4'b1110: begin
+						err_detected_res_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1 = err_detected_res_2;
+						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2 = err_detected_res_3;
+						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_ready_alu2 = err_detected_ready_3;
+
+						err_detected_res_alu3 = err_detected_res_1;
+						err_detected_comp_alu3 = err_detected_comp_1;
+						err_detected_ready_alu3 = err_detected_ready_1;
+					end
+
+
+					4'b1111: begin
 						err_detected_res_alu0 = err_detected_res_1;
 						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
@@ -358,26 +477,31 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_comp_alu3 = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
+
+
+					default: begin // (0111, 1111)
+						err_detected_res_alu0 = 1'b0;
+						err_detected_comp_alu0 = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1 = 1'b0;
+						err_detected_comp_alu1 = 1'b0;
+						err_detected_ready_alu1 = 1'b0;
+
+						err_detected_res_alu2 = 1'b0;
+						err_detected_comp_alu2 = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
+
+						err_detected_res_alu3 = 1'b0;
+						err_detected_comp_alu3 = 1'b0;
+						err_detected_ready_alu3 = 1'b0;
+					end
 				endcase 
 				
 			end
 
 
-					/*assign	err_detected_res_alu0 = 1'b1;
-					assign	err_detected_comp_alu0 = 1'b0;
-					assign	err_detected_ready_alu0 = 1'b0;
-
-					assign	err_detected_res_alu1 = 1'b0;
-					assign	err_detected_comp_alu1 = 1'b0;
-					assign	err_detected_ready_alu1 = 1'b0;
-
-					assign	err_detected_res_alu2 = 1'b0;
-					assign	err_detected_comp_alu2 = 1'b0;
-					assign	err_detected_ready_alu2 = 1'b0;
-
-					assign	err_detected_res_alu3 = 1'b1;
-					assign	err_detected_comp_alu3 = 1'b0;
-					assign	err_detected_ready_alu3 = 1'b0;*/
+					
 			
 
 			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU

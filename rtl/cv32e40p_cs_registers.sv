@@ -329,7 +329,7 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
 
    genvar j;
 
-   assign mhpm_addr_ft_o = FT ? csr_addr_i : 'b0;
+   assign mhpm_addr_ft_o = (FT == 1) ? csr_addr_i : 'b0;
 
 if(PULP_SECURE==1) begin
   // read logic

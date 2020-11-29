@@ -261,31 +261,31 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic 			  mult_totally_defective_o, // set to '1' if all the MULTs are permanently faulty for that operation
 
     // signal output of the voters for the outputs of the id_stage that are used into the core
-    output logic [31:0]          pc_ex_voted,
-    output logic [31:0]          alu_operand_a_ex_voted,
-    output logic [31:0]          alu_operand_c_ex_voted,
-    output logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted,
-    output logic [1:0]           data_type_ex_voted,
-    output logic [1:0]           data_sign_ext_ex_voted,
-    output logic                 data_load_event_ex_voted,
-    output logic [1:0]           data_reg_offset_ex_voted,
-    output logic                 data_misaligned_ex_voted,
-    output logic                 useincr_addr_ex_voted,
-    output logic [5:0]           atop_ex_voted,
+    output logic [31:0]          pc_ex_voted_o,
+    output logic [31:0]          alu_operand_a_ex_voted_o,
+    output logic [31:0]          alu_operand_c_ex_voted_o,
+    output logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted_o,
+    output logic [1:0]           data_type_ex_voted_o,
+    output logic [1:0]           data_sign_ext_ex_voted_o,
+    output logic                 data_load_event_ex_voted_o,
+    output logic [1:0]           data_reg_offset_ex_voted_o,
+    output logic                 data_misaligned_ex_voted_o,
+    output logic                 useincr_addr_ex_voted_o,
+    output logic [5:0]           atop_ex_voted_o,
 
-    output logic                 csr_access_ex_voted,
-    output logic [1:0]           csr_op_ex_voted,
-    output logic                 data_req_ex_voted,   
-    output logic                 data_we_ex_voted, 
-    output logic                 branch_in_ex_voted,
-    output logic [31:0]          alu_operand_b_ex_voted,
-    output logic                 apu_en_ex_voted,
-    output logic [1:0]           apu_lat_ex_voted,
-    output logic [5:0]           regfile_waddr_ex_voted,
-    output logic                 regfile_we_ex_voted,
+    output logic                 csr_access_ex_voted_o,
+    output logic [1:0]           csr_op_ex_voted_o,
+    output logic                 data_req_ex_voted_o,   
+    output logic                 data_we_ex_voted_o, 
+    output logic                 branch_in_ex_voted_o,
+    output logic [31:0]          alu_operand_b_ex_voted_o,
+    output logic                 apu_en_ex_voted_o,
+    output logic [1:0]           apu_lat_ex_voted_o,
+    output logic [5:0]           regfile_waddr_ex_voted_o,
+    output logic                 regfile_we_ex_voted_o,
 
     // signal output of the voters for the outputs of id_stage that are used into the ex_stage
-    output logic                 alu_en_ex_voted,
+    output logic                 alu_en_ex_voted_o,
     /*
     output logic [2:0]           mult_operator_ex_voted,   
     output logic [31:0]          mult_operand_a_ex_voted, 
@@ -303,11 +303,11 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [ 1:0]          mult_clpx_shift_ex_voted,
     output logic                 mult_clpx_img_ex_voted,
     */
-    output logic [APU_WOP_CPU-1:0]                  apu_op_ex_voted,
-    output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted,
-    output logic [ 5:0]          apu_waddr_ex_voted,
-    output logic [ 5:0]          regfile_alu_waddr_ex_voted,
-    output logic                 regfile_alu_we_ex_voted
+    output logic [APU_WOP_CPU-1:0]                  apu_op_ex_voted_o,
+    output logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted_o,
+    output logic [ 5:0]          apu_waddr_ex_voted_o,
+    output logic [ 5:0]          regfile_alu_waddr_ex_voted_o,
+    output logic                 regfile_alu_we_ex_voted_o
 
     
     /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
@@ -557,6 +557,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0]      sel_mux_ex_s;  // mux selectors generated with the decoding mechanism
   logic [1:0]	   sel_bypass_mult_ex_s; // mux selectors used when there are 2 out of 3 faulty MULTs
   logic [1:0]	   sel_bypass_alu_ex_s;  // mux selectors used when there are 3 out of 4 faulty ALUs
+  logic [1:0]      sel_bypass_inside;     // or between the previous two sel_bypass --> maybe it 's not necessary
   logic            alu_totally_defective_s;
   logic            mult_totally_defective_s;
 
@@ -593,36 +594,38 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0]           useincr_addr_ex_voter_in;
   logic [2:0][5:0]      atop_ex_voter_in;
 
-  // signals output of the voters for the outputs of the module that are still used in Id_stage module
-  //logic [31:0]          alu_operand_b_ex_voted; // is actually an output
-  //logic [5:0]           regfile_waddr_ex_voted;
-  //logic                 regfile_we_ex_voted;
-  //logic                 csr_access_ex_voted;  // is actually an output
-  //logic [1:0]           csr_op_ex_voted;
-  //logic                 data_req_ex_voted;    // is actually an output
-  //logic                 data_we_ex_voted;     // is actually an output
-  //logic [6:0]           alu_operator_ex_voted;
-  //logic                 apu_en_ex_voted;
-  //logic [1:0]           apu_lat_ex_voted;
-  //logic                 branch_in_ex_voted; // is actually an output
-
-  /* // this signals are actually outputs 
-  // signal output of the voters for the outputs of the module that are used into the core
+  // signals output of the voter that go inside mux bypass
   logic [31:0]          pc_ex_voted;
   logic [31:0]          alu_operand_a_ex_voted;
+  logic [31:0]          alu_operand_b_ex_voted;    
   logic [31:0]          alu_operand_c_ex_voted;
   logic [APU_NDSFLAGS_CPU-1:0]           apu_flags_ex_voted;
   logic [1:0]           data_type_ex_voted;
   logic [1:0]           data_sign_ext_ex_voted;
-  logic [1:0]           data_load_event_ex_voted;
+  logic                 data_load_event_ex_voted;
   logic [1:0]           data_reg_offset_ex_voted;
   logic                 data_misaligned_ex_voted;
   logic                 useincr_addr_ex_voted;
   logic [5:0]           atop_ex_voted;
-  */
+  logic                 csr_access_ex_voted;
+  logic [1:0]           csr_op_ex_voted;
+  logic                 data_req_ex_voted;  
+  logic                 data_we_ex_voted;
+  logic                 branch_in_ex_voted;
+  logic                 apu_en_ex_voted;
+  logic [1:0]           apu_lat_ex_voted;
+  logic [5:0]           regfile_waddr_ex_voted;
+  logic                 regfile_we_ex_voted;
+  logic                 alu_en_ex_voted;
+  logic [APU_WOP_CPU-1:0]                  apu_op_ex_voted;
+  logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted;
+  logic [ 5:0]          apu_waddr_ex_voted;
+  logic [ 5:0]          regfile_alu_waddr_ex_voted;
+  logic                 regfile_alu_we_ex_voted;
 
   // signals input to the voters for the outputs of id_stage pipeline that are used in ex_stage 
   logic [2:0]                 alu_en_ex_voter_in;
+  /*
   logic [2:0][2:0]            mult_operator_ex_voter_in;   
   logic [2:0][31:0]           mult_operand_a_ex_voter_in; 
   logic [2:0][31:0]           mult_operand_b_ex_voter_in;
@@ -638,6 +641,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0]                 mult_is_clpx_ex_voter_in;
   logic [2:0][ 1:0]           mult_clpx_shift_ex_voter_in;
   logic [2:0]                 mult_clpx_img_ex_voter_in;
+  */
   logic [2:0][APU_WOP_CPU-1:0]              apu_op_ex_voter_in;
   logic [2:0][APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voter_in;
   logic [2:0][ 5:0]           apu_waddr_ex_voter_in;
@@ -741,9 +745,9 @@ end
                                 regfile_waddr_id : regfile_addr_ra_id;
 
   // Forwarding control signals
-  assign reg_d_ex_is_reg_a_id  = (regfile_waddr_ex_voted == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
-  assign reg_d_ex_is_reg_b_id  = (regfile_waddr_ex_voted == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
-  assign reg_d_ex_is_reg_c_id  = (regfile_waddr_ex_voted == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
+  assign reg_d_ex_is_reg_a_id  = (regfile_waddr_ex_voted_o == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
+  assign reg_d_ex_is_reg_b_id  = (regfile_waddr_ex_voted_o == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
+  assign reg_d_ex_is_reg_c_id  = (regfile_waddr_ex_voted_o == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
   assign reg_d_wb_is_reg_a_id  = (regfile_waddr_wb_i     == regfile_addr_ra_id) && (rega_used_dec == 1'b1) && (regfile_addr_ra_id != '0);
   assign reg_d_wb_is_reg_b_id  = (regfile_waddr_wb_i     == regfile_addr_rb_id) && (regb_used_dec == 1'b1) && (regfile_addr_rb_id != '0);
   assign reg_d_wb_is_reg_c_id  = (regfile_waddr_wb_i     == regfile_addr_rc_id) && (regc_used_dec == 1'b1) && (regfile_addr_rc_id != '0);
@@ -756,7 +760,7 @@ end
   // signal to 0 for instructions that are done
   assign clear_instr_valid_o = id_ready_o | halt_id | branch_taken_ex;
 
-  assign branch_taken_ex     = branch_in_ex_voted & branch_decision_i;
+  assign branch_taken_ex     = branch_in_ex_voted_o & branch_decision_i;
 
 
   assign mult_en = mult_int_en | mult_dot_en;
@@ -1106,7 +1110,7 @@ end
 
   assign apu_perf_dep_o      = apu_stall;
   // stall when we access the CSR after a multicycle APU instruction
-  assign csr_apu_stall       = (csr_access & (apu_en_ex_voted & (apu_lat_ex_voted[1] == 1'b1) | apu_busy_i));
+  assign csr_apu_stall       = (csr_access & (apu_en_ex_voted_o & (apu_lat_ex_voted_o[1] == 1'b1) | apu_busy_i));
 
   /////////////////////////////////////////////////////////
   //  ____  _____ ____ ___ ____ _____ _____ ____  ____   //
@@ -1368,8 +1372,8 @@ end
     .hwlp_targ_addr_o               ( hwlp_target_o          ),
 
     // LSU
-    .data_req_ex_i                  ( data_req_ex_voted      ),
-    .data_we_ex_i                   ( data_we_ex_voted       ),
+    .data_req_ex_i                  ( data_req_ex_voted_o    ),
+    .data_we_ex_i                   ( data_we_ex_voted_o     ),
     .data_misaligned_i              ( data_misaligned_i      ),
     .data_load_event_i              ( data_load_event_id     ),
     .data_err_i                     ( data_err_i             ),
@@ -1432,8 +1436,8 @@ end
     .regfile_alu_waddr_id_i         ( regfile_alu_waddr_id   ),
 
     // Forwarding signals from regfile
-    .regfile_we_ex_i                ( regfile_we_ex_voted    ),
-    .regfile_waddr_ex_i             ( regfile_waddr_ex_voted ),
+    .regfile_we_ex_i                ( regfile_we_ex_voted_o  ),
+    .regfile_waddr_ex_i             ( regfile_waddr_ex_voted_o ),
     .regfile_we_wb_i                ( regfile_we_wb_i        ),
 
     // regfile port 2
@@ -1782,8 +1786,8 @@ generate
         ID_EX_pipeline_4 [3:0]
         (
           // INPUTS //
-          .clk                      ( clk_gated_ft ),// Gated clock
-          //.clk_en                   ( clock_en ),
+          .clk                      ( clk ),
+          .clk_g                    ( clk_gated_ft ), // Gated clock
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -1928,20 +1932,27 @@ generate
             alu_totally_defective_o  <= 1'b0;
             mult_totally_defective_o <= 1'b0;
           end 
-          else if(id_valid_o) begin
-            sel_mux_ex_o             <= sel_mux_ex_s;
-            clock_enable_alu_o       <= clock_en;
-            sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
-            sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
-            alu_totally_defective_o  <= alu_totally_defective_s; 
-            mult_totally_defective_o <= mult_totally_defective_s;
-          end else if(ex_ready_i) begin
-            sel_mux_ex_o             <= sel_mux_ex_s_sltu;
-            clock_enable_alu_o       <= clock_en_sltu;
-            sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s_sltu;
-            sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s_sltu;
-            alu_totally_defective_o  <= alu_totally_defective_s_sltu; 
-            mult_totally_defective_o <= mult_totally_defective_s_sltu;
+          else if (~data_misaligned_i && ~mult_multicycle_i) begin
+            if(id_valid_o) begin
+                //if (alu_en) begin
+                    sel_mux_ex_o             <= sel_mux_ex_s;
+                    clock_enable_alu_o       <= clock_en;
+                    sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
+                    alu_totally_defective_o  <= alu_totally_defective_s; 
+                //end
+                //if (mult_int_en || mult_dot_en) begin
+                    sel_mux_ex_o             <= sel_mux_ex_s;               
+                    sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
+                    mult_totally_defective_o <= mult_totally_defective_s;
+                //end
+            end /*else if(ex_ready_i) begin
+                sel_mux_ex_o                 <= sel_mux_ex_s_sltu;
+                clock_enable_alu_o           <= clock_en_sltu;
+                sel_bypass_alu_ex_o          <= sel_bypass_alu_ex_s_sltu;
+                sel_bypass_mult_ex_o         <= sel_bypass_mult_ex_s_sltu;
+                alu_totally_defective_o      <= alu_totally_defective_s_sltu; 
+                mult_totally_defective_o     <= mult_totally_defective_s_sltu;
+            end*/
           end
         end
 
@@ -2047,6 +2058,7 @@ generate
         assign alu_en_ex_voter_in[1] = sel_mux_ex_o[1] ? alu_en_ex_o[3] : alu_en_ex_o[1];
         assign alu_en_ex_voter_in[2] = sel_mux_ex_o[2] ? alu_en_ex_o[3] : alu_en_ex_o[2];
 
+        /*
         assign mult_operator_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_operator_ex_o[3] : mult_operator_ex_o[0];
         assign mult_operator_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_operator_ex_o[3] : mult_operator_ex_o[1];
         assign mult_operator_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_operator_ex_o[3] : mult_operator_ex_o[2];
@@ -2106,6 +2118,7 @@ generate
         assign mult_clpx_img_ex_voter_in[0] = sel_mux_ex_o[0] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[0];
         assign mult_clpx_img_ex_voter_in[1] = sel_mux_ex_o[1] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[1];
         assign mult_clpx_img_ex_voter_in[2] = sel_mux_ex_o[2] ? mult_clpx_img_ex_o[3] : mult_clpx_img_ex_o[2];
+        */
 
         assign apu_op_ex_voter_in[0] = sel_mux_ex_o[0] ? apu_op_ex_o[3] : apu_op_ex_o[0];
         assign apu_op_ex_voter_in[1] = sel_mux_ex_o[1] ? apu_op_ex_o[3] : apu_op_ex_o[1];
@@ -2754,7 +2767,7 @@ generate
          .err_detected_o   (  )
         );
 
-        cv32e40p_3voter #(2,1) imm_vec_ext_ex
+        cv32e40p_3voter #(2,1) voter_imm_vec_ext_ex
         (
          .in_1_i           ( imm_vec_ext_ex_voter_in[0] ),
          .in_2_i           ( imm_vec_ext_ex_voter_in[1] ),
@@ -2767,7 +2780,7 @@ generate
          .err_detected_o   (  )
         );
 
-        cv32e40p_3voter #(2,1) imm_alu_vec_mode_ex
+        cv32e40p_3voter #(2,1) voter_alu_vec_mode_ex
         (
          .in_1_i           ( alu_vec_mode_ex_voter_in[0] ),
          .in_2_i           ( alu_vec_mode_ex_voter_in[1] ),
@@ -2780,7 +2793,7 @@ generate
          .err_detected_o   (  )
         );
 
-        cv32e40p_3voter #(1,1) imm_alu_is_clpx_ex
+        cv32e40p_3voter #(1,1) voter_imm_alu_is_clpx_ex
         (
          .in_1_i           ( alu_is_clpx_ex_voter_in[0] ),
          .in_2_i           ( alu_is_clpx_ex_voter_in[1] ),
@@ -2793,7 +2806,7 @@ generate
          .err_detected_o   (  )
         );
 
-        cv32e40p_3voter #(1,1) imm_alu_is_subrot_ex
+        cv32e40p_3voter #(1,1) voter_alu_is_subrot_ex
         (
          .in_1_i           ( alu_is_subrot_ex_voter_in[0] ),
          .in_2_i           ( alu_is_subrot_ex_voter_in[1] ),
@@ -2806,7 +2819,7 @@ generate
          .err_detected_o   (  )
         );
 
-        cv32e40p_3voter #(2,1) imm_alu_clpx_shift_ex
+        cv32e40p_3voter #(2,1) voter_alu_clpx_shift_ex
         (
          .in_1_i           ( alu_clpx_shift_ex_voter_in[0] ),
          .in_2_i           ( alu_clpx_shift_ex_voter_in[1] ),
@@ -2820,6 +2833,35 @@ generate
         );
         */
 
+        assign sel_bypass_inside = sel_bypass_alu_ex_o | sel_bypass_mult_ex_o;
+
+        assign pc_ex_voted_o                = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? pc_ex_voter_in[2]                : pc_ex_voter_in[1])                : (sel_bypass_inside[0] ? pc_ex_voter_in[0]                : pc_ex_voted);
+        assign alu_operand_a_ex_voted_o     = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? alu_operand_a_ex_voter_in[2]     : alu_operand_a_ex_voter_in[1])     : (sel_bypass_inside[0] ? alu_operand_a_ex_voter_in[0]     : alu_operand_a_ex_voted);
+        assign alu_operand_b_ex_voted_o     = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? alu_operand_b_ex_voter_in[2]     : alu_operand_b_ex_voter_in[1])     : (sel_bypass_inside[0] ? alu_operand_b_ex_voter_in[0]     : alu_operand_b_ex_voted);
+        assign alu_operand_c_ex_voted_o     = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? alu_operand_c_ex_voter_in[2]     : alu_operand_c_ex_voter_in[1])     : (sel_bypass_inside[0] ? alu_operand_c_ex_voter_in[0]     : alu_operand_c_ex_voted);
+        assign apu_flags_ex_voted_o         = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_flags_ex_voter_in[2]         : apu_flags_ex_voter_in[1])         : (sel_bypass_inside[0] ? apu_flags_ex_voter_in[0]         : apu_flags_ex_voted);
+        assign data_type_ex_voted_o         = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_type_ex_voter_in[2]         : data_type_ex_voter_in[1])         : (sel_bypass_inside[0] ? data_type_ex_voter_in[0]         : data_type_ex_voted);
+        assign data_sign_ext_ex_voted_o     = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_sign_ext_ex_voter_in[2]     : data_sign_ext_ex_voter_in[1])     : (sel_bypass_inside[0] ? data_sign_ext_ex_voter_in[0]     : data_sign_ext_ex_voted);
+        assign data_load_event_ex_voted_o   = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_load_event_ex_voter_in[2]   : data_load_event_ex_voter_in[1])   : (sel_bypass_inside[0] ? data_load_event_ex_voter_in[0]   : data_load_event_ex_voted);
+        assign data_reg_offset_ex_voted_o   = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_reg_offset_ex_voter_in[2]   : data_reg_offset_ex_voter_in[1])   : (sel_bypass_inside[0] ? data_reg_offset_ex_voter_in[0]   : data_reg_offset_ex_voted);
+        assign data_misaligned_ex_voted_o   = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_misaligned_ex_voter_in[2]   : data_misaligned_ex_voter_in[1])   : (sel_bypass_inside[0] ? data_misaligned_ex_voter_in[0]   : data_misaligned_ex_voted);
+        assign useincr_addr_ex_voted_o      = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? useincr_addr_ex_voter_in[2]      : useincr_addr_ex_voter_in[1])      : (sel_bypass_inside[0] ? useincr_addr_ex_voter_in[0]      : useincr_addr_ex_voted);
+        assign atop_ex_voted_o              = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? atop_ex_voter_in[2]              : atop_ex_voter_in[1])              : (sel_bypass_inside[0] ? atop_ex_voter_in[0]              : atop_ex_voted);
+        assign csr_access_ex_voted_o        = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? csr_access_ex_voter_in[2]        : csr_access_ex_voter_in[1])        : (sel_bypass_inside[0] ? csr_access_ex_voter_in[0]        : csr_access_ex_voted);
+        assign csr_op_ex_voted_o            = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? csr_op_ex_voter_in[2]            : csr_op_ex_voter_in[1])            : (sel_bypass_inside[0] ? csr_op_ex_voter_in[0]            : csr_op_ex_voted);
+        assign data_req_ex_voted_o          = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_req_ex_voter_in[2]          : data_req_ex_voter_in[1])          : (sel_bypass_inside[0] ? data_req_ex_voter_in[0]          : data_req_ex_voted);
+        assign data_we_ex_voted_o           = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? data_we_ex_voter_in[2]           : data_we_ex_voter_in[1])           : (sel_bypass_inside[0] ? data_we_ex_voter_in[0]           : data_we_ex_voted);
+        assign branch_in_ex_voted_o         = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? branch_in_ex_voter_in[2]         : branch_in_ex_voter_in[1])         : (sel_bypass_inside[0] ? branch_in_ex_voter_in[0]         : branch_in_ex_voted);
+        assign apu_en_ex_voted_o            = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_en_ex_voter_in[2]            : apu_en_ex_voter_in[1])            : (sel_bypass_inside[0] ? apu_en_ex_voter_in[0]            : apu_en_ex_voted);
+        assign apu_lat_ex_voted_o           = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_lat_ex_voter_in[2]           : apu_lat_ex_voter_in[1])           : (sel_bypass_inside[0] ? apu_lat_ex_voter_in[0]           : apu_lat_ex_voted);
+        assign regfile_waddr_ex_voted_o     = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? regfile_waddr_ex_voter_in[2]     : regfile_waddr_ex_voter_in[1])     : (sel_bypass_inside[0] ? regfile_waddr_ex_voter_in[0]     : regfile_waddr_ex_voted);
+        assign regfile_we_ex_voted_o        = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? regfile_we_ex_voter_in[2]        : regfile_we_ex_voter_in[1])        : (sel_bypass_inside[0] ? regfile_we_ex_voter_in[0]        : regfile_we_ex_voted);
+        assign alu_en_ex_voted_o            = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? alu_en_ex_voter_in[2]            : alu_en_ex_voter_in[1])            : (sel_bypass_inside[0] ? alu_en_ex_voter_in[0]            : alu_en_ex_voted);
+        assign apu_op_ex_voted_o            = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_op_ex_voter_in[2]            : apu_op_ex_voter_in[1])            : (sel_bypass_inside[0] ? apu_op_ex_voter_in[0]            : apu_op_ex_voted);
+        assign apu_operands_ex_voted_o      = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_operands_ex_voter_in[2]      : apu_operands_ex_voter_in[1])      : (sel_bypass_inside[0] ? apu_operands_ex_voter_in[0]      : apu_operands_ex_voted);
+        assign apu_waddr_ex_voted_o         = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? apu_waddr_ex_voter_in[2]         : apu_waddr_ex_voter_in[1])         : (sel_bypass_inside[0] ? apu_waddr_ex_voter_in[0]         : apu_waddr_ex_voted);
+        assign regfile_alu_waddr_ex_voted_o = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? regfile_alu_waddr_ex_voter_in[2] : regfile_alu_waddr_ex_voter_in[1]) : (sel_bypass_inside[0] ? regfile_alu_waddr_ex_voter_in[0] : regfile_alu_waddr_ex_voted);
+        assign regfile_alu_we_ex_voted_o    = sel_bypass_inside[1] ? (sel_bypass_inside[0] ? regfile_alu_we_ex_voter_in[2]    : regfile_alu_we_ex_voter_in[1])    : (sel_bypass_inside[0] ? regfile_alu_we_ex_voter_in[0]    : regfile_alu_we_ex_voted);
 
     end else begin
         cv32e40p_ID_EX_pipeline 
@@ -2831,8 +2873,8 @@ generate
         ID_EX_pipeline
         (
           // INPUTS //
-          .clk                      ( clk ),// Gated clock
-          //.clk_en                   ( clock_en[0] ),
+          .clk                      ( clk ),
+          .clk_g                    ( clk_gated_ft ), // Gated cloc
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -3040,34 +3082,34 @@ generate
         assign branch_in_ex_o[3:1] 		= 3'b000;
 
         // output signals used inside ID_stage itself
-        assign alu_operand_b_ex_voted   = alu_operand_b_ex_o[0];
-        assign regfile_waddr_ex_voted   = regfile_waddr_ex_o[0];
-        assign regfile_we_ex_voted      = regfile_we_ex_o[0];
-        assign csr_access_ex_voted      = csr_access_ex_o[0];
-        assign csr_op_ex_voted          = csr_op_ex_o[0];
-        assign data_req_ex_voted        = data_req_ex_o[0];
-        assign data_we_ex_voted         = data_we_ex_o[0];
+        assign alu_operand_b_ex_voted_o   = alu_operand_b_ex_o[0];
+        assign regfile_waddr_ex_voted_o   = regfile_waddr_ex_o[0];
+        assign regfile_we_ex_voted_o      = regfile_we_ex_o[0];
+        assign csr_access_ex_voted_o      = csr_access_ex_o[0];
+        assign csr_op_ex_voted_o          = csr_op_ex_o[0];
+        assign data_req_ex_voted_o        = data_req_ex_o[0];
+        assign data_we_ex_voted_o         = data_we_ex_o[0];
         //assign alu_operator_ex_voted    = alu_operator_ex_o[0];
-        assign apu_en_ex_voted          = apu_en_ex_o[0];
-        assign apu_lat_ex_voted         = apu_lat_ex_o[0];
-        assign branch_in_ex_voted       = branch_in_ex_o[0];
+        assign apu_en_ex_voted_o          = apu_en_ex_o[0];
+        assign apu_lat_ex_voted_o         = apu_lat_ex_o[0];
+        assign branch_in_ex_voted_o       = branch_in_ex_o[0];
 
         // output signals used inside core
 
-        assign pc_ex_voted              = pc_ex_o[0];
-        assign alu_operand_a_ex_voted   = alu_operand_a_ex_o[0];
-        assign alu_operand_c_ex_voted   = alu_operand_c_ex_o[0];
-        assign apu_flags_ex_voted       = apu_flags_ex_o[0];
-        assign data_type_ex_voted       = data_type_ex_o[0];
-        assign data_sign_ext_ex_voted   = data_sign_ext_ex_o[0];;
-        assign data_load_event_ex_voted = data_load_event_ex_o[0];
-        assign data_reg_offset_ex_voted = data_reg_offset_ex_o[0];
-        assign data_misaligned_ex_voted = data_misaligned_ex_o[0];
-        assign useincr_addr_ex_voted    = prepost_useincr_ex_o[0];
-        assign atop_ex_voted            = atop_ex_o[0];
+        assign pc_ex_voted_o              = pc_ex_o[0];
+        assign alu_operand_a_ex_voted_o   = alu_operand_a_ex_o[0];
+        assign alu_operand_c_ex_voted_o   = alu_operand_c_ex_o[0];
+        assign apu_flags_ex_voted_o       = apu_flags_ex_o[0];
+        assign data_type_ex_voted_o       = data_type_ex_o[0];
+        assign data_sign_ext_ex_voted_o   = data_sign_ext_ex_o[0];;
+        assign data_load_event_ex_voted_o = data_load_event_ex_o[0];
+        assign data_reg_offset_ex_voted_o = data_reg_offset_ex_o[0];
+        assign data_misaligned_ex_voted_o = data_misaligned_ex_o[0];
+        assign useincr_addr_ex_vote_o     = prepost_useincr_ex_o[0];
+        assign atop_ex_voted_o            = atop_ex_o[0];
 
         // output signals used inside ex_stage but not in the ALU
-        assign alu_en_ex_voted          = alu_en_ex_o[0];
+        assign alu_en_ex_voted_o          = alu_en_ex_o[0];
         /*assign mult_operator_ex_voted   = mult_operator_ex_o[0];
         assign mult_operand_a_ex_voted  = mult_operand_a_ex_o[0];
         assign mult_operand_b_ex_voted  = mult_operand_b_ex_o[0];
@@ -3083,11 +3125,11 @@ generate
         assign mult_is_clpx_ex_voted    = mult_is_clpx_ex_o[0];;
         assign mult_clpx_shift_ex_voted = mult_clpx_shift_ex_o[0];
         assign mult_clpx_img_ex_voted   = mult_clpx_img_ex_o[0];*/
-        assign apu_op_ex_voted          = apu_op_ex_o[0];
-        assign apu_operands_ex_voted    = apu_operands_ex_o[0];
-        assign apu_waddr_ex_voted       = apu_waddr_ex_o[0];
-        assign regfile_alu_waddr_ex_voted = regfile_alu_waddr_ex_o[0];
-        assign regfile_alu_we_ex_voted  = regfile_alu_we_ex_o[0];
+        assign apu_op_ex_voted_o          = apu_op_ex_o[0];
+        assign apu_operands_ex_voted_o    = apu_operands_ex_o[0];
+        assign apu_waddr_ex_voted_o       = apu_waddr_ex_o[0];
+        assign regfile_alu_waddr_ex_voted_o = regfile_alu_waddr_ex_o[0];
+        assign regfile_alu_we_ex_voted_o  = regfile_alu_we_ex_o[0];
 
     end
 
@@ -3119,7 +3161,7 @@ endgenerate
 
     // make sure that branch decision is valid when jumping
     a_br_decision : assert property (
-      @(posedge clk) (branch_in_ex_voted) |-> (branch_decision_i !== 1'bx) ) else begin $warning("%t, Branch decision is X in module %m", $time); $stop; end
+      @(posedge clk) (branch_in_ex_voted_o) |-> (branch_decision_i !== 1'bx) ) else begin $warning("%t, Branch decision is X in module %m", $time); $stop; end
 
     // the instruction delivered to the ID stage should always be valid
     a_valid_instr : assert property (
@@ -3141,11 +3183,11 @@ endgenerate
     // MIE is excluded from the check because it has a bypass.
     property p_irq_csr;
        @(posedge clk) disable iff (!rst_n) (pc_set_o && (pc_mux_o == PC_EXCEPTION) && ((exc_pc_mux_o == EXC_PC_EXCEPTION) || (exc_pc_mux_o == EXC_PC_IRQ)) &&
-                                            csr_access_ex_voted && (csr_op_ex_voted!= CSR_OP_READ)) |->
-                                           ((alu_operand_b_ex_voted[11:0] != CSR_MSTATUS) && (alu_operand_b_ex_voted[11:0] != CSR_USTATUS) &&
-                                            (alu_operand_b_ex_voted[11:0] != CSR_MEPC) && (alu_operand_b_ex_voted[11:0] != CSR_UEPC) &&
-                                            (alu_operand_b_ex_voted[11:0] != CSR_MCAUSE) && (alu_operand_b_ex_voted[11:0] != CSR_UCAUSE) &&
-                                            (alu_operand_b_ex_voted[11:0] != CSR_MTVEC) && (alu_operand_b_ex_voted[11:0] != CSR_UTVEC));
+                                            csr_access_ex_voted_o && (csr_op_ex_voted_o!= CSR_OP_READ)) |->
+                                           ((alu_operand_b_ex_voted_o[11:0] != CSR_MSTATUS) && (alu_operand_b_ex_voted_o[11:0] != CSR_USTATUS) &&
+                                            (alu_operand_b_ex_voted_o[11:0] != CSR_MEPC) && (alu_operand_b_ex_voted_o[11:0] != CSR_UEPC) &&
+                                            (alu_operand_b_ex_voted_o[11:0] != CSR_MCAUSE) && (alu_operand_b_ex_voted_o[11:0] != CSR_UCAUSE) &&
+                                            (alu_operand_b_ex_voted_o[11:0] != CSR_MTVEC) && (alu_operand_b_ex_voted_o[11:0] != CSR_UTVEC));
     endproperty
 
     a_irq_csr : assert property(p_irq_csr);
@@ -3155,7 +3197,7 @@ endgenerate
     // as its write action happens before the xret CSR usage
     property p_xret_csr;
        @(posedge clk) disable iff (!rst_n) (pc_set_o && ((pc_mux_o == PC_MRET) || (pc_mux_o == PC_URET) || (pc_mux_o == PC_DRET))) |->
-                                           (!(csr_access_ex_voted && (csr_op_ex_voted != CSR_OP_READ)));
+                                           (!(csr_access_ex_voted_o && (csr_op_ex_voted_o != CSR_OP_READ)));
     endproperty
 
     a_xret_csr : assert property(p_xret_csr);

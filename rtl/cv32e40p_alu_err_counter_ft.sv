@@ -96,6 +96,10 @@ logic [3:0]       clock_gated;
 logic [1:0]		    error_increase;
 logic [1:0]		    error_decrease;
 
+logic [3:0]       signal;
+
+assign signal = 4'b0011;
+
 // CLOCK GATING for the counter that have already reached the end.
 cv32e40p_clock_gate CG_counter[3:0]
 (
@@ -109,7 +113,7 @@ cv32e40p_clock_gate CG_counter[3:0]
 
 // Special purpose registers to store the threshold value and the increase and decrease amounts for the counters 
 // They are customizable by editing "ERROR_THRESHOLD", "ERROR_INCREASE" and "ERROR_DECREASE" in cv32e40p_pkg.sv
-always_ff @(posedge clk or negedge rst_n) begin : proc_threshold
+always_ff @(posedge rst_n or negedge rst_n) begin : proc_threshold
 	if(~rst_n) begin
 		threshold 		  <= 32'd0;
 		error_increase 	<= 2'b0;
@@ -127,7 +131,7 @@ generate
   for (i=0; i < 4; i++) begin
     
     // Next value saving
-    always_ff @(posedge clock_gated[i] or negedge rst_n) begin : proc_
+    always_ff @(posedge clock_gated[i] or negedge rst_n) begin : proc_update_counters
       if(~rst_n) begin
         count_logic_q[i]       <= 32'b0;
         count_shift_q[i]       <= 32'b0;
@@ -139,32 +143,64 @@ generate
         count_div_rem_q[i]     <= 32'b0;
         count_shuf_q[i]        <= 32'b0;
       end else begin
-        count_logic_q[i]       <= sel[i]    ? count_logic_nw[i]      : count_logic_n[i];
-        count_shift_q[i]       <= sel[i+4]  ? count_shift_nw[i]      : count_shift_n[i];
-        count_bit_man_q[i]     <= sel[i+8]  ? count_bit_man_nw[i]    : count_bit_man_n[i];
-        count_bit_count_q[i]   <= sel[i+12] ? count_bit_count_nw[i]  : count_bit_count_n[i];
-        count_comparison_q[i]  <= sel[i+16] ? count_comparison_nw[i] : count_comparison_n[i];
-        count_abs_q[i]         <= sel[i+20] ? count_abs_nw[i]        : count_abs_n[i];
-        count_min_max_q[i]     <= sel[i+24] ? count_min_max_nw[i]    : count_min_max_n[i];
-        count_div_rem_q[i]     <= sel[i+28] ? count_div_rem_nw[i]    : count_div_rem_n[i];
-        count_shuf_q[i]        <= sel[i+32] ? count_shuf_nw[i]       : count_shuf_n[i];      
+        /*if (alu_enable_i[i]) begin*/
+          count_logic_q[i]       <= sel[i]    ? count_logic_nw[i]      : count_logic_n[i];
+          count_shift_q[i]       <= sel[i+4]  ? count_shift_nw[i]      : count_shift_n[i];
+          count_bit_man_q[i]     <= sel[i+8]  ? count_bit_man_nw[i]    : count_bit_man_n[i];
+          count_bit_count_q[i]   <= sel[i+12] ? count_bit_count_nw[i]  : count_bit_count_n[i];
+          count_comparison_q[i]  <= sel[i+16] ? count_comparison_nw[i] : count_comparison_n[i];
+          count_abs_q[i]         <= sel[i+20] ? count_abs_nw[i]        : count_abs_n[i];
+          count_min_max_q[i]     <= sel[i+24] ? count_min_max_nw[i]    : count_min_max_n[i];
+          count_div_rem_q[i]     <= sel[i+28] ? count_div_rem_nw[i]    : count_div_rem_n[i];
+          count_shuf_q[i]        <= sel[i+32] ? count_shuf_nw[i]       : count_shuf_n[i];      
+        /*end*/
       end
     end
 
 
+    /*always_ff @(posedge clock_gated[i] or negedge rst_n) begin : proc_prova
+      if(~rst_n) begin
+        count_shift_q[i] <= 'b0;
+      end else begin
+
+        if (alu_enable_i[i]) begin // override default when appropriate
+          case (alu_operator_i[i])
+
+            ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
+              if (~permanent_faulty_alu_s[i][0] & ~permanent_faulty_alu_o[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
+                if (error_detected_i[i]) begin      // TUTTAVIA SE C'È LO STESSO ERRORE PERMANENTE IN DUE ALU ALLORA NE VERRÀ SCELTA UNA TRA LE DUE CHE NON SAPRÀ FARE L'OPERAZIONE 
+                  count_shift_q[i]=count_shift_q[i]+error_increase;
+                end
+                else begin
+                  if (count_shift_q[i]>2) begin
+                    count_shift_q[i]=count_shift_q[i]-error_decrease;
+                  end
+                  else begin
+                    count_shift_q[i]=32'b0;
+                  end
+                end
+              end else begin
+                count_shift_q[i]=32'b0;
+            end
+          endcase
+        end
+
+      end
+    end*/
+
     always_comb begin
       // default
-      count_logic_n[i]       = 32'b0;
-      count_shift_n[i]       = 32'b0;
-      count_bit_man_n[i]     = 32'b0;
-      count_bit_count_n[i]   = 32'b0;
-      count_comparison_n[i]  = 32'b0;
-      count_abs_n[i]         = 32'b0;
-      count_min_max_n[i]     = 32'b0;
-      count_div_rem_n[i]     = 32'b0;
-      count_shuf_n[i]        = 32'b0;
+      count_logic_n[i]       = count_logic_q[i];
+      count_shift_n[i]       = count_shift_q[i];
+      count_bit_man_n[i]     = count_bit_man_q[i];
+      count_bit_count_n[i]   = count_bit_count_q[i];
+      count_comparison_n[i]  = count_comparison_q[i];
+      count_abs_n[i]         = count_abs_q[i];
+      count_min_max_n[i]     = count_min_max_q[i];
+      count_div_rem_n[i]     = count_div_rem_q[i];
+      count_shuf_n[i]        = count_shuf_q[i];
 
-      if (alu_enable_i[i]) begin // override default when appropriate
+      //if (alu_enable_i[i]) begin // override default when appropriate
         case (alu_operator_i[i])
 
           // shift
@@ -341,18 +377,28 @@ generate
 
 
           default: begin          
-            count_logic_n[i]       = 32'b0;
-            count_shift_n[i]       = 32'b0;
-            count_bit_man_n[i]     = 32'b0;
-            count_bit_count_n[i]   = 32'b0;
-            count_comparison_n[i]  = 32'b0;
-            count_abs_n[i]         = 32'b0;
-            count_min_max_n[i]     = 32'b0;
-            count_div_rem_n[i]     = 32'b0;
-            count_shuf_n[i]        = 32'b0;
+            count_logic_n[i]       = count_logic_q[i];
+            count_shift_n[i]       = count_shift_q[i];
+            count_bit_man_n[i]     = count_bit_man_q[i];
+            count_bit_count_n[i]   = count_bit_count_q[i];
+            count_comparison_n[i]  = count_comparison_q[i];
+            count_abs_n[i]         = count_abs_q[i];
+            count_min_max_n[i]     = count_min_max_q[i];
+            count_div_rem_n[i]     = count_div_rem_q[i];
+            count_shuf_n[i]        = count_shuf_q[i];
 	        end
-        endcase; // case (alu_operator)
-      end
+        endcase // case (alu_operator)
+      /*end else begin
+        count_logic_n[i]       = count_logic_q[i];
+        count_shift_n[i]       = count_shift_q[i];
+        count_bit_man_n[i]     = count_bit_man_q[i];
+        count_bit_count_n[i]   = count_bit_count_q[i];
+        count_comparison_n[i]  = count_comparison_q[i];
+        count_abs_n[i]         = count_abs_q[i];
+        count_min_max_n[i]     = count_min_max_q[i];
+        count_div_rem_n[i]     = count_div_rem_q[i];
+        count_shuf_n[i]        = count_shuf_q[i];
+      end*/
     end
   
 
@@ -371,8 +417,8 @@ generate
              permanent_faulty_alu_s[i][0] = 1'b1;
           end else begin
              permanent_faulty_alu_s[i] = 9'b0;
-		  end
-		end 
+		      end
+		    end 
         //end else 
         //	 permanent_faulty_alu_s[i] = 9'b0;
 
@@ -475,6 +521,8 @@ generate
         // shift
         if (~permanent_faulty_alu_o[i][0])
           permanent_faulty_alu_o[i][0] <= sel[36] ? permanent_faulty_alu_nw[i][0] : permanent_faulty_alu_s[i][0];
+          //permanent_faulty_alu_o[i][0] <= signal[i];
+
 
          // Logic
         if (~permanent_faulty_alu_o[i][1])
@@ -555,19 +603,19 @@ assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_s[3];
 // PERFORMANCE COUNTERS: READING-WRITING LOGIC 
 always_comb  begin
   // default
-  count_logic_nw       = count_logic_q;
-  count_shift_nw       = count_shift_q;
-  count_bit_man_nw     = count_bit_man_q;
-  count_bit_count_nw   = count_bit_count_q;
-  count_comparison_nw  = count_comparison_q;
-  count_abs_nw         = count_abs_q;
-  count_min_max_nw     = count_min_max_q;
-  count_div_rem_nw     = count_div_rem_q;
-  count_shuf_nw        = count_shuf_q;
-  alu_faulty_map0_nw   = alu_faulty_map0;
-  alu_faulty_map1_nw   = alu_faulty_map1;
-  mhpm_rdata_ft_o     = 'b0;
-  sel = 'b0;
+  count_logic_nw       = 'b0;
+  count_shift_nw       = 'b0;
+  count_bit_man_nw     = 'b0;
+  count_bit_count_nw   = 'b0;
+  count_comparison_nw  = 'b0;
+  count_abs_nw         = 'b0;
+  count_min_max_nw     = 'b0;
+  count_div_rem_nw     = 'b0;
+  count_shuf_nw        = 'b0;
+  alu_faulty_map0_nw   = 'b0;
+  alu_faulty_map1_nw   = 'b0;
+  mhpm_rdata_ft_o      = 'b0;
+  sel                  = 'b0;
 
   case (mhpm_addr_ft_i) // override default when appropriate
 
@@ -660,23 +708,25 @@ always_comb  begin
       end
 
     default: begin
-      count_logic_nw       = count_logic_q;
-      count_shift_nw       = count_shift_q;
-      count_bit_man_nw     = count_bit_man_q;
-      count_bit_count_nw   = count_bit_count_q;
-      count_comparison_nw  = count_comparison_q;
-      count_abs_nw         = count_abs_q;
-      count_min_max_nw     = count_min_max_q;
-      count_div_rem_nw     = count_div_rem_q;
-      count_shuf_nw        = count_shuf_q;
-      alu_faulty_map0_nw   = alu_faulty_map0;
-      alu_faulty_map1_nw   = alu_faulty_map1;
+      count_logic_nw       = 'b0;
+      count_shift_nw       = 'b0;
+      count_bit_man_nw     = 'b0;
+      count_bit_count_nw   = 'b0;
+      count_comparison_nw  = 'b0;
+      count_abs_nw         = 'b0;
+      count_min_max_nw     = 'b0;
+      count_div_rem_nw     = 'b0;
+      count_shuf_nw        = 'b0;
+      alu_faulty_map0_nw   = 'b0;
+      alu_faulty_map1_nw   = 'b0;
 
-      mhpm_rdata_ft_o     = 'b0;
-      sel = 'b0;
+      mhpm_rdata_ft_o      = 'b0;
+      sel                  = 'b0;
     end
 
   endcase
 end
+
+
 
 endmodule
