@@ -516,10 +516,14 @@ if(PULP_SECURE==1) begin
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
-      	if (~csr_we_int) begin
+      	if (~csr_we_int && ~csr_op_i) begin
           mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0; 
         end 
+        else begin
+          csr_rdata_int = 32'b0;
+          mhpm_re_ft_o  = 1'b0; 
+        end
       end 
       
       // FT: Hardware Performance Monitor
@@ -532,8 +536,14 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
-        mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
-        csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+        if (~csr_we_int && ~csr_op_i) begin
+          mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
+          csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+        end
+        else begin
+          csr_rdata_int = 32'b0;
+          mhpm_re_ft_o  = 1'b0; 
+        end
       end
 
       default: begin
@@ -696,9 +706,13 @@ end else begin //PULP_SECURE == 0
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
-        if (~csr_we_int) begin
+        if (~csr_we_int && ~csr_op_i) begin
         	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
+        end
+        else begin
+          csr_rdata_int = 32'b0;
+          mhpm_re_ft_o  = 1'b0; 
         end
       end 
 
@@ -712,8 +726,14 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
       CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
-        mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
-        csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
+        if (~csr_we_int && ~csr_op_i) begin
+          mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
+          csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
+        end
+        else begin
+          csr_rdata_int = 32'b0;
+          mhpm_re_ft_o  = 1'b0; 
+        end
       end
 
       default: begin
