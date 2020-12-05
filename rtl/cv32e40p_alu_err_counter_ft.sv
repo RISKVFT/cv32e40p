@@ -18,9 +18,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////  
 
-
-//ATTENZIONE: BISOGNA ABILITARE I COUNTER SOLO DELLE TRE ALU USATE: POSSO FAR USCIRE IL CLOCK GATING DALL'ID STAGE SENZA PASSARE PER LA PIPE COSÌ COME I SELETTORI DEI MUX POTREBBERO USCIRE DALL'ID STAGE SENZA PASSARE PER LA PIPE
-
 //-----------------------------------------------------
 module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
   (
@@ -113,7 +110,7 @@ cv32e40p_clock_gate CG_counter[3:0]
 
 // Special purpose registers to store the threshold value and the increase and decrease amounts for the counters 
 // They are customizable by editing "ERROR_THRESHOLD", "ERROR_INCREASE" and "ERROR_DECREASE" in cv32e40p_pkg.sv
-always_ff @(posedge rst_n or negedge rst_n) begin : proc_threshold
+always_ff @(posedge rst_n or negedge rst_n) begin : proc_threshold_alu
 	if(~rst_n) begin
 		threshold 		  <= 32'd0;
 		error_increase 	<= 2'b0;
@@ -131,7 +128,7 @@ generate
   for (i=0; i < 4; i++) begin
     
     // Next value saving
-    always_ff @(posedge clock_gated[i] or negedge rst_n) begin : proc_update_counters
+    always_ff @(posedge clock_gated[i] or negedge rst_n) begin : proc_update_counters_alu
       if(~rst_n) begin
         count_logic_q[i]       <= 32'b0;
         count_shift_q[i]       <= 32'b0;
@@ -403,7 +400,7 @@ generate
   
 
 
-  always_comb begin : permanent_error_threshold
+  always_comb begin : permanent_error_threshold_alu
     if (~rst_n) begin
       permanent_faulty_alu_s[i]     = 9'b0;
     end
@@ -512,7 +509,7 @@ generate
 
 
 
-  always_ff @(posedge clock_gated[i] or negedge rst_n) begin : pipe_counter
+  always_ff @(posedge clock_gated[i] or negedge rst_n) begin : pipe_counter_alu
     if (~rst_n) begin
       permanent_faulty_alu_o[i]     <= 9'b0;
     end 

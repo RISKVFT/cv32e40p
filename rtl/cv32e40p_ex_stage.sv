@@ -160,7 +160,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic             err_corrected_alu_o,
   output logic             err_detected_alu_o,
   output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
-  output logic [3:0][8:0]  permanent_faulty_alu_s_o, 
+  output logic [3:0][8:0]  permanent_faulty_alu_s_o,
+  output logic [2:0][4:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
+  output logic [2:0][4:0]  permanent_faulty_mult_s_o,  
   //output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
   input  logic [3:0]       clock_enable_alu_i,
 
@@ -454,12 +456,25 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .multicycle_o    ( mult_multicycle_o    ),
     .ready_o         ( mult_ready           ),
     .ex_ready_i      ( ex_ready_o           ),
+
+    .clock_en_i      ( clock_enable_alu_i   ),
     .err_corrected_o ( err_corrected_mult_o ),
-    .err_detected_o  ( err_detected_mult_o ),
-    .perf_counter_permanent_faulty_mult_o ( perf_counter_permanent_faulty_mult_o ),
-    .sel_mux_ex_i              ( sel_mux_ex_i           ),
-    .sel_bypass_mult_i         ( sel_bypass_mult_ex_i   )
+    .err_detected_o  ( err_detected_mult_o  ),
+
+    .permanent_faulty_mult_o ( permanent_faulty_mult_o   ),
+    .permanent_faulty_mult_s ( permanent_faulty_mult_s_o ),
+    
+    .sel_mux_ex_i        ( sel_mux_ex_i     ),
+
+    .mhpm_addr_ft_i      ( mhpm_addr_ft_i   ),   // the address of the perf counter to be written
+    .mhpm_re_ft_i        ( mhpm_re_ft_i     ),   // read enable 
+    .mhpm_rdata_ft_o     ( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
+    .mhpm_we_ft_i        ( mhpm_we_ft_i     ),   // write enable 
+    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i  ),
+
+    .sel_bypass_mult_i   ( sel_bypass_mult_ex_i   )
   );
+
 
    generate
       if (FPU == 1) begin

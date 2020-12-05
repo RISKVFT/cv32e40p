@@ -248,9 +248,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic [3:0][8:0]   permanent_faulty_alu_i,  // one for each counter: 4 ALU and 9 subpart of ALU
     input  logic [3:0][8:0]   permanent_faulty_alu_s_i,
 
-    //HO DEFINITO QUESTI COME DEI SIGNAL SOLO PER FAR FUNZIONARE LE COSE PER IL MOMENTO VISTO CHE NON SO ANCORA COME FARE STI CAZZ DI PERFORMANCE COUNTERS
-    //input  logic [2:0]        permanent_faulty_mult_i,  // one for each counter: 4 ALU and 9 subpart of ALU
-    //input  logic [2:0]        permanent_faulty_mult_s_i,
+    input  logic [3:0][2:0]   permanent_faulty_mult_i,  // one for each counter: 3 MULT and 4 subpart of MULT
+    input  logic [3:0][2:0]   permanent_faulty_mult_s_i,
     
 
     output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
@@ -643,7 +642,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [2:0]                 mult_clpx_img_ex_voter_in;
   */
   logic [2:0][APU_WOP_CPU-1:0]              apu_op_ex_voter_in;
-  logic [2:0][APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voter_in;
+  logic [2:0][APU_NARGS_CPU-1:0][31:0]      apu_operands_ex_voter_in;
   logic [2:0][ 5:0]           apu_waddr_ex_voter_in;
   logic [2:0][ 5:0]           regfile_alu_waddr_ex_voter_in;
   logic [2:0]                 regfile_alu_we_ex_voter_in;
@@ -653,8 +652,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [3:0]				  permanent_faulty_alu_in_dispatcher;
   logic [3:0]                 permanent_faulty_alu_in_dispatcher_sltu;
 
-  logic [2:0]                 permanent_faulty_mult_i;  // one for each counter: 4 ALU and 9 subpart of ALU
-  logic [2:0]       		  permanent_faulty_mult_s_i;
+  logic [3:0][2:0]            permanent_faulty_mult_trans;
+  logic [3:0][2:0]            permanent_faulty_mult_trans_s;
   logic [2:0]			      permanent_faulty_mult_in_dispatcher;
 
   /*// for those signal used in ex stage and in particular by the single alu incase FT==0
@@ -1650,6 +1649,17 @@ generate //transpose the permanent_faulty_alu matrix
     end
 endgenerate
 
+genvar a;
+genvar b;
+generate //transpose the permanent_faulty_mult matrix
+    for (a=0; a<3; a++) begin
+        for (b=0; b<4; b++) begin
+            assign permanent_faulty_mult_trans[b][a] = permanent_faulty_mult_i[a][b];
+            assign permanent_faulty_mult_trans_s[b][a] = permanent_faulty_mult_s_i[a][b];
+        end
+    end
+endgenerate
+
 
 generate
 
@@ -1714,18 +1724,26 @@ generate
         assign permanent_faulty_alu_in_dispatcher_sltu = permanent_faulty_alu_trans[5] | permanent_faulty_alu_trans_s[5];
 
 
-
-        // PER ORA HO FISSATO QUESTI SEGNALI A '0' MA POI SARANNO DEGLI INPUT QUANDO CAPIRO' COME FARE I PERFORMANCE COUNTERS
-        assign permanent_faulty_mult_i = 3'b0;  // one for each counter: 4 ALU and 9 subpart of ALU
-        assign permanent_faulty_mult_s_i = 3'b0;
-
-
         always_comb begin: EX_MULT_dispatcher_init
 
-            case (mult_operator) 
+            case (mult_operator)
 
-                MUL_MAC32, MUL_MSU32, MUL_I, MUL_IR, MUL_DOT8, MUL_DOT16, MUL_H:
-                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_s_i[0] | permanent_faulty_mult_i[0];
+                // 32b integer
+                MUL_MAC32, MUL_MSU32: 
+                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_trans[0] | permanent_faulty_mult_trans_s[0];
+
+                // short integer
+                MUL_I, MUL_IR, MUL_H:
+                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_trans[1] | permanent_faulty_mult_trans_s[1];
+
+                // 8b dot
+                MUL_DOT8:
+                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_trans[2] | permanent_faulty_mult_trans_s[2];
+                
+                // 16bdot
+                MUL_DOT16: 
+                permanent_faulty_mult_in_dispatcher = permanent_faulty_mult_trans[3] | permanent_faulty_mult_trans_s[3];
+
 
                 default:  permanent_faulty_mult_in_dispatcher = 3'b0;        
 

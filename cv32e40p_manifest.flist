@@ -66,3 +66,4 @@ ${DESIGN_RTL_DIR}/cv32e40p_mult_ft.sv
 ${DESIGN_RTL_DIR}/cv32e40p_dispatcher_ft.sv
 ${DESIGN_RTL_DIR}/cv32e40p_ID_EX_pipeline.sv
 ${DESIGN_RTL_DIR}/cv32e40p_alu_err_counter_ft.sv
+${DESIGN_RTL_DIR}/cv32e40p_mult_err_counter_ft.sv

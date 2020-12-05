@@ -515,7 +515,7 @@ if(PULP_SECURE==1) begin
 
 
       // FT: Tables of permanent faulty components
-      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
       	if (~csr_we_int && ~csr_op_i) begin
           mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0; 
@@ -535,7 +535,10 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT,
+      CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+      CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+      CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
         if (~csr_we_int && ~csr_op_i) begin
           mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
@@ -705,7 +708,7 @@ end else begin //PULP_SECURE == 0
 
 
       // FT: Tables of permanent faulty components
-      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
         if (~csr_we_int && ~csr_op_i) begin
         	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
@@ -725,7 +728,10 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT,
+      CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+      CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+      CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
         if (~csr_we_int && ~csr_op_i) begin
           mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
           csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
@@ -905,7 +911,7 @@ if(PULP_SECURE==1) begin
       CSR_UCAUSE: if (csr_we_int) ucause_n = {csr_wdata_int[31], csr_wdata_int[4:0]};
 
       // FT: Tables of permanent faulty components
-      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
           mhpm_wdata_ft_o = csr_wdata_int; 
@@ -924,7 +930,10 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT,
+      CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+      CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+      CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
           mhpm_wdata_ft_o = csr_wdata_int; 
@@ -1182,7 +1191,7 @@ end else begin //PULP_SECURE == 0
 
 
       // FT: Tables of permanent faulty components
-      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT: begin
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
           mhpm_wdata_ft_o = csr_wdata_int; 
@@ -1201,7 +1210,10 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
       CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
       CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT,
+      CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+      CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+      CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
         if (FT && csr_we_int) begin // if FT is set and if we want to write inside one of the perf counter dedicated to FT we output the write enable and the data to be written
           mhpm_we_ft_o = 1'b1;
           mhpm_wdata_ft_o = csr_wdata_int; 

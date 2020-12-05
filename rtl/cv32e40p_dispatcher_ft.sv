@@ -97,8 +97,7 @@ always_comb begin : proc_decoder_faulty_alu
 			4'b1111: begin // all the ALUs are permanently faulty for that operation
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
 				sel_mux_ex_o = 3'b000;
-				sel_bypass_alu_o[1] = permanent_faulty_alu_i[0] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[1]);
-				sel_bypass_alu_o[0] = permanent_faulty_alu_i[1] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[0]);
+				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b1;
 			end
 			default : begin
@@ -119,43 +118,43 @@ always_comb begin : proc_decoder_faulty_alu
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b001: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b001;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b010: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b010;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b011: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b010;
 				sel_bypass_mult_o = 2'b11;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b100: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b101: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 			    sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b10;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b110: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b01;
 				mult_totally_defective_o = 1'b0;
 			end
 			4'b111: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
+				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b1; // In this case it is activated the mechanism to compute the multiplication as sequence of sums and shifts

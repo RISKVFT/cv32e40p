@@ -54,14 +54,21 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   input  logic        ex_ready_i,
 
   // ft  
-  //input  logic [3:0]			   clock_en_i, //enable/disable clock through clock gating on input pipe registers
-  output logic                     err_corrected_o,
-  output logic                     err_detected_o,
-  //output logic [2:0][8:0] 		   permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU 
-  output logic [2:0]      		   perf_counter_permanent_faulty_mult_o, // trigger the performance counter relative to the specific MULT
-  input  logic [2:0]               sel_mux_ex_i, // selector of the three mux to choose three of the four alu
+  input  logic [3:0]		  clock_en_i, //enable/disable clock through clock gating on input pipe registers
+  output logic                err_corrected_o,
+  output logic                err_detected_o,
+  output logic [2:0][3:0]     permanent_faulty_mult_o,             // one for each counter: 3 MULT and 4 subpart of MULT
+  output logic [2:0][3:0]     permanent_faulty_mult_s,             // one for each counter: 3 MULT and 4 subpart of MULT
+  input  logic [2:0]          sel_mux_ex_i, // selector of the three mux to choose three of the four alu
 
-  // bypass if more than 2 ALU are faulty
+  // CSR: Performance counters
+  input  logic [11:0]         			mhpm_addr_ft_i,    // the address of the perf counter to be written
+  input  logic                			mhpm_re_ft_i,      // read enable 
+  output logic [31:0]         			mhpm_rdata_ft_o,   // the value of the performance counter we want to read
+  input  logic                			mhpm_we_ft_i,      // write enable 
+  input  logic [31:0]         			mhpm_wdata_ft_i,    // the we want to write into the perf counter
+
+  // bypass if more than 2 MUlt are faulty
   input  logic [1:0]					sel_bypass_mult_i
 
 );
@@ -72,21 +79,6 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	logic [2:0]               multicycle_o_ft;
 	logic [2:0]               ready_o_ft;
 
-
-	/* Questa sezione non serve perchè usosolo 3 mux e non 4 come per la ALU
-	// signal out of the three mux going into the voting mechanism
-	logic [31:0]              voter_res_1_in;
-	logic [31:0]              voter_res_2_in;
-	logic [31:0]              voter_res_3_in;
-
-	logic                     voter_multicycle_1_in;
-	logic                     voter_multicycle_2_in;
-	logic                     voter_multicycle_3_in;
-
-	logic                     voter_ready_1_in;
-	logic                     voter_ready_2_in;
-	logic                     voter_ready_3_in;
-	*/ 
 
 	// signals out from the voter
 
@@ -111,6 +103,10 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	logic                     err_corrected_ready;
 	logic                     err_detected_ready; 
 
+	// output of the voters, input to bypass mux
+	logic [31:0]              result_voter;
+	logic                     multicycle_voter;
+	logic                     ready_voter;
 
 	logic [ 2:0]        	  err_detected_mult;
 
@@ -134,6 +130,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	// to select 3 of the four inputs coming from the four pipes
 	logic [2:0]				enable_in;
 	logic [2:0][ 2:0]		operator_in;
+	logic [2:0]				clock_en_in;
 	logic [2:0]				short_subword_in;
 	logic [2:0][ 1:0]		short_signed_in;
 	logic [2:0][31:0]		op_a_in;
@@ -171,6 +168,10 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        assign operator_in[0] = sel_mux_ex_i[0] ? operator_i[3] : operator_i[0];
 	        assign operator_in[1] = sel_mux_ex_i[1] ? operator_i[3] : operator_i[1];
 	        assign operator_in[2] = sel_mux_ex_i[2] ? operator_i[3] : operator_i[2];
+
+	        assign clock_en_in[0] = sel_mux_ex_i[0] ? clock_en_i[3] : clock_en_i[0];
+	        assign clock_en_in[1] = sel_mux_ex_i[1] ? clock_en_i[3] : clock_en_i[1];
+	        assign clock_en_in[2] = sel_mux_ex_i[2] ? clock_en_i[3] : clock_en_i[2];
 
 	        assign short_subword_in[0] = sel_mux_ex_i[0] ? short_subword_i[3] : short_subword_i[0];
 	        assign short_subword_in[1] = sel_mux_ex_i[1] ? short_subword_i[3] : short_subword_i[1];
@@ -258,27 +259,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        );
 
 
-
-	        /* Questa sezione non serve perchè usosolo 3 mux e non 4 come per la ALU
-	        // MUX
-
-	        // Insantiate 3 mux to select 3 of the 4 units available
-
-	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[0] : result_o_ft[3];
-	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[1] : result_o_ft[3];
-	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[2] : result_o_ft[3];
-
-	        assign voter_multicycle_1_in = sel_mux_ex_i[0] ? multicycle_o_ft[0] : multicycle_o_ft[3];
-	        assign voter_multicycle_2_in = sel_mux_ex_i[1] ? multicycle_o_ft[1] : multicycle_o_ft[3];
-	        assign voter_multicycle_3_in = sel_mux_ex_i[2] ? multicycle_o_ft[2] : multicycle_o_ft[3];
-
-	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[0] : ready_o_ft[3];
-	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[1] : ready_o_ft[3];
-	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[2] : ready_o_ft[3];
-			*/
-
 	        // VOTER 
-
 
 	        // the voter of result_o. 
 	        cv32e40p_3voter #(32,1) voter_result
@@ -286,7 +267,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	          .in_1_i           ( result_o_ft[0] ),
 	          .in_2_i           ( result_o_ft[1] ),
 	          .in_3_i           ( result_o_ft[2] ),
-	          .voted_o          ( result_o  ),
+	          .voted_o          ( result_voter   ),
 	          .err_detected_1 	( err_detected_res_1 ),
 	          .err_detected_2 	( err_detected_res_2 ),
 	          .err_detected_3 	( err_detected_res_3 ),
@@ -300,7 +281,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	         .in_1_i           ( multicycle_o_ft[0] ),
 	         .in_2_i           ( multicycle_o_ft[1] ),
 	         .in_3_i           ( multicycle_o_ft[2] ),
-	         .voted_o          ( multicycle_o ),
+	         .voted_o          ( multicycle_voter   ),
 	         .err_detected_1   ( err_detected_multicycle_1 ),
 	         .err_detected_2   ( err_detected_multicycle_2 ),
 	         .err_detected_3   ( err_detected_multicycle_3 ),
@@ -314,7 +295,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 		     .in_1_i           ( ready_o_ft[0] ),
 		     .in_2_i           ( ready_o_ft[1] ),
 		     .in_3_i           ( ready_o_ft[2] ),
-		     .voted_o          ( ready_o      ),
+		     .voted_o          ( ready_voter   ),
 		     .err_detected_1   ( err_detected_ready_1 ),
 		     .err_detected_2   ( err_detected_ready_2 ),
 		     .err_detected_3   ( err_detected_ready_3 ),
@@ -323,155 +304,42 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        );
 
 
-			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU
+	        assign result_o 	  = sel_bypass_mult_i[1] ? (sel_bypass_mult_i[0] ? result_o_ft[2] 	 : result_o_ft[1]) 	   : (sel_bypass_mult_i[0] ? result_o_ft[0]     : result_voter);
+	        assign multicycle_o   = sel_bypass_mult_i[1] ? (sel_bypass_mult_i[0] ? multicycle_o_ft[0] : multicycle_o_ft[1]) : (sel_bypass_mult_i[0] ? multicycle_o_ft[0] : multicycle_voter);
+	        assign ready_o 		  = sel_bypass_mult_i[1] ? (sel_bypass_mult_i[0] ? ready_o_ft[2]      : ready_o_ft[1])      : (sel_bypass_mult_i[0] ? ready_o_ft[0]      : ready_voter);
+
+
+			// assignment of err_detected_multx is the input of the err_counter_result which count errors for each MULT
 	        assign err_detected_mult[0] = (err_detected_res_1 || err_detected_multicycle_1 || err_detected_ready_1);
 	        assign err_detected_mult[1] = (err_detected_res_2 || err_detected_multicycle_2 || err_detected_ready_2);
 	        assign err_detected_mult[2] = (err_detected_res_3 || err_detected_multicycle_3 || err_detected_ready_3);
 
 	        
 	        
-	        // Counters of errors in the three MULTs
-	        
+	        cv32e40p_mult_err_counter_ft err_counter_result
+			(
+			  .clk 									( clk         ),
+	         //.clk                                   ( clk_g       ),
+			  .clock_en 							( clock_en_in ),
+			  .rst_n								( rst_n       ),
+			  .mult_enable_i 						( enable_in   ),
+			  .mult_operator_i 						( operator_in ),
+			  .error_detected_i						( {err_detected_mult[2], err_detected_mult[1], err_detected_mult[0]} ), 
+			  .ready_o_div_count                    ( ready_o     ),
+			  .permanent_faulty_mult_o     			( permanent_faulty_mult_o ),
+			  .permanent_faulty_mult_s              ( permanent_faulty_mult_s ),  
+			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
+			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),     // read enable 
+			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),     // the value of the performance counter we want to read
+			  .mhpm_we_ft_i							( mhpm_we_ft_i     ),     // write enable 
+			  .mhpm_wdata_ft_i						( mhpm_wdata_ft_i  )
+			);
 
-	        /*generate
-	        	genvar i;
-	        	for (i = 0; i < 3; i++) begin
-	        		always_ff @(posedge clk or negedge rst_n) begin : proc_
-			        	if(~rst_n) begin
-			        		perf_counter_permanent_faulty_mult_o[i] <= 1'b0;
-			        		counter_mult[i] <= 8'b0;
-			        	end 
-			        	else if (enable_i[i] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-			        		if (err_detected_mult[i]==1) begin
-			        			counter_mult[i] <= counter_mult[i]+1;
-			        		end
-			        		else if (counter_mult[i]>2) begin
-			        			counter_mult[i] <= counter_mult[i]-2;
-			        		end
-			        		else begin
-			        			counter_mult[i] <= 8'b0;
-			        		end
-			         	end
-			         	else if (counter_mult[i] > 100) begin
-		        			perf_counter_permanent_faulty_mult_o[i] <= 1'b1;
-		        			enable_count[i] <= 'b0;
-		        		end
-			        end
-		        end	        
-	        endgenerate*/
-
-
-	        /*always_ff @(posedge clk or negedge rst_n) begin : counter_0
-	        	if(~rst_n) begin
-	        		perf_counter_permanent_faulty_mult_o[0] <= 1'b0;
-	        		counter_mult[0] <= 8'b0;
-	        		enable_count[0] <= 1'b0;
-	        	end 
-	        	else if (enable_i[0] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		if (err_detected_mult[0]==1) begin
-	        			counter_mult[0] <= counter_mult[0]+1;
-	        		end
-	        		else if (counter_mult[0]>2) begin
-	        			counter_mult[0] <= counter_mult[0]-2;
-	        		end
-	        		else begin
-	        			counter_mult[0] <= 8'b0;
-	        		end
-	         	end
-	         	else if (counter_mult[0] > 100) begin
-        			perf_counter_permanent_faulty_mult_o[0] <= 1'b1;
-        			enable_count[0] <= 'b0;
-        		end
-	        end
-
-	        always_ff @(posedge clk or negedge rst_n) begin : counter_1
-	        	if(~rst_n) begin
-	        		perf_counter_permanent_faulty_mult_o[1] <= 1'b0;
-	        		counter_mult[1] <= 8'b0;
-	        		enable_count[1] <= 1'b0;
-	        	end 
-	        	else if (enable_i[1] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		if (err_detected_mult[1]==1) begin
-	        			counter_mult[1] <= counter_mult[1]+1;
-	        		end
-	        		else if (counter_mult[1]>2) begin
-	        			counter_mult[1] <= counter_mult[1]-2;
-	        		end
-	        		else begin
-	        			counter_mult[1] <= 8'b0;
-	        		end
-	         	end
-	         	else if (counter_mult[1] > 100) begin
-        			perf_counter_permanent_faulty_mult_o[1] <= 1'b1;
-        			enable_count[1] <= 'b0;
-        		end
-	        end
-
-
-	        always_ff @(posedge clk or negedge rst_n) begin : counter_2
-	        	if(~rst_n) begin
-	        		perf_counter_permanent_faulty_mult_o[2] <= 1'b0;
-	        		counter_mult[2] <= 8'b0;
-	        		enable_count[2] <= 1'b0;
-	        	end 
-	        	else if (enable_i[2] & enable_count) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		if (err_detected_mult[2]==1) begin
-	        			counter_mult[2] <= counter_mult[2]+1;
-	        		end
-	        		else if (counter_mult[2]>2) begin
-	        			counter_mult[2] <= counter_mult[2]-2;
-	        		end
-	        		else begin
-	        			counter_mult[2] <= 8'b0;
-	        		end
-	         	end
-	         	else if (counter_mult[2] > 100) begin
-        			perf_counter_permanent_faulty_mult_o[2] <= 1'b1;
-        			enable_count[2] <= 'b0;
-        		end
-	        end
-	        */
-
-			always_ff @(posedge clk or negedge rst_n) begin : counter_0
-	        	if(~rst_n) begin
-	        		enable_count[0] <= 1'b0;
-	        	end 
-	        	else if (enable_i[0] & err_detected_mult[0]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		enable_count[0] <= 1'b1;
-	         	end
-	         	else begin
-        			enable_count[0] <= 1'b0;
-        		end
-	        end
-
-	        always_ff @(posedge clk or negedge rst_n) begin : counter_1
-	        	if(~rst_n) begin
-	        		enable_count[1] <= 1'b0;
-	        	end 
-	        	else if (enable_i[1] & err_detected_mult[1]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		enable_count[1] <= 1'b1;
-	         	end
-	         	else begin
-        			enable_count[1] <= 1'b0;
-        		end
-	        end
-
-	        always_ff @(posedge clk or negedge rst_n) begin : counter_2
-	        	if(~rst_n) begin
-	        		enable_count[2] <= 1'b0;
-	        	end 
-	        	else if (enable_i[2] & err_detected_mult[2]) begin //se il moltiplicatore è abilitato e lo è anche il counter perchè non è gia arrivato al massimo 
-	        		enable_count[2] <= 1'b1;
-	         	end
-	         	else begin
-        			enable_count[2] <= 1'b0;
-        		end
-	        end
 
 
 	        assign err_detected_o = (err_detected_res || err_detected_multicycle || err_detected_ready);
 	        assign err_corrected_o = (err_corrected_res || err_corrected_multicycle || err_corrected_ready);
-	        assign perf_counter_permanent_faulty_mult_o = 4'b0;
+
 
 
 

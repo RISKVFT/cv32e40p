@@ -146,7 +146,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	logic 					  err_detected_ready_alu2;
 	logic 					  err_detected_ready_alu3;
 
-	//
+	// output of the voters, input to bypass mux
 	logic [31:0]              result_voter;
 	logic                     comparison_result_voter;
 	logic                     ready_voter;
@@ -499,10 +499,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 				endcase 
 				
 			end
-
-
-					
-			
+		
 
 			// assignment of err_detected_alux is the input of the err_counter_result which count errors for each ALU
 	        assign err_detected_alu0 = (err_detected_res_alu0 || err_detected_comp_alu0 || err_detected_ready_alu0);

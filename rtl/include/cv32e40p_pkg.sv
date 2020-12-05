@@ -243,9 +243,11 @@ typedef enum logic[11:0] {
   // Therefore we use two 32b register using 36b of the available 64.
   CSR_PERM_FAULTY_ALUL_FT  = 12'h7C0, 
   CSR_PERM_FAULTY_ALUH_FT  = 12'h7C1,
+  CSR_PERM_FAULTY_MULT_FT  = 12'h7C2,
   // add here other CSR read/write in machine mode up to h7FF
   
   // Hardware Performance Monitor
+  // Counters for ALU
   CSR_MHPMCOUNTER0_FT   = 12'h808,
   CSR_MHPMCOUNTER1_FT   = 12'h809,
   CSR_MHPMCOUNTER2_FT   = 12'h80A,
@@ -282,6 +284,20 @@ typedef enum logic[11:0] {
   CSR_MHPMCOUNTER33_FT  = 12'h829,
   CSR_MHPMCOUNTER34_FT  = 12'h82A,
   CSR_MHPMCOUNTER35_FT  = 12'h82B,
+  // Counters for MULT
+  CSR_MHPMCOUNTERM0_FT  = 12'h82C,
+  CSR_MHPMCOUNTERM1_FT  = 12'h82D,
+  CSR_MHPMCOUNTERM2_FT  = 12'h82E,
+  CSR_MHPMCOUNTERM3_FT  = 12'h82F,
+  CSR_MHPMCOUNTERM4_FT  = 12'h830,
+  CSR_MHPMCOUNTERM5_FT  = 12'h831,
+  CSR_MHPMCOUNTERM6_FT  = 12'h832,
+  CSR_MHPMCOUNTERM7_FT  = 12'h833,
+  CSR_MHPMCOUNTERM8_FT  = 12'h834,
+  CSR_MHPMCOUNTERM9_FT  = 12'h835,
+  CSR_MHPMCOUNTERM10_FT = 12'h836,
+  CSR_MHPMCOUNTERM11_FT = 12'h837,
+
   // add here other counters read/write in user mode up to h8FF
 
   // Shadow registers are not implemented
