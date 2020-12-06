@@ -169,7 +169,7 @@ generate
                   count_shift_q[i]=count_shift_q[i]+error_increase;
                 end
                 else begin
-                  if (count_shift_q[i]>2) begin
+                  if (count_shift_q[i]>=2) begin
                     count_shift_q[i]=count_shift_q[i]-error_decrease;
                   end
                   else begin
@@ -207,7 +207,7 @@ generate
               count_shift_n[i]=count_shift_q[i]+error_increase;
             end
             else begin
-              if (count_shift_q[i]>2) begin
+              if (count_shift_q[i]>=2) begin
                 count_shift_n[i]=count_shift_q[i]-error_decrease;
               end
               else begin
@@ -227,7 +227,7 @@ generate
               count_logic_n[i]=count_logic_n[i]+error_increase;
             end
             else begin
-              if (count_logic_n[i]>2) begin
+              if (count_logic_n[i]>=2) begin
                 count_logic_n[i]=count_logic_n[i]-error_decrease;
               end
               else begin
@@ -247,7 +247,7 @@ generate
               count_bit_man_n[i]=count_bit_man_q[i]+error_increase;
             end
             else begin
-              if (count_bit_man_q[i]>2) begin
+              if (count_bit_man_q[i]>=2) begin
                 count_bit_man_n[i]=count_bit_man_q[i]-error_decrease;
               end
               else begin
@@ -266,7 +266,7 @@ generate
               count_bit_count_n[i]=count_bit_count_q[i]+error_increase;
             end
             else begin
-              if (count_bit_count_q[i]>2) begin
+              if (count_bit_count_q[i]>=2) begin
                 count_bit_count_n[i]=count_bit_count_q[i]-error_decrease;
               end
               else begin
@@ -285,7 +285,7 @@ generate
               count_shuf_n[i]=count_shuf_q[i]+error_increase;
             end
             else begin
-              if (count_shuf_q[i]>2) begin
+              if (count_shuf_q[i]>=2) begin
                 count_shuf_n[i]=count_shuf_q[i]-error_decrease;
               end
               else begin
@@ -304,7 +304,7 @@ generate
               count_comparison_n[i]=count_comparison_q[i]+error_increase;
             end
             else begin
-              if (count_comparison_q[i]>2) begin
+              if (count_comparison_q[i]>=2) begin
                 count_comparison_n[i]=count_comparison_q[i]-error_decrease;
               end
               else begin
@@ -322,7 +322,7 @@ generate
               count_abs_n[i]=count_abs_q[i]+error_increase;
             end
             else begin
-              if (count_abs_q[i]>2) begin
+              if (count_abs_q[i]>=2) begin
                 count_abs_n[i]=count_abs_q[i]-error_decrease;
               end
               else begin
@@ -341,7 +341,7 @@ generate
               count_min_max_n[i]=count_min_max_q[i]+error_increase;
             end
             else begin
-              if (count_min_max_q[i]>2) begin
+              if (count_min_max_q[i]>=2) begin
                 count_min_max_n[i]=count_min_max_q[i]-error_decrease;
               end
               else begin
@@ -360,7 +360,7 @@ generate
 	              count_div_rem_n[i]=count_div_rem_q[i]+error_increase;
 	            end
 	            else begin
-	              if (count_div_rem_q[i]>2) begin
+	              if (count_div_rem_q[i]>=2) begin
 	                count_div_rem_n[i]=count_div_rem_q[i]-error_decrease;
 	              end
 	              else begin

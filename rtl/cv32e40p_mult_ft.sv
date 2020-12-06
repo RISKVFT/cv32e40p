@@ -110,9 +110,6 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 
 	logic [ 2:0]        	  err_detected_mult;
 
-	logic [ 2:0]              counter_mult; // counter for the three MULTs
-	logic [ 2:0]              enable_count;
-
 	/*
 	logic					  err_detected_res_mult0;
 	logic					  err_detected_res_mult1;

@@ -26,7 +26,7 @@ module cv32e40p_mult_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_
   input  logic [2:0]          clock_en,
   input  logic                rst_n,
   input  logic [2:0]          mult_enable_i,
-  input  logic [2:0][ALU_OP_WIDTH-1:0]      mult_operator_i,
+  input  logic [2:0][2:0]     mult_operator_i,
   input  logic [2:0]          error_detected_i,
   input  logic                ready_o_div_count, 
   output logic [2:0][3:0]     permanent_faulty_mult_o,             // one for each counter: 3 MULT and 4 subpart of MULT
@@ -61,9 +61,9 @@ logic [2:0][31:0] count_dot16_nw;
 logic [12:0]      sel; // select one between <counter>_n and <counter>_nw and one between permanent_faulty_mult_s and permanent_faulty_mult_nw
 
 // we need 12 bits to store the information on the permanent faulty MULTs so we use one 32b readonly CSR 
-logic [31:0]      mult_faulty_map0;
+logic [31:0]      mult_faulty_map;
 
-logic [31:0]      mult_faulty_map0_nw;
+logic [31:0]      mult_faulty_map_nw;
 
 logic [2:0][3:0]  permanent_faulty_mult_nw;
 
@@ -114,9 +114,9 @@ generate
       end else begin
         /*if (mult_enable_i[i]) begin*/
           count_long_int_q[i]   <= sel[i]    ? count_long_int_nw[i]   : count_long_int_n[i];
-          count_short_int_q[i]  <= sel[i+4]  ? count_short_int_nw[i]  : count_short_int_n[i];
-          count_dot8_q[i]       <= sel[i+8]  ? count_dot8_nw[i]       : count_dot8_n[i];
-          count_dot16_q[i]      <= sel[i+12] ? count_dot16_nw[i]      : count_dot16_n[i];     
+          count_short_int_q[i]  <= sel[i+3]  ? count_short_int_nw[i]  : count_short_int_n[i];
+          count_dot8_q[i]       <= sel[i+6]  ? count_dot8_nw[i]       : count_dot8_n[i];
+          count_dot16_q[i]      <= sel[i+9]  ? count_dot16_nw[i]      : count_dot16_n[i];     
         /*end*/
       end
     end
@@ -139,7 +139,7 @@ generate
               count_short_int_n[i]=count_short_int_q[i]+error_increase;
             end
             else begin
-              if (count_short_int_q[i]>2) begin
+              if (count_short_int_q[i]>=2) begin
                 count_short_int_n[i]=count_short_int_q[i]-error_decrease;
               end
               else begin
@@ -159,7 +159,7 @@ generate
               count_long_int_n[i]=count_long_int_n[i]+error_increase;
             end
             else begin
-              if (count_long_int_n[i]>2) begin
+              if (count_long_int_n[i]>=2) begin
                 count_long_int_n[i]=count_long_int_n[i]-error_decrease;
               end
               else begin
@@ -179,7 +179,7 @@ generate
               count_dot8_n[i]=count_dot8_q[i]+error_increase;
             end
             else begin
-              if (count_dot8_q[i]>2) begin
+              if (count_dot8_q[i]>=2) begin
                 count_dot8_n[i]=count_dot8_q[i]-error_decrease;
               end
               else begin
@@ -198,7 +198,7 @@ generate
               count_dot16_n[i]=count_dot16_q[i]+error_increase;
             end
             else begin
-              if (count_dot16_q[i]>2) begin
+              if (count_dot16_q[i]>=2) begin
                 count_dot16_n[i]=count_dot16_q[i]-error_decrease;
               end
               else begin
@@ -317,14 +317,14 @@ endgenerate
 
 genvar y;
 genvar z;
-genvar k;
-generate //reorganize permanent_faulty_mult_o in mult_faulty_map0
+generate //reorganize permanent_faulty_mult_o in mult_faulty_map
     for (y=0; y<3; y++) begin
         for (z=0; z<4; z++) begin
-            assign mult_faulty_map0[(3*z)+y] = permanent_faulty_mult_o[y][z];
-            assign permanent_faulty_mult_nw[y][z] = mult_faulty_map0_nw[(3*z)+y];
+            assign mult_faulty_map[(3*z)+y] = permanent_faulty_mult_o[y][z];
+            assign permanent_faulty_mult_nw[y][z] = mult_faulty_map_nw[(3*z)+y];
         end
     end
+    assign mult_faulty_map[31:12] = 21'b0;
 endgenerate
 
 
@@ -338,39 +338,39 @@ always_comb  begin
   count_dot8_nw        = 'b0;
   count_dot16_nw       = 'b0;
 
-  mult_faulty_map0_nw  = 'b0;
+  mult_faulty_map_nw   = 'b0;
   mhpm_rdata_ft_o      = 'b0;
   sel                  = 'b0;
 
   case (mhpm_addr_ft_i) // override default when appropriate
 
-    CSR_MHPMCOUNTER0_FT, CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT: begin
+    CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT,  CSR_MHPMCOUNTERM2_FT: begin
       if (mhpm_re_ft_i) 
-        mhpm_rdata_ft_o = count_long_int_q[mhpm_addr_ft_i[7:0]-8];
+        mhpm_rdata_ft_o = count_long_int_q[mhpm_addr_ft_i[7:0]-44];
       else if (mhpm_we_ft_i) begin
         count_long_int_nw[mhpm_addr_ft_i[7:0]-44] = mhpm_wdata_ft_i;
         sel[mhpm_addr_ft_i[7:0]-44] = 1'b1;
       end
     end
-    CSR_MHPMCOUNTER3_FT, CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT: begin
+    CSR_MHPMCOUNTERM3_FT, CSR_MHPMCOUNTERM4_FT,  CSR_MHPMCOUNTERM5_FT: begin
       if (mhpm_re_ft_i) 
-        mhpm_rdata_ft_o = count_short_int_q[mhpm_addr_ft_i[7:0]-12];
+        mhpm_rdata_ft_o = count_short_int_q[mhpm_addr_ft_i[7:0]-47];
       else if (mhpm_we_ft_i) begin
         count_short_int_nw[mhpm_addr_ft_i[7:0]-47] = mhpm_wdata_ft_i;
         sel[mhpm_addr_ft_i[7:0]-44] = 1'b1;
       end
     end
-    CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT, CSR_MHPMCOUNTER8_FT: begin
+    CSR_MHPMCOUNTERM6_FT,  CSR_MHPMCOUNTERM7_FT, CSR_MHPMCOUNTERM8_FT: begin
       if (mhpm_re_ft_i) 
-        mhpm_rdata_ft_o = count_dot8_q[mhpm_addr_ft_i[7:0]-16];
+        mhpm_rdata_ft_o = count_dot8_q[mhpm_addr_ft_i[7:0]-50];
       else if (mhpm_we_ft_i) begin
         count_dot8_nw[mhpm_addr_ft_i[7:0]-50] = mhpm_wdata_ft_i;
         sel[mhpm_addr_ft_i[7:0]-44] = 1'b1;
       end
     end
-    CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT: begin
+    CSR_MHPMCOUNTERM9_FT,  CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
       if (mhpm_re_ft_i) 
-        mhpm_rdata_ft_o = count_dot8_q[mhpm_addr_ft_i[7:0]-16];
+        mhpm_rdata_ft_o = count_dot8_q[mhpm_addr_ft_i[7:0]-53];
       else if (mhpm_we_ft_i) begin
         count_dot8_nw[mhpm_addr_ft_i[7:0]-53] = mhpm_wdata_ft_i;
         sel[mhpm_addr_ft_i[7:0]-44] = 1'b1;
@@ -379,10 +379,10 @@ always_comb  begin
     
     CSR_PERM_FAULTY_MULT_FT:
       if (mhpm_re_ft_i) 
-        mhpm_rdata_ft_o = mult_faulty_map0;
+        mhpm_rdata_ft_o = mult_faulty_map;
       else if (mhpm_we_ft_i) begin
-        mult_faulty_map0_nw = mhpm_wdata_ft_i;
-        sel[mhpm_addr_ft_i[3:0]+12] = 1'b1;
+        mult_faulty_map_nw = mhpm_wdata_ft_i;
+        sel[12] = 1'b1;
       end
 
     default: begin
@@ -391,7 +391,7 @@ always_comb  begin
       count_dot8_nw        = 'b0;
       count_dot16_nw       = 'b0;
 
-      mult_faulty_map0_nw  = 'b0;
+      mult_faulty_map_nw   = 'b0;
       mhpm_rdata_ft_o      = 'b0;
       sel                  = 'b0;
     end

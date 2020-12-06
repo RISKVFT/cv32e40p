@@ -108,7 +108,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // handshake signals
   output logic                       apu_master_req_o,
   output logic                       apu_master_ready_o,
-  input logic                        apu_master_gnt_i,
+  input  logic                       apu_master_gnt_i,
   // request channel
   output logic [APU_NARGS_CPU-1:0][31:0] apu_master_operands_o,
   output logic [APU_WOP_CPU-1:0]     apu_master_op_o,
@@ -161,9 +161,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic             err_detected_alu_o,
   output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
   output logic [3:0][8:0]  permanent_faulty_alu_s_o,
-  output logic [2:0][4:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
-  output logic [2:0][4:0]  permanent_faulty_mult_s_o,  
-  //output logic [3:0]       perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specif ALU
+  output logic [2:0][3:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
+  output logic [2:0][3:0]  permanent_faulty_mult_s_o,  
   input  logic [3:0]       clock_enable_alu_i,
 
   // addictional inputs coming from the id_stage pipeline after a voting mechanism
@@ -185,8 +184,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic [ 1:0]          mult_clpx_shift_ex_voted_i,
   input logic                 mult_clpx_img_ex_voted_i,*/
   output logic                err_corrected_mult_o,
-  output logic                err_detected_mult_o, 
-  output logic [2:0]          perf_counter_permanent_faulty_mult_o,
+  output logic                err_detected_mult_o,
 
   input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
   input logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted_i,
@@ -204,7 +202,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   // Performance counters
   input  logic [11:0]         mhpm_addr_ft_i,    // the address of the perf counter to be written
   input  logic                mhpm_re_ft_i,      // read enable 
-  output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance counter we want to read
+  output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance_counter/csr we want to read
   input  logic                mhpm_we_ft_i,      // write enable 
   input  logic [31:0]         mhpm_wdata_ft_i,   // the we want to write into the perf counter
 
@@ -257,6 +255,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   logic [ 3:0]    clk_gated_alu_ft;
   logic           mult_en_ex_voted;
+
+  logic [31:0]    mhpm_rdata_ft_alu;    // the value of the performance_counter/csr we want to read from alu
+  logic [31:0]    mhpm_rdata_ft_mult;   // the value of the performance_counter/csr we want to read from mult
  
   // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
   cv32e40p_3voter #(1,1) voter_mult_en_ex
@@ -383,15 +384,15 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .clock_en_i          (clock_enable_alu_i ),
     .err_corrected_o     (err_corrected_alu_o),
     .err_detected_o      (err_detected_alu_o ),
-    .permanent_faulty_alu_o                 (permanent_faulty_alu_o),
-    .permanent_faulty_alu_s                 (permanent_faulty_alu_s_o), 
+    .permanent_faulty_alu_o (permanent_faulty_alu_o),
+    .permanent_faulty_alu_s (permanent_faulty_alu_s_o), 
     //.perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
-    .sel_mux_ex_i        ( sel_mux_ex_i     ),
-    .mhpm_addr_ft_i      ( mhpm_addr_ft_i   ),   // the address of the perf counter to be written
-    .mhpm_re_ft_i        ( mhpm_re_ft_i     ),   // read enable 
-    .mhpm_rdata_ft_o     ( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
-    .mhpm_we_ft_i        ( mhpm_we_ft_i     ),   // write enable 
-    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i  ),
+    .sel_mux_ex_i        ( sel_mux_ex_i      ),
+    .mhpm_addr_ft_i      ( mhpm_addr_ft_i    ),   // the address of the perf counter to be written
+    .mhpm_re_ft_i        ( mhpm_re_ft_i      ),   // read enable 
+    .mhpm_rdata_ft_o     ( mhpm_rdata_ft_alu ),   // the value of the performance counter we want to read
+    .mhpm_we_ft_i        ( mhpm_we_ft_i      ),   // write enable 
+    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i   ),
 
     .sel_bypass_alu_i          ( sel_bypass_alu_ex_i    )
 
@@ -464,16 +465,46 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .permanent_faulty_mult_o ( permanent_faulty_mult_o   ),
     .permanent_faulty_mult_s ( permanent_faulty_mult_s_o ),
     
-    .sel_mux_ex_i        ( sel_mux_ex_i     ),
+    .sel_mux_ex_i        ( sel_mux_ex_i       ),
 
-    .mhpm_addr_ft_i      ( mhpm_addr_ft_i   ),   // the address of the perf counter to be written
-    .mhpm_re_ft_i        ( mhpm_re_ft_i     ),   // read enable 
-    .mhpm_rdata_ft_o     ( mhpm_rdata_ft_o  ),   // the value of the performance counter we want to read
-    .mhpm_we_ft_i        ( mhpm_we_ft_i     ),   // write enable 
-    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i  ),
+    .mhpm_addr_ft_i      ( mhpm_addr_ft_i     ),   // the address of the perf counter to be written
+    .mhpm_re_ft_i        ( mhpm_re_ft_i       ),   // read enable 
+    .mhpm_rdata_ft_o     ( mhpm_rdata_ft_mult ),   // the value of the performance counter we want to read
+    .mhpm_we_ft_i        ( mhpm_we_ft_i       ),   // write enable 
+    .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i    ),
 
     .sel_bypass_mult_i   ( sel_bypass_mult_ex_i   )
   );
+
+  always_comb  begin
+    // default
+    mhpm_rdata_ft_o = 'b0;
+
+    case (mhpm_addr_ft_i) // override default when appropriate
+      //ALU
+      CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT,
+      CSR_MHPMCOUNTER0_FT,  CSR_MHPMCOUNTER1_FT,  CSR_MHPMCOUNTER2_FT,  CSR_MHPMCOUNTER3_FT,
+      CSR_MHPMCOUNTER4_FT,  CSR_MHPMCOUNTER5_FT,  CSR_MHPMCOUNTER6_FT,  CSR_MHPMCOUNTER7_FT,
+      CSR_MHPMCOUNTER8_FT,  CSR_MHPMCOUNTER9_FT,  CSR_MHPMCOUNTER10_FT, CSR_MHPMCOUNTER11_FT,
+      CSR_MHPMCOUNTER12_FT, CSR_MHPMCOUNTER13_FT, CSR_MHPMCOUNTER14_FT, CSR_MHPMCOUNTER15_FT,
+      CSR_MHPMCOUNTER16_FT, CSR_MHPMCOUNTER17_FT, CSR_MHPMCOUNTER18_FT, CSR_MHPMCOUNTER19_FT,
+      CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
+      CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
+      CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
+      CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT: begin
+        mhpm_rdata_ft_o = mhpm_rdata_ft_alu;
+      end
+
+      //MULT
+      CSR_PERM_FAULTY_MULT_FT,
+      CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+      CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+      CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
+        mhpm_rdata_ft_o = mhpm_rdata_ft_mult;
+      end
+
+    endcase // mhpm_addr_ft_i
+  end
 
 
    generate

@@ -2470,7 +2470,7 @@ module cv32e40p_decoder import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
 
             // ---------------------------------------------------------------------------------
             // FT: Performance counters
-            CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT:
+            CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT:
               if ((!FT) || ((csr_op != CSR_OP_READ) && (csr_op != CSR_OP_WRITE))) begin
                 csr_illegal = 1'b1;
               end else begin
@@ -2485,7 +2485,10 @@ module cv32e40p_decoder import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
               CSR_MHPMCOUNTER20_FT, CSR_MHPMCOUNTER21_FT, CSR_MHPMCOUNTER22_FT, CSR_MHPMCOUNTER23_FT,
               CSR_MHPMCOUNTER24_FT, CSR_MHPMCOUNTER25_FT, CSR_MHPMCOUNTER26_FT, CSR_MHPMCOUNTER27_FT,
               CSR_MHPMCOUNTER28_FT, CSR_MHPMCOUNTER29_FT, CSR_MHPMCOUNTER30_FT, CSR_MHPMCOUNTER31_FT,
-              CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT:
+              CSR_MHPMCOUNTER32_FT, CSR_MHPMCOUNTER33_FT, CSR_MHPMCOUNTER34_FT, CSR_MHPMCOUNTER35_FT,
+              CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
+              CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
+              CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT:
                 if ((!FT) || ((csr_op != CSR_OP_READ) && (csr_op != CSR_OP_WRITE))) begin
                   csr_illegal = 1'b1;
                 end else begin
