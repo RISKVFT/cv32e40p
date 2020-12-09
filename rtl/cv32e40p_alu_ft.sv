@@ -62,6 +62,10 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   input  logic                			mhpm_we_ft_i,      // write enable 
   input  logic [31:0]         			mhpm_wdata_ft_i,    // the we want to write into the perf counter
 
+  // set if only two ALU are not permanent faulty
+  input  logic    						only_two_alu_i,
+  input  logic [1:0]                    sel_mux_only_two_alu_i,
+
   // bypass if more than 2 ALU are faulty
   input  logic [1:0]					sel_bypass_alu_i
 
@@ -89,8 +93,21 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	logic [3:0]               ready_o_ft;
 
 
-	// signal out of the three mux going into the voting mechanism
-	logic [31:0]              voter_res_1_in;
+	// signal out of the three mux going into the "only_two" mux mechanism
+	logic [31:0]              voter_res_1_only_two_in;
+	logic [31:0]              voter_res_2_only_two_in;
+	logic [31:0]              voter_res_3_only_two_in;
+
+	logic                     voter_comp_1_only_two_in;
+	logic                     voter_comp_2_only_two_in;
+	logic                     voter_comp_3_only_two_in;
+
+	logic                     voter_ready_1_only_two_in;
+	logic                     voter_ready_2_only_two_in;
+	logic                     voter_ready_3_only_two_in;
+
+    // signal out of the "only_two" muxs going into the voting mechanism
+    logic [31:0]              voter_res_1_in;
 	logic [31:0]              voter_res_2_in;
 	logic [31:0]              voter_res_3_in;
 
@@ -200,18 +217,30 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        // MUX
 
 	        // Insantiate 3 mux to select 3 of the 4 units available
+	        assign voter_res_1_only_two_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
+	        assign voter_res_2_only_two_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
+	        assign voter_res_3_only_two_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
 
-	        assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
-	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
-	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
+	        assign voter_comp_1_only_two_in = sel_mux_ex_i[0] ? comparison_result_o_ft[3] : comparison_result_o_ft[0];
+	        assign voter_comp_2_only_two_in = sel_mux_ex_i[1] ? comparison_result_o_ft[3] : comparison_result_o_ft[1];
+	        assign voter_comp_3_only_two_in = sel_mux_ex_i[2] ? comparison_result_o_ft[3] : comparison_result_o_ft[2];
 
-	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[3] : comparison_result_o_ft[0];
-	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[3] : comparison_result_o_ft[1];
-	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[3] : comparison_result_o_ft[2];
+	        assign voter_ready_1_only_two_in = sel_mux_ex_i[0] ? ready_o_ft[3] : ready_o_ft[0];
+	        assign voter_ready_2_only_two_in = sel_mux_ex_i[1] ? ready_o_ft[3] : ready_o_ft[1];
+	        assign voter_ready_3_only_two_in = sel_mux_ex_i[2] ? ready_o_ft[3] : ready_o_ft[2];
 
-	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[3] : ready_o_ft[0];
-	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[3] : ready_o_ft[1];
-	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[3] : ready_o_ft[2];
+	        // Insantiate 2 mux to select 2 of the 3 availabel results if "only_two"
+	        assign voter_res_1_in = sel_mux_only_two_alu_i[0] ? voter_res_3_only_two_in : voter_res_1_only_two_in;
+	        assign voter_res_2_in = sel_mux_only_two_alu_i[1] ? voter_res_3_only_two_in : voter_res_2_only_two_in;
+	        assign voter_res_3_in = voter_res_3_only_two_in;
+
+	        assign voter_comp_1_in = sel_mux_only_two_alu_i[0] ? voter_comp_3_only_two_in : voter_comp_1_only_two_in;
+	        assign voter_comp_2_in = sel_mux_only_two_alu_i[1] ? voter_comp_3_only_two_in : voter_comp_2_only_two_in;
+	        assign voter_comp_3_in = voter_comp_3_only_two_in;
+
+	        assign voter_ready_1_in = sel_mux_only_two_alu_i[0] ? voter_ready_3_only_two_in : voter_ready_1_only_two_in;
+	        assign voter_ready_2_in = sel_mux_only_two_alu_i[1] ? voter_ready_3_only_two_in : voter_ready_2_only_two_in;
+	        assign voter_ready_3_in = voter_ready_3_only_two_in;
 
 
 	        // VOTER 
@@ -223,10 +252,11 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	          .in_1_i           ( voter_res_1_in 	 ),
 	          .in_2_i           ( voter_res_2_in     ),
 	          .in_3_i           ( voter_res_3_in     ),
+	          .only_two_i       ( only_two_alu_i     ),
 	          .voted_o          ( result_voter       ),
-	          .err_detected_1 	( err_detected_res_1 ),
-	          .err_detected_2 	( err_detected_res_2 ),
-	          .err_detected_3 	( err_detected_res_3 ),
+	          .err_detected_1_o ( err_detected_res_1 ),
+	          .err_detected_2_o ( err_detected_res_2 ),
+	          .err_detected_3_o ( err_detected_res_3 ),
 	          .err_corrected_o  ( err_corrected_res  ),
 	          .err_detected_o 	( err_detected_res 	 )
 	        );
@@ -237,10 +267,11 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	         .in_1_i           ( voter_comp_1_in 		  ),
 	         .in_2_i           ( voter_comp_2_in 		  ),
 	         .in_3_i           ( voter_comp_3_in 		  ),
+	         .only_two_i       ( only_two_alu_i           ),
 	         .voted_o          ( comparison_result_voter  ),
-	         .err_detected_1   ( err_detected_comp_1      ),
-	         .err_detected_2   ( err_detected_comp_2      ),
-	         .err_detected_3   ( err_detected_comp_3      ),
+	         .err_detected_1_o ( err_detected_comp_1      ),
+	         .err_detected_2_o ( err_detected_comp_2      ),
+	         .err_detected_3_o ( err_detected_comp_3      ),
 	         .err_corrected_o  ( err_corrected_comp       ),
 	         .err_detected_o   ( err_detected_comp 	      )
 	        );
@@ -251,10 +282,11 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 		     .in_1_i           ( voter_ready_1_in     ),
 		     .in_2_i           ( voter_ready_2_in     ),
 		     .in_3_i           ( voter_ready_3_in     ),
+		     .only_two_i       ( only_two_alu_i       ),
 		     .voted_o          ( ready_voter          ),
-		     .err_detected_1   ( err_detected_ready_1 ),
-		     .err_detected_2   ( err_detected_ready_2 ),
-		     .err_detected_3   ( err_detected_ready_3 ),
+		     .err_detected_1_o ( err_detected_ready_1 ),
+		     .err_detected_2_o ( err_detected_ready_2 ),
+		     .err_detected_3_o ( err_detected_ready_3 ),
 		     .err_corrected_o  ( err_corrected_ready  ),
 		     .err_detected_o   ( err_detected_ready   )
 	        );

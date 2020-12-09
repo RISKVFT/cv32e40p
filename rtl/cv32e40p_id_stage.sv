@@ -256,6 +256,12 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     output logic [3:0]        clock_enable_alu_o,
     output logic [1:0]		  sel_bypass_alu_ex_o,
     output logic [1:0]		  sel_bypass_mult_ex_o,
+
+    output logic              only_two_alu_o,
+    output logic              only_two_mult_o,
+    output logic [1:0]        sel_mux_only_two_alu_o,
+    output logic [1:0]        sel_mux_only_two_mult_o,
+
     output logic 			  alu_totally_defective_o, // set to '1' if all the ALUs are permanently faulty for that operation
     output logic 			  mult_totally_defective_o, // set to '1' if all the MULTs are permanently faulty for that operation
 
@@ -559,6 +565,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]      sel_bypass_inside;     // or between the previous two sel_bypass --> maybe it 's not necessary
   logic            alu_totally_defective_s;
   logic            mult_totally_defective_s;
+  logic            only_two_alu_s;
+  logic            only_two_mult_s;
+  logic [1:0]      sel_mux_only_two_alu_s;
+  logic [1:0]      sel_mux_only_two_mult_s;
 
   logic [3:0]      clock_en_sltu;  // used for gating clock of one of the pipeline replicas for FT version
   logic [2:0]      sel_mux_ex_s_sltu;  // mux selectors generated with the decoding mechanism
@@ -566,6 +576,10 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]      sel_bypass_alu_ex_s_sltu;  // mux selectors used when there are 3 out of 4 faulty ALUs
   logic            alu_totally_defective_s_sltu;
   logic            mult_totally_defective_s_sltu;
+  logic            only_two_alu_s_sltu;
+  logic            only_two_mult_s_sltu;
+  logic [1:0]      sel_mux_only_two_alu_s_sltu;
+  logic [1:0]      sel_mux_only_two_mult_s_sltu;
 
   
   // signals input to the voters for the outputs of the module that are still used in Id_stage module
@@ -1762,6 +1776,10 @@ generate
          .permanent_faulty_mult_i    ( permanent_faulty_mult_in_dispatcher  ),
          .clock_gate_pipe_replica_o  ( clock_en     						),
          .sel_mux_ex_o               ( sel_mux_ex_s 						),
+         .only_two_alu_o             ( only_two_alu_s                       ),
+         .only_two_mult_o            ( only_two_mult_s                      ),
+         .sel_mux_only_two_alu_o     ( sel_mux_only_two_alu_s               ),
+         .sel_mux_only_two_mult_o    ( sel_mux_only_two_mult_s              ),
          .sel_bypass_alu_o           ( sel_bypass_alu_ex_s 					),
          .sel_bypass_mult_o          ( sel_bypass_mult_ex_s     			),
          .alu_totally_defective_o    ( alu_totally_defective_s  			), 
@@ -1777,6 +1795,10 @@ generate
          .permanent_faulty_mult_i    ( permanent_faulty_mult_in_dispatcher     ),
          .clock_gate_pipe_replica_o  ( clock_en_sltu                           ),
          .sel_mux_ex_o               ( sel_mux_ex_s_sltu                       ),
+         .only_two_alu_o             ( only_two_alu_s_sltu                     ),
+         .only_two_mult_o            ( only_two_mult_s_sltu                    ),
+         .sel_mux_only_two_alu_o     ( sel_mux_only_two_alu_s_sltu             ),
+         .sel_mux_only_two_mult_o    ( sel_mux_only_two_mult_s_sltu            ),
          .sel_bypass_alu_o           ( sel_bypass_alu_ex_s_sltu                ),
          .sel_bypass_mult_o          ( sel_bypass_mult_ex_s_sltu               ),
          .alu_totally_defective_o    ( alu_totally_defective_s_sltu            ), 
@@ -1949,6 +1971,11 @@ generate
             sel_bypass_mult_ex_o     <= 2'b0;
             alu_totally_defective_o  <= 1'b0;
             mult_totally_defective_o <= 1'b0;
+            only_two_alu_o           <= 1'b0;
+            only_two_mult_o          <= 1'b0;
+            sel_mux_only_two_alu_o   <= 2'b0;
+            sel_mux_only_two_mult_o  <= 2'b0;
+
           end 
           else if (~data_misaligned_i && ~mult_multicycle_i) begin
             if(id_valid_o) begin
@@ -1956,12 +1983,16 @@ generate
                     sel_mux_ex_o             <= sel_mux_ex_s;
                     clock_enable_alu_o       <= clock_en;
                     sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
-                    alu_totally_defective_o  <= alu_totally_defective_s; 
+                    alu_totally_defective_o  <= alu_totally_defective_s;
+                    only_two_alu_o           <= only_two_alu_s;
+                    sel_mux_only_two_alu_o   <= sel_mux_only_two_alu_s; 
                 //end
                 //if (mult_int_en || mult_dot_en) begin
                     sel_mux_ex_o             <= sel_mux_ex_s;               
                     sel_bypass_mult_ex_o     <= sel_bypass_mult_ex_s;
                     mult_totally_defective_o <= mult_totally_defective_s;
+                    only_two_mult_o          <= only_two_mult_s;
+                    sel_mux_only_two_mult_o  <= sel_mux_only_two_mult_s;
                 //end
             end /*else if(ex_ready_i) begin
                 sel_mux_ex_o                 <= sel_mux_ex_s_sltu;
@@ -1970,6 +2001,10 @@ generate
                 sel_bypass_mult_ex_o         <= sel_bypass_mult_ex_s_sltu;
                 alu_totally_defective_o      <= alu_totally_defective_s_sltu; 
                 mult_totally_defective_o     <= mult_totally_defective_s_sltu;
+                only_two_alu_o               <= only_two_alu_s_sltu;
+                only_two_mult_o              <= only_two_mult_s_sltu;
+                sel_mux_only_two_alu_o       <= sel_mux_only_two_alu_s_sltu;
+                sel_mux_only_two_mult_o      <= sel_mux_only_two_mult_s_sltu;
             end*/
           end
         end
@@ -2196,10 +2231,11 @@ generate
          .in_1_i           ( alu_operand_b_ex_voter_in[0] ),
          .in_2_i           ( alu_operand_b_ex_voter_in[1] ),
          .in_3_i           ( alu_operand_b_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( alu_operand_b_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2209,10 +2245,11 @@ generate
          .in_1_i           ( regfile_waddr_ex_voter_in[0] ),
          .in_2_i           ( regfile_waddr_ex_voter_in[1] ),
          .in_3_i           ( regfile_waddr_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( regfile_waddr_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2222,10 +2259,11 @@ generate
          .in_1_i           ( regfile_we_ex_voter_in[0] ),
          .in_2_i           ( regfile_we_ex_voter_in[1] ),
          .in_3_i           ( regfile_we_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( regfile_we_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2235,10 +2273,11 @@ generate
          .in_1_i           ( csr_access_ex_voter_in[0] ),
          .in_2_i           ( csr_access_ex_voter_in[1] ),
          .in_3_i           ( csr_access_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( csr_access_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2248,10 +2287,11 @@ generate
          .in_1_i           ( csr_op_ex_voter_in[0] ),
          .in_2_i           ( csr_op_ex_voter_in[1] ),
          .in_3_i           ( csr_op_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( csr_op_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2261,10 +2301,11 @@ generate
         .in_1_i           ( data_req_ex_voter_in[0] ),
         .in_2_i           ( data_req_ex_voter_in[1] ),
         .in_3_i           ( data_req_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_req_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2274,10 +2315,11 @@ generate
         .in_1_i           ( data_we_ex_voter_in[0] ),
         .in_2_i           ( data_we_ex_voter_in[1] ),
         .in_3_i           ( data_we_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_we_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2288,10 +2330,11 @@ generate
         .in_1_i           ( alu_operator_ex_voter_in[0] ),
         .in_2_i           ( alu_operator_ex_voter_in[1] ),
         .in_3_i           ( alu_operator_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( alu_operator_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );*/
@@ -2301,10 +2344,11 @@ generate
         .in_1_i           ( apu_en_ex_voter_in[0] ),
         .in_2_i           ( apu_en_ex_voter_in[1] ),
         .in_3_i           ( apu_en_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_en_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2314,10 +2358,11 @@ generate
         .in_1_i           ( apu_lat_ex_voter_in[0] ),
         .in_2_i           ( apu_lat_ex_voter_in[1] ),
         .in_3_i           ( apu_lat_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_lat_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2327,10 +2372,11 @@ generate
         .in_1_i           ( branch_in_ex_voter_in[0] ),
         .in_2_i           ( branch_in_ex_voter_in[1] ),
         .in_3_i           ( branch_in_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( branch_in_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2340,10 +2386,11 @@ generate
         .in_1_i           ( pc_ex_voter_in[0] ),
         .in_2_i           ( pc_ex_voter_in[1] ),
         .in_3_i           ( pc_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( pc_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2353,10 +2400,11 @@ generate
         .in_1_i           ( alu_operand_a_ex_voter_in[0] ),
         .in_2_i           ( alu_operand_a_ex_voter_in[1] ),
         .in_3_i           ( alu_operand_a_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( alu_operand_a_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2366,10 +2414,11 @@ generate
         .in_1_i           ( alu_operand_c_ex_voter_in[0] ),
         .in_2_i           ( alu_operand_c_ex_voter_in[1] ),
         .in_3_i           ( alu_operand_c_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( alu_operand_c_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2379,10 +2428,11 @@ generate
         .in_1_i           ( apu_flags_ex_voter_in[0] ),
         .in_2_i           ( apu_flags_ex_voter_in[1] ),
         .in_3_i           ( apu_flags_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_flags_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2392,10 +2442,11 @@ generate
         .in_1_i           ( data_type_ex_voter_in[0] ),
         .in_2_i           ( data_type_ex_voter_in[1] ),
         .in_3_i           ( data_type_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_type_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2405,10 +2456,11 @@ generate
         .in_1_i           ( data_sign_ext_ex_voter_in[0] ),
         .in_2_i           ( data_sign_ext_ex_voter_in[1] ),
         .in_3_i           ( data_sign_ext_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_sign_ext_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2418,10 +2470,11 @@ generate
         .in_1_i           ( data_load_event_ex_voter_in[0] ),
         .in_2_i           ( data_load_event_ex_voter_in[1] ),
         .in_3_i           ( data_load_event_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_load_event_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2431,10 +2484,11 @@ generate
         .in_1_i           ( data_reg_offset_ex_voter_in[0] ),
         .in_2_i           ( data_reg_offset_ex_voter_in[1] ),
         .in_3_i           ( data_reg_offset_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_reg_offset_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2444,10 +2498,11 @@ generate
         .in_1_i           ( data_misaligned_ex_voter_in[0] ),
         .in_2_i           ( data_misaligned_ex_voter_in[1] ),
         .in_3_i           ( data_misaligned_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( data_misaligned_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2457,10 +2512,11 @@ generate
         .in_1_i           ( useincr_addr_ex_voter_in[0] ),
         .in_2_i           ( useincr_addr_ex_voter_in[1] ),
         .in_3_i           ( useincr_addr_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( useincr_addr_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2470,10 +2526,11 @@ generate
         .in_1_i           ( atop_ex_voter_in[0] ),
         .in_2_i           ( atop_ex_voter_in[1] ),
         .in_3_i           ( atop_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( atop_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2483,10 +2540,11 @@ generate
         .in_1_i           ( alu_en_ex_voter_in[0] ),
         .in_2_i           ( alu_en_ex_voter_in[1] ),
         .in_3_i           ( alu_en_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( alu_en_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2497,10 +2555,11 @@ generate
         .in_1_i           ( mult_operator_ex_voter_in[0] ),
         .in_2_i           ( mult_operator_ex_voter_in[1] ),
         .in_3_i           ( mult_operator_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_operator_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2510,10 +2569,11 @@ generate
         .in_1_i           ( mult_operand_a_ex_voter_in[0] ),
         .in_2_i           ( mult_operand_a_ex_voter_in[1] ),
         .in_3_i           ( mult_operand_a_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_operand_a_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2523,10 +2583,11 @@ generate
         .in_1_i           ( mult_operand_b_ex_voter_in[0] ),
         .in_2_i           ( mult_operand_b_ex_voter_in[1] ),
         .in_3_i           ( mult_operand_b_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_operand_b_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2536,10 +2597,11 @@ generate
         .in_1_i           ( mult_operand_c_ex_voter_in[0] ),
         .in_2_i           ( mult_operand_c_ex_voter_in[1] ),
         .in_3_i           ( mult_operand_c_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_operand_c_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2549,10 +2611,11 @@ generate
         .in_1_i           ( mult_en_ex_voter_in[0] ),
         .in_2_i           ( mult_en_ex_voter_in[1] ),
         .in_3_i           ( mult_en_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_en_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2563,9 +2626,10 @@ generate
         .in_2_i           ( mult_sel_subword_ex_voter_in[1] ),
         .in_3_i           ( mult_sel_subword_ex_voter_in[2] ),
         .voted_o          ( mult_sel_subword_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .only_two_i       (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2575,10 +2639,11 @@ generate
         .in_1_i           ( mult_signed_mode_voter_in[0] ),
         .in_2_i           ( mult_signed_mode_voter_in[1] ),
         .in_3_i           ( mult_signed_mode_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_signed_mode_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2588,10 +2653,11 @@ generate
         .in_1_i           ( mult_imm_ex_voter_in[0] ),
         .in_2_i           ( mult_imm_ex_voter_in[1] ),
         .in_3_i           ( mult_imm_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_imm_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2601,10 +2667,11 @@ generate
         .in_1_i           ( mult_dot_op_a_ex_voter_in[0] ),
         .in_2_i           ( mult_dot_op_a_ex_voter_in[1] ),
         .in_3_i           ( mult_dot_op_a_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_dot_op_a_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2614,10 +2681,11 @@ generate
         .in_1_i           ( mult_dot_op_b_ex_voter_in[0] ),
         .in_2_i           ( mult_dot_op_b_ex_voter_in[1] ),
         .in_3_i           ( mult_dot_op_b_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_dot_op_b_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2627,10 +2695,11 @@ generate
         .in_1_i           ( mult_dot_op_c_ex_voter_in[0] ),
         .in_2_i           ( mult_dot_op_c_ex_voter_in[1] ),
         .in_3_i           ( mult_dot_op_c_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_dot_op_c_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2640,10 +2709,11 @@ generate
         .in_1_i           ( mult_dot_signed_ex_voter_in[0] ),
         .in_2_i           ( mult_dot_signed_ex_voter_in[1] ),
         .in_3_i           ( mult_dot_signed_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_dot_signed_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2654,10 +2724,11 @@ generate
         .in_1_i           ( mult_is_clpx_ex_voter_in[0] ),
         .in_2_i           ( mult_is_clpx_ex_voter_in[1] ),
         .in_3_i           ( mult_is_clpx_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_is_clpx_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2667,10 +2738,11 @@ generate
         .in_1_i           ( mult_clpx_shift_ex_voter_in[0] ),
         .in_2_i           ( mult_clpx_shift_ex_voter_in[1] ),
         .in_3_i           ( mult_clpx_shift_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_clpx_shift_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2681,10 +2753,11 @@ generate
         .in_1_i           ( mult_clpx_img_ex_voter_in[0] ),
         .in_2_i           ( mult_clpx_img_ex_voter_in[1] ),
         .in_3_i           ( mult_clpx_img_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( mult_clpx_img_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2695,10 +2768,11 @@ generate
         .in_1_i           ( apu_op_ex_voter_in[0] ),
         .in_2_i           ( apu_op_ex_voter_in[1] ),
         .in_3_i           ( apu_op_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_op_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2709,10 +2783,11 @@ generate
         .in_1_i           ( apu_operands_ex_voter_in[0] ),
         .in_2_i           ( apu_operands_ex_voter_in[1] ),
         .in_3_i           ( apu_operands_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_operands_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2722,10 +2797,11 @@ generate
         .in_1_i           ( apu_waddr_ex_voter_in[0] ),
         .in_2_i           ( apu_waddr_ex_voter_in[1] ),
         .in_3_i           ( apu_waddr_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( apu_waddr_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2736,10 +2812,11 @@ generate
         .in_1_i           ( regfile_alu_waddr_ex_voter_in[0] ),
         .in_2_i           ( regfile_alu_waddr_ex_voter_in[1] ),
         .in_3_i           ( regfile_alu_waddr_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( regfile_alu_waddr_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2750,10 +2827,11 @@ generate
         .in_1_i           ( regfile_alu_we_ex_voter_in[0] ),
         .in_2_i           ( regfile_alu_we_ex_voter_in[1] ),
         .in_3_i           ( regfile_alu_we_ex_voter_in[2] ),
+        .only_two_i       (  ),
         .voted_o          ( regfile_alu_we_ex_voted ),
-        .err_detected_1   (  ),
-        .err_detected_2   (  ),
-        .err_detected_3   (  ),
+        .err_detected_1_o   (  ),
+        .err_detected_2_o   (  ),
+        .err_detected_3_o   (  ),
         .err_corrected_o  (  ),
         .err_detected_o   (  )
         );
@@ -2764,10 +2842,11 @@ generate
          .in_1_i           ( bmask_a_ex_voter_in[0] ),
          .in_2_i           ( bmask_a_ex_voter_in[1] ),
          .in_3_i           ( bmask_a_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( bmask_a_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2777,10 +2856,11 @@ generate
          .in_1_i           ( bmask_b_ex_voter_in[0] ),
          .in_2_i           ( bmask_b_ex_voter_in[1] ),
          .in_3_i           ( bmask_b_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( bmask_b_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2790,10 +2870,11 @@ generate
          .in_1_i           ( imm_vec_ext_ex_voter_in[0] ),
          .in_2_i           ( imm_vec_ext_ex_voter_in[1] ),
          .in_3_i           ( imm_vec_ext_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( imm_vec_ext_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2803,10 +2884,11 @@ generate
          .in_1_i           ( alu_vec_mode_ex_voter_in[0] ),
          .in_2_i           ( alu_vec_mode_ex_voter_in[1] ),
          .in_3_i           ( alu_vec_mode_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( alu_vec_mode_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2816,10 +2898,11 @@ generate
          .in_1_i           ( alu_is_clpx_ex_voter_in[0] ),
          .in_2_i           ( alu_is_clpx_ex_voter_in[1] ),
          .in_3_i           ( alu_is_clpx_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( alu_is_clpx_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2829,10 +2912,11 @@ generate
          .in_1_i           ( alu_is_subrot_ex_voter_in[0] ),
          .in_2_i           ( alu_is_subrot_ex_voter_in[1] ),
          .in_3_i           ( alu_is_subrot_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( alu_is_subrot_ex_voted ),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );
@@ -2842,10 +2926,11 @@ generate
          .in_1_i           ( alu_clpx_shift_ex_voter_in[0] ),
          .in_2_i           ( alu_clpx_shift_ex_voter_in[1] ),
          .in_3_i           ( alu_clpx_shift_ex_voter_in[2] ),
+         .only_two_i       (  ),
          .voted_o          ( alu_clpx_shift_ex_voted),
-         .err_detected_1   (  ),
-         .err_detected_2   (  ),
-         .err_detected_3   (  ),
+         .err_detected_1_o   (  ),
+         .err_detected_2_o   (  ),
+         .err_detected_3_o   (  ),
          .err_corrected_o  (  ),
          .err_detected_o   (  )
         );

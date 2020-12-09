@@ -362,6 +362,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [2:0][3:0]   permanent_faulty_mult_s; 
   logic [2:0]        sel_mux_ex;             // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
   logic [3:0]        clock_enable_alu;		 // FT: output of quadruplicated pipe
+  logic              only_two_alu;
+  logic              only_two_mult;
+  logic [1:0]        sel_mux_only_two_alu;
+  logic [1:0]        sel_mux_only_two_mult;
   logic [1:0]        sel_bypass_alu;
   logic [1:0]        sel_bypass_mult;
 
@@ -821,6 +825,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .clock_enable_alu_o           ( clock_enable_alu        ),
     .sel_bypass_alu_ex_o          ( sel_bypass_alu          ),
     .sel_bypass_mult_ex_o         ( sel_bypass_mult         ),
+    .only_two_alu_o               ( only_two_alu            ),
+    .only_two_mult_o              ( only_two_mult           ),
+    .sel_mux_only_two_alu_o       ( sel_mux_only_two_alu    ),
+    .sel_mux_only_two_mult_o      ( sel_mux_only_two_mult   ),
     .alu_totally_defective_o      ( alu_totally_defective   ),
     .mult_totally_defective_o     ( mult_totally_defective  ),
     .pc_ex_voted_o                ( pc_ex_core              ),
@@ -1076,6 +1084,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mhpm_we_ft_i            ( mhpm_we_ft    ),    // write enable 
     .mhpm_wdata_ft_i         ( mhpm_wdata_ft ),     // the we want to write into the perf counter
 
+    .sel_mux_only_two_alu_i  ( sel_mux_only_two_alu    ),
+    .sel_mux_only_two_mult_i ( sel_mux_only_two_mult   ),
+    .only_two_alu_i          ( only_two_alu            ),
+    .only_two_mult_i         ( only_two_mult           ),
     .sel_bypass_alu_ex_i     ( sel_bypass_alu          ),
     .sel_bypass_mult_ex_i    ( sel_bypass_mult         )
 

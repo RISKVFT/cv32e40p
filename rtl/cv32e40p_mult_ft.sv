@@ -62,23 +62,39 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   input  logic [2:0]          sel_mux_ex_i, // selector of the three mux to choose three of the four alu
 
   // CSR: Performance counters
-  input  logic [11:0]         			mhpm_addr_ft_i,    // the address of the perf counter to be written
-  input  logic                			mhpm_re_ft_i,      // read enable 
-  output logic [31:0]         			mhpm_rdata_ft_o,   // the value of the performance counter we want to read
-  input  logic                			mhpm_we_ft_i,      // write enable 
-  input  logic [31:0]         			mhpm_wdata_ft_i,    // the we want to write into the perf counter
+  input  logic [11:0]         mhpm_addr_ft_i,    // the address of the perf counter to be written
+  input  logic                mhpm_re_ft_i,      // read enable 
+  output logic [31:0]         mhpm_rdata_ft_o,   // the value of the performance counter we want to read
+  input  logic                mhpm_we_ft_i,      // write enable 
+  input  logic [31:0]         mhpm_wdata_ft_i,    // the we want to write into the perf counter
+
+  // set if only two MULT are not permanent faulty
+  input  logic    			  only_two_mult_i,
+  input  logic [1:0]          sel_mux_only_two_mult_i,
 
   // bypass if more than 2 MUlt are faulty
-  input  logic [1:0]					sel_bypass_mult_i
+  input  logic [1:0]		  sel_bypass_mult_i
 
 );
 
 
-	// signal out of the four replicas to voters
+	// signal out of the four replicas to "only_two" mechanism
 	logic [2:0][31:0]         result_o_ft;
 	logic [2:0]               multicycle_o_ft;
 	logic [2:0]               ready_o_ft;
 
+	// signal out of the "only_two" muxs going into the voting mechanism
+    logic [31:0]              voter_res_1_in;
+	logic [31:0]              voter_res_2_in;
+	logic [31:0]              voter_res_3_in;
+
+	logic                     voter_multicycle_1_in;
+	logic                     voter_multicycle_2_in;
+	logic                     voter_multicycle_3_in;
+
+	logic                     voter_ready_1_in;
+	logic                     voter_ready_2_in;
+	logic                     voter_ready_3_in;
 
 	// signals out from the voter
 
@@ -256,18 +272,34 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        );
 
 
+
+	        // Insantiate 2 mux to select 2 of the 3 availabel results if "only_two"
+	        assign voter_res_1_in = sel_mux_only_two_mult_i[0] ? result_o_ft[2] : result_o_ft[0];
+	        assign voter_res_2_in = sel_mux_only_two_mult_i[1] ? result_o_ft[2] : result_o_ft[1];
+	        assign voter_res_3_in = result_o_ft[2];
+
+	        assign voter_multicycle_1_in = sel_mux_only_two_mult_i[0] ? multicycle_o_ft[2] : multicycle_o_ft[0];
+	        assign voter_multicycle_2_in = sel_mux_only_two_mult_i[1] ? multicycle_o_ft[2] : multicycle_o_ft[1];
+	        assign voter_multicycle_3_in = multicycle_o_ft[2];
+
+	        assign voter_ready_1_in = sel_mux_only_two_mult_i[0] ? ready_o_ft[2] : ready_o_ft[0];
+	        assign voter_ready_2_in = sel_mux_only_two_mult_i[1] ? ready_o_ft[2] : ready_o_ft[1];
+	        assign voter_ready_3_in = ready_o_ft[2];
+
+
 	        // VOTER 
 
 	        // the voter of result_o. 
 	        cv32e40p_3voter #(32,1) voter_result
 	         (
-	          .in_1_i           ( result_o_ft[0] ),
-	          .in_2_i           ( result_o_ft[1] ),
-	          .in_3_i           ( result_o_ft[2] ),
-	          .voted_o          ( result_voter   ),
-	          .err_detected_1 	( err_detected_res_1 ),
-	          .err_detected_2 	( err_detected_res_2 ),
-	          .err_detected_3 	( err_detected_res_3 ),
+	          .in_1_i           ( voter_res_1_in     ),
+	          .in_2_i           ( voter_res_2_in     ),
+	          .in_3_i           ( voter_res_3_in     ),
+	          .only_two_i       ( only_two_mult_i    ),
+	          .voted_o          ( result_voter       ),
+	          .err_detected_1_o ( err_detected_res_1 ),
+	          .err_detected_2_o ( err_detected_res_2 ),
+	          .err_detected_3_o ( err_detected_res_3 ),
 	          .err_corrected_o  ( err_corrected_res  ),
 	          .err_detected_o 	( err_detected_res 	 )
 	        );
@@ -275,13 +307,14 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        // voter of voter_multicycle_o
 	        cv32e40p_3voter #(1,1) voter_multicycle
 	        (
-	         .in_1_i           ( multicycle_o_ft[0] ),
-	         .in_2_i           ( multicycle_o_ft[1] ),
-	         .in_3_i           ( multicycle_o_ft[2] ),
-	         .voted_o          ( multicycle_voter   ),
-	         .err_detected_1   ( err_detected_multicycle_1 ),
-	         .err_detected_2   ( err_detected_multicycle_2 ),
-	         .err_detected_3   ( err_detected_multicycle_3 ),
+	         .in_1_i           ( voter_multicycle_1_in     ),
+	         .in_2_i           ( voter_multicycle_2_in     ),
+	         .in_3_i           ( voter_multicycle_3_in 	   ),
+	         .only_two_i       ( only_two_mult_i           ),
+	         .voted_o          ( multicycle_voter          ),
+	         .err_detected_1_o ( err_detected_multicycle_1 ),
+	         .err_detected_2_o ( err_detected_multicycle_2 ),
+	         .err_detected_3_o ( err_detected_multicycle_3 ),
 	         .err_corrected_o  ( err_corrected_multicycle  ),
 	         .err_detected_o   ( err_detected_multicycle   )
 	        );
@@ -289,13 +322,14 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        //voter of ready_o
 	        cv32e40p_3voter #(1,1) voter_ready
 	        (
-		     .in_1_i           ( ready_o_ft[0] ),
-		     .in_2_i           ( ready_o_ft[1] ),
-		     .in_3_i           ( ready_o_ft[2] ),
-		     .voted_o          ( ready_voter   ),
-		     .err_detected_1   ( err_detected_ready_1 ),
-		     .err_detected_2   ( err_detected_ready_2 ),
-		     .err_detected_3   ( err_detected_ready_3 ),
+		     .in_1_i           ( voter_ready_1_in 	  ),
+		     .in_2_i           ( voter_ready_2_in 	  ),
+		     .in_3_i           ( voter_ready_3_in 	  ),
+		     .only_two_i       ( only_two_mult_i      ),
+		     .voted_o          ( ready_voter          ),
+		     .err_detected_1_o ( err_detected_ready_1 ),
+		     .err_detected_2_o ( err_detected_ready_2 ),
+		     .err_detected_3_o ( err_detected_ready_3 ),
 		     .err_corrected_o  ( err_corrected_ready  ),
 		     .err_detected_o   ( err_detected_ready   )
 	        );

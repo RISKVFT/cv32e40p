@@ -117,7 +117,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic [31:0]                 apu_master_result_i,
 
   input  logic [3:0]       lsu_en_i,
-  input  logic [31:0]	   lsu_rdata_i,
+  input  logic [31:0]	     lsu_rdata_i,
 
   // input from ID stage
   input  logic [3:0]       branch_in_ex_i,
@@ -130,7 +130,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // CSR access
   input  logic [3:0]       csr_access_i,
-  input  logic [31:0] csr_rdata_i,
+  input  logic [31:0]      csr_rdata_i,
 
   // Output of EX stage pipeline
   output logic [5:0]  regfile_waddr_wb_o,
@@ -187,7 +187,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic                err_detected_mult_o,
 
   input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
-  input logic [APU_NARGS_CPU-1:0][31:0]          apu_operands_ex_voted_i,
+  input logic [APU_NARGS_CPU-1:0][31:0]      apu_operands_ex_voted_i,
   input logic [ 5:0]          apu_waddr_ex_voted_i,
   input logic [ 5:0]          regfile_alu_waddr_ex_voted_i,
   input logic                 regfile_alu_we_ex_voted_i,
@@ -206,7 +206,13 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic                mhpm_we_ft_i,      // write enable 
   input  logic [31:0]         mhpm_wdata_ft_i,   // the we want to write into the perf counter
 
-  // bypass if more than 2 ALU/MULT are faulty
+  // set if only two ALU/MULT are not permanent faulty
+  input  logic                only_two_alu_i,
+  input  logic                only_two_mult_i,
+  input  logic [1:0]          sel_mux_only_two_alu_i,
+  input  logic [1:0]          sel_mux_only_two_mult_i,
+
+  // bypass if more than 2 ALU/MULT are permanent faulty
   input  logic [1:0]          sel_bypass_alu_ex_i,
   input  logic [1:0]          sel_bypass_mult_ex_i
 
@@ -265,10 +271,11 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .in_1_i           ( mult_en_i[0] ),
     .in_2_i           ( mult_en_i[1] ),
     .in_3_i           ( mult_en_i[2] ),
+    .only_two_i       (  ),
     .voted_o          ( mult_en_ex_voted ),
-    .err_detected_1   (  ),
-    .err_detected_2   (  ),
-    .err_detected_3   (  ),
+    .err_detected_1_o (  ),
+    .err_detected_2_o (  ),
+    .err_detected_3_o (  ),
     .err_corrected_o  (  ),
     .err_detected_o   (  )
   );
@@ -381,9 +388,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ready_o             ( alu_ready       ),
     .ex_ready_i          ( ex_ready_o      ),
 
-    .clock_en_i          (clock_enable_alu_i ),
-    .err_corrected_o     (err_corrected_alu_o),
-    .err_detected_o      (err_detected_alu_o ),
+    .clock_en_i             (clock_enable_alu_i ),
+    .err_corrected_o        (err_corrected_alu_o),
+    .err_detected_o         (err_detected_alu_o ),
     .permanent_faulty_alu_o (permanent_faulty_alu_o),
     .permanent_faulty_alu_s (permanent_faulty_alu_s_o), 
     //.perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
@@ -394,7 +401,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .mhpm_we_ft_i        ( mhpm_we_ft_i      ),   // write enable 
     .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i   ),
 
-    .sel_bypass_alu_i          ( sel_bypass_alu_ex_i    )
+    .only_two_alu_i         ( only_two_alu_i         ),
+    .sel_mux_only_two_alu_i ( sel_mux_only_two_alu_i ),
+    .sel_bypass_alu_i       ( sel_bypass_alu_ex_i    )
 
     /*// for those single signal (not quadruplicated used by the ALU)
     .enable_single_i      ( enable_single_i ),
@@ -473,7 +482,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .mhpm_we_ft_i        ( mhpm_we_ft_i       ),   // write enable 
     .mhpm_wdata_ft_i     ( mhpm_wdata_ft_i    ),
 
-    .sel_bypass_mult_i   ( sel_bypass_mult_ex_i   )
+    .only_two_mult_i         ( only_two_mult_i         ),
+    .sel_mux_only_two_mult_i ( sel_mux_only_two_mult_i ),
+    .sel_bypass_mult_i       ( sel_bypass_mult_ex_i    )
   );
 
   always_comb  begin
