@@ -1084,10 +1084,11 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mhpm_we_ft_i            ( mhpm_we_ft    ),    // write enable 
     .mhpm_wdata_ft_i         ( mhpm_wdata_ft ),     // the we want to write into the perf counter
 
-    .sel_mux_only_two_alu_i  ( sel_mux_only_two_alu    ),
-    .sel_mux_only_two_mult_i ( sel_mux_only_two_mult   ),
     .only_two_alu_i          ( only_two_alu            ),
     .only_two_mult_i         ( only_two_mult           ),
+    .sel_mux_only_two_alu_i  ( sel_mux_only_two_alu    ),
+    .sel_mux_only_two_mult_i ( sel_mux_only_two_mult   ),
+    
     .sel_bypass_alu_ex_i     ( sel_bypass_alu          ),
     .sel_bypass_mult_ex_i    ( sel_bypass_mult         )
 

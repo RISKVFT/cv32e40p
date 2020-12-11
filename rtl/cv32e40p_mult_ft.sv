@@ -334,6 +334,51 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 		     .err_detected_o   ( err_detected_ready   )
 	        );
 
+			/*
+			cv32e40p_3voter #(32,1) voter_result
+	         (
+	          .in_1_i           ( result_o_ft[0] ),
+	          .in_2_i           ( result_o_ft[1] ),
+	          .in_3_i           ( result_o_ft[2] ),
+	          .only_two_i       ( 1'b0 ),
+	          .voted_o          ( result_voter   ),
+	          .err_detected_1_o 	( err_detected_res_1 ),
+	          .err_detected_2_o 	( err_detected_res_2 ),
+	          .err_detected_3_o 	( err_detected_res_3 ),
+	          .err_corrected_o  ( err_corrected_res  ),
+	          .err_detected_o 	( err_detected_res 	 )
+	        );
+
+	        // voter of voter_multicycle_o
+	        cv32e40p_3voter #(1,1) voter_multicycle
+	        (
+	         .in_1_i           ( multicycle_o_ft[0] ),
+	         .in_2_i           ( multicycle_o_ft[1] ),
+	         .in_3_i           ( multicycle_o_ft[2] ),
+	         .only_two_i       ( 1'b0 ),
+	         .voted_o          ( multicycle_voter   ),
+	         .err_detected_1_o   ( err_detected_multicycle_1 ),
+	         .err_detected_2_o   ( err_detected_multicycle_2 ),
+	         .err_detected_3_o   ( err_detected_multicycle_3 ),
+	         .err_corrected_o  ( err_corrected_multicycle  ),
+	         .err_detected_o   ( err_detected_multicycle   )
+	        );
+
+	        //voter of ready_o
+	        cv32e40p_3voter #(1,1) voter_ready
+	        (
+		     .in_1_i           ( ready_o_ft[0] ),
+		     .in_2_i           ( ready_o_ft[1] ),
+		     .in_3_i           ( ready_o_ft[2] ),
+		     .voted_o          ( ready_voter   ),
+		     .only_two_i       ( 1'b0 ),
+		     .err_detected_1_o   ( err_detected_ready_1 ),
+		     .err_detected_2_o   ( err_detected_ready_2 ),
+		     .err_detected_3_o   ( err_detected_ready_3 ),
+		     .err_corrected_o  ( err_corrected_ready  ),
+		     .err_detected_o   ( err_detected_ready   )
+	        );
+			*/
 
 	        assign result_o 	  = sel_bypass_mult_i[1] ? (sel_bypass_mult_i[0] ? result_o_ft[2] 	 : result_o_ft[1]) 	   : (sel_bypass_mult_i[0] ? result_o_ft[0]     : result_voter);
 	        assign multicycle_o   = sel_bypass_mult_i[1] ? (sel_bypass_mult_i[0] ? multicycle_o_ft[0] : multicycle_o_ft[1]) : (sel_bypass_mult_i[0] ? multicycle_o_ft[0] : multicycle_voter);

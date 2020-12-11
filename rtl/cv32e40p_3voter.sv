@@ -82,9 +82,13 @@ begin
 		if (in_1_i!=in_2_i) begin
 			err_detected_1_o = 1'b1;
 			err_detected_2_o = 1'b1;
+			err_corrected_o  = 1'b1;
+			voted_o=in_1_i;
 		end else begin
 			err_detected_1_o = 1'b0;
 			err_detected_2_o = 1'b0;
+			err_corrected_o  = 1'b0;
+			voted_o=in_1_i;
 		end
 	end
 end

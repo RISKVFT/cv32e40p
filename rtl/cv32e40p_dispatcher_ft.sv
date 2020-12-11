@@ -12,7 +12,7 @@
 // Project Name:   cv32e40p Fault tolernat                                    //
 // Language:       SystemVerilog                                              //
 //                                                                            //
-// Description:    Decodet to choose the correct set of 3 ALU among the 4     //
+// Description:    Decoder to choose the correct set of 3 ALU among the 4     //
 //   			   available                                                  //
 //                                                                            //
 //////////////////////////////////////////////////////////////////////////////// 
@@ -48,6 +48,16 @@ module cv32e40p_dispatcher_ft(
 
 always_comb begin : proc_decoder_faulty_alu
 
+	/*//default
+	clock_gate_pipe_replica_o = 4'b0111;
+	sel_mux_ex_o              = 3'b000;
+	sel_bypass_alu_o          = 2'b00;
+	alu_totally_defective_o   = 1'b0;
+	sel_bypass_mult_o         = 2'b00;
+	mult_totally_defective_o  = 1'b0;
+	sel_mux_only_two_alu_o    = 2'b00;
+	sel_mux_only_two_mult_o   = 2'b00;*/
+
 	if (~rst_n) begin
 		clock_gate_pipe_replica_o = 4'b0111;
 		sel_mux_ex_o              = 3'b000;
@@ -56,8 +66,8 @@ always_comb begin : proc_decoder_faulty_alu
 		sel_bypass_mult_o         = 2'b00;
 		mult_totally_defective_o  = 1'b0;
 
-		sel_mux_only_two_alu_o    = 2'b0;
-		sel_mux_only_two_mult_o   = 2'b0;
+		sel_mux_only_two_alu_o    = 2'b00;
+		sel_mux_only_two_mult_o   = 2'b00;
 
 	end else if (alu_used) begin  //only if alu has to be used we have to provide this decoding becasue it is relative to the choice of three of the four ALUs
 		unique case (permanent_faulty_alu_i)
@@ -66,18 +76,21 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_mux_ex_o = 3'b000;
 				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b0001: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
 				sel_mux_ex_o = 3'b001;
 				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b0010: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
 				sel_mux_ex_o = 3'b010;
 				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b0011: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
@@ -91,6 +104,7 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b0101: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
@@ -111,6 +125,7 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_alu_o = 2'b11;
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b1000, 4'b1010, 4'b1011, 4'b1101, 4'b1110 : begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
@@ -118,6 +133,7 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_bypass_alu_o[1] = permanent_faulty_alu_i[0] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[1]);
 				sel_bypass_alu_o[0] = permanent_faulty_alu_i[1] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[0]);
 				alu_totally_defective_o = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			4'b1001: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
@@ -133,20 +149,21 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_bypass_alu_o[1] = permanent_faulty_alu_i[0] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[1]);
 				sel_bypass_alu_o[0] = permanent_faulty_alu_i[1] && (permanent_faulty_alu_i[2]^permanent_faulty_alu_i[0]);
 				alu_totally_defective_o = 1'b0;
-				sel_mux_only_two_alu_o  = 2'b0;
+				sel_mux_only_two_alu_o  = 2'b00;
 			end
 			4'b1111: begin // all the ALUs are permanently faulty for that operation
 				clock_gate_pipe_replica_o = ~permanent_faulty_alu_i;
 				sel_mux_ex_o = 3'b000;
 				sel_bypass_alu_o = 2'b00;
 				alu_totally_defective_o = 1'b1;
+				sel_mux_only_two_alu_o    = 2'b00;
 			end
 			default : begin
 				clock_gate_pipe_replica_o = 4'b0111;
-				sel_mux_ex_o = 3'b000;
-				sel_bypass_alu_o = 2'b00;
-				alu_totally_defective_o = 1'b0;
-				sel_mux_only_two_alu_o  = 2'b0;
+				sel_mux_ex_o 			  = 3'b000;
+				sel_bypass_alu_o          = 2'b00;
+				alu_totally_defective_o   = 1'b0;
+				sel_mux_only_two_alu_o    = 2'b00;
 				
 			end
 		endcase
@@ -158,6 +175,7 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
+				sel_mux_only_two_mult_o   = 2'b00;
 			end
 			4'b001: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
@@ -179,6 +197,7 @@ always_comb begin : proc_decoder_faulty_alu
 				sel_mux_ex_o = 3'b010;
 				sel_bypass_mult_o = 2'b11;
 				mult_totally_defective_o = 1'b0;
+				sel_mux_only_two_mult_o   = 2'b00;
 
 			end
 			4'b100: begin
@@ -193,25 +212,28 @@ always_comb begin : proc_decoder_faulty_alu
 			    sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b10;
 				mult_totally_defective_o = 1'b0;
+				sel_mux_only_two_mult_o   = 2'b00;
 			end
 			4'b110: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b01;
 				mult_totally_defective_o = 1'b0;
+				sel_mux_only_two_mult_o   = 2'b00;
 			end
 			4'b111: begin
 				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
 				sel_mux_ex_o = 3'b100;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b1; // In this case it is activated the mechanism to compute the multiplication as sequence of sums and shifts
+				sel_mux_only_two_mult_o   = 2'b00;
 			end
 			default : begin
 				clock_gate_pipe_replica_o = 4'b0111;
 				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
-				sel_mux_only_two_mult_o  = 2'b0;
+				sel_mux_only_two_mult_o  = 2'b00;
 			end
 		endcase
 	end
@@ -220,5 +242,6 @@ end
 
 assign only_two_alu_o  = sel_mux_only_two_alu_o[1]  || sel_mux_only_two_alu_o[0];
 assign only_two_mult_o = sel_mux_only_two_mult_o[1] || sel_mux_only_two_mult_o[0];
+
 
 endmodule : cv32e40p_dispatcher_ft

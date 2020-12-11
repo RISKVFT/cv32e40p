@@ -271,7 +271,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .in_1_i           ( mult_en_i[0] ),
     .in_2_i           ( mult_en_i[1] ),
     .in_3_i           ( mult_en_i[2] ),
-    .only_two_i       (  ),
+    .only_two_i       ( 1'b0 ),
     .voted_o          ( mult_en_ex_voted ),
     .err_detected_1_o (  ),
     .err_detected_2_o (  ),

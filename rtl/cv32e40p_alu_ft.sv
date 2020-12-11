@@ -216,6 +216,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        // MUX
 
+	        
 	        // Insantiate 3 mux to select 3 of the 4 units available
 	        assign voter_res_1_only_two_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
 	        assign voter_res_2_only_two_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
@@ -241,7 +242,22 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        assign voter_ready_1_in = sel_mux_only_two_alu_i[0] ? voter_ready_3_only_two_in : voter_ready_1_only_two_in;
 	        assign voter_ready_2_in = sel_mux_only_two_alu_i[1] ? voter_ready_3_only_two_in : voter_ready_2_only_two_in;
 	        assign voter_ready_3_in = voter_ready_3_only_two_in;
+			
+			
 
+			/*
+			assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
+	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
+	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
+
+	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[3] : comparison_result_o_ft[0];
+	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[3] : comparison_result_o_ft[1];
+	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[3] : comparison_result_o_ft[2];
+
+	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[3] : ready_o_ft[0];
+	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[3] : ready_o_ft[1];
+	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[3] : ready_o_ft[2];
+	        */
 
 	        // VOTER 
 
@@ -307,59 +323,59 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 					//4'b0010: // default
 
-					4'b0011: begin
-						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comp_alu0 = err_detected_comp_1;
+					4'b0011: begin // this assignment is consequence of only-two managing
+						err_detected_res_alu0   = err_detected_res_1;
+						err_detected_comp_alu0  = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
-						err_detected_res_alu2 = 1'b0;
-						err_detected_comp_alu2 = 1'b0;
+						err_detected_res_alu2   = 1'b0;
+						err_detected_comp_alu2  = 1'b0;
 						err_detected_ready_alu2 = 1'b0;
 
-						err_detected_res_alu3 = 1'b0;
-						err_detected_comp_alu3 = 1'b0;
+						err_detected_res_alu3   = 1'b0;
+						err_detected_comp_alu3  = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
 
 					//4'b0100: // default
 
 					4'b0101: begin
-						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_res_alu0   = err_detected_res_1;
+						err_detected_comp_alu0  = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
-						err_detected_res_alu1 = 1'b0;
-						err_detected_comp_alu1 = 1'b0;
+						err_detected_res_alu1   = 1'b0;
+						err_detected_comp_alu1  = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
-						err_detected_ready_alu2 = err_detected_ready_3;
+						err_detected_res_alu2   = err_detected_res_2;
+						err_detected_comp_alu2  = err_detected_comp_2;
+						err_detected_ready_alu2 = err_detected_ready_2;
 
-						err_detected_res_alu3 = 1'b0;
-						err_detected_comp_alu3 = 1'b0;
+						err_detected_res_alu3   = 1'b0;
+						err_detected_comp_alu3  = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
 
-					4'b0110: begin
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
+					4'b0110: begin // this assignment is consequence of only-two managing
+						err_detected_res_alu0   = 1'b0;
+						err_detected_comp_alu0  = 1'b0;
 						err_detected_ready_alu0 = 1'b0;
 
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
-						err_detected_ready_alu2 = err_detected_ready_3;
+						err_detected_res_alu2   = err_detected_res_1;
+						err_detected_comp_alu2  = err_detected_comp_1;
+						err_detected_ready_alu2 = err_detected_ready_1;
 
-						err_detected_res_alu3 = 1'b0;
-						err_detected_comp_alu3 = 1'b0;
+						err_detected_res_alu3   = 1'b0;
+						err_detected_comp_alu3  = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
 
@@ -383,7 +399,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 					//4'b1000: // default
 
-					4'b1001: begin
+					4'b1001: begin // this assignment is consequence of only-two managing
 						err_detected_res_alu0 = err_detected_res_1;
 						err_detected_comp_alu0 = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
@@ -395,137 +411,137 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 						err_detected_res_alu2 = 1'b0;
 						err_detected_comp_alu2 = 1'b0;
 						err_detected_ready_alu2 = 1'b0;
-
-						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comp_alu3 = err_detected_comp_3;
-						err_detected_ready_alu3 = err_detected_ready_3;
-					end
-
-					4'b1010: begin
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
-						err_detected_ready_alu0 = 1'b0;
-
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
-						err_detected_ready_alu1 = err_detected_ready_2;
-
-						err_detected_res_alu2 = 1'b0;
-						err_detected_comp_alu2 = 1'b0;
-						err_detected_ready_alu2 = 1'b0;
-
-						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comp_alu3 = err_detected_comp_3;
-						err_detected_ready_alu3 = err_detected_ready_3;
-					end
-
-					4'b1011: begin
-						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comp_alu0 = err_detected_comp_1;
-						err_detected_ready_alu0 = err_detected_ready_1;
-
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
-						err_detected_ready_alu1 = err_detected_ready_2;
-
-						err_detected_res_alu2 = 1'b0;
-						err_detected_comp_alu2 = 1'b0;
-						err_detected_ready_alu2 = 1'b0;
-
-						err_detected_res_alu3 = err_detected_res_3;
-						err_detected_comp_alu3 = err_detected_comp_3;
-						err_detected_ready_alu3 = err_detected_ready_3;
-					end
-
-					4'b1100: begin
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
-						err_detected_ready_alu0 = 1'b0;
-
-						err_detected_res_alu1 = 1'b0;
-						err_detected_comp_alu1 = 1'b0;
-						err_detected_ready_alu1 = 1'b0;
-
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
-						err_detected_ready_alu2 = err_detected_ready_3;
 
 						err_detected_res_alu3 = err_detected_res_2;
 						err_detected_comp_alu3 = err_detected_comp_2;
+						err_detected_ready_alu3 = err_detected_ready_2;
+					end
+
+					4'b1010: begin // this assignment is consequence of only-two managing
+						err_detected_res_alu0   = 1'b0;
+						err_detected_comp_alu0  = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2   = 1'b0;
+						err_detected_comp_alu2  = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
+
+						err_detected_res_alu3   = err_detected_res_1;
+						err_detected_comp_alu3  = err_detected_comp_1;
+						err_detected_ready_alu3 = err_detected_ready_1;
+					end
+
+					4'b1011: begin
+						err_detected_res_alu0   = err_detected_res_1;
+						err_detected_comp_alu0  = err_detected_comp_1;
+						err_detected_ready_alu0 = err_detected_ready_1;
+
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
+						err_detected_ready_alu1 = err_detected_ready_2;
+
+						err_detected_res_alu2   = 1'b0;
+						err_detected_comp_alu2  = 1'b0;
+						err_detected_ready_alu2 = 1'b0;
+
+						err_detected_res_alu3   = err_detected_res_3;
+						err_detected_comp_alu3  = err_detected_comp_3;
+						err_detected_ready_alu3 = err_detected_ready_3;
+					end
+
+					4'b1100: begin // this assignment is consequence of "only-two" managing
+						err_detected_res_alu0   = 1'b0;
+						err_detected_comp_alu0  = 1'b0;
+						err_detected_ready_alu0 = 1'b0;
+
+						err_detected_res_alu1   = 1'b0;
+						err_detected_comp_alu1  = 1'b0;
+						err_detected_ready_alu1 = 1'b0;
+
+						err_detected_res_alu2   = err_detected_res_1;
+						err_detected_comp_alu2  = err_detected_comp_1;
+						err_detected_ready_alu2 = err_detected_ready_1;
+
+						err_detected_res_alu3   = err_detected_res_2;
+						err_detected_comp_alu3  = err_detected_comp_2;
 						err_detected_ready_alu3 = err_detected_ready_2;
 					end
 
 					4'b1101: begin
-						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_res_alu0   = err_detected_res_1;
+						err_detected_comp_alu0  = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
-						err_detected_res_alu1 = 1'b0;
-						err_detected_comp_alu1 = 1'b0;
+						err_detected_res_alu1   = 1'b0;
+						err_detected_comp_alu1  = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_res_alu2   = err_detected_res_3;
+						err_detected_comp_alu2  = err_detected_comp_3;
 						err_detected_ready_alu2 = err_detected_ready_3;
 
-						err_detected_res_alu3 = err_detected_res_2;
-						err_detected_comp_alu3 = err_detected_comp_2;
+						err_detected_res_alu3   = err_detected_res_2;
+						err_detected_comp_alu3  = err_detected_comp_2;
 						err_detected_ready_alu3 = err_detected_ready_2;
 					end
 
 					4'b1110: begin
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
+						err_detected_res_alu0   = 1'b0;
+						err_detected_comp_alu0  = 1'b0;
 						err_detected_ready_alu0 = 1'b0;
 
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_res_alu2   = err_detected_res_3;
+						err_detected_comp_alu2  = err_detected_comp_3;
 						err_detected_ready_alu2 = err_detected_ready_3;
 
-						err_detected_res_alu3 = err_detected_res_1;
-						err_detected_comp_alu3 = err_detected_comp_1;
+						err_detected_res_alu3   = err_detected_res_1;
+						err_detected_comp_alu3  = err_detected_comp_1;
 						err_detected_ready_alu3 = err_detected_ready_1;
 					end
 
 
 					4'b1111: begin
-						err_detected_res_alu0 = err_detected_res_1;
-						err_detected_comp_alu0 = err_detected_comp_1;
+						err_detected_res_alu0   = err_detected_res_1;
+						err_detected_comp_alu0  = err_detected_comp_1;
 						err_detected_ready_alu0 = err_detected_ready_1;
 
-						err_detected_res_alu1 = err_detected_res_2;
-						err_detected_comp_alu1 = err_detected_comp_2;
+						err_detected_res_alu1   = err_detected_res_2;
+						err_detected_comp_alu1  = err_detected_comp_2;
 						err_detected_ready_alu1 = err_detected_ready_2;
 
-						err_detected_res_alu2 = err_detected_res_3;
-						err_detected_comp_alu2 = err_detected_comp_3;
+						err_detected_res_alu2   = err_detected_res_3;
+						err_detected_comp_alu2  = err_detected_comp_3;
 						err_detected_ready_alu2 = err_detected_ready_3;
 
-						err_detected_res_alu3 = 1'b0;
-						err_detected_comp_alu3 = 1'b0;
+						err_detected_res_alu3   = 1'b0;
+						err_detected_comp_alu3  = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
 
 
 					default: begin // (0111, 1111)
-						err_detected_res_alu0 = 1'b0;
-						err_detected_comp_alu0 = 1'b0;
+						err_detected_res_alu0   = 1'b0;
+						err_detected_comp_alu0  = 1'b0;
 						err_detected_ready_alu0 = 1'b0;
 
-						err_detected_res_alu1 = 1'b0;
-						err_detected_comp_alu1 = 1'b0;
+						err_detected_res_alu1   = 1'b0;
+						err_detected_comp_alu1  = 1'b0;
 						err_detected_ready_alu1 = 1'b0;
 
-						err_detected_res_alu2 = 1'b0;
-						err_detected_comp_alu2 = 1'b0;
+						err_detected_res_alu2   = 1'b0;
+						err_detected_comp_alu2  = 1'b0;
 						err_detected_ready_alu2 = 1'b0;
 
-						err_detected_res_alu3 = 1'b0;
-						err_detected_comp_alu3 = 1'b0;
+						err_detected_res_alu3   = 1'b0;
+						err_detected_comp_alu3  = 1'b0;
 						err_detected_ready_alu3 = 1'b0;
 					end
 				endcase 
