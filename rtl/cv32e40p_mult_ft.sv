@@ -455,7 +455,14 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 
 			assign err_corrected_o = 1'b0;
 	  		assign err_detected_o  = 1'b0;
-			assign perf_counter_permanent_faulty_mult_o = 3'b0;
+
+	  		genvar y;
+ 			for (y=0; y<3; y++) begin
+	  			assign permanent_faulty_mult_o[y] = 4'b0;
+	  			assign permanent_faulty_mult_s[y] = 4'b0;
+	  		end
+	  		
+			assign mhpm_rdata_ft_o = 32'b0;
    
          end
 

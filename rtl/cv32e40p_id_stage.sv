@@ -2977,7 +2977,7 @@ generate
         (
           // INPUTS //
           .clk                      ( clk ),
-          .clk_g                    ( clk_gated_ft ), // Gated cloc
+          .clk_g                    ( clk ), // Gated cloc
           .rst_n                    ( rst_n ),
           .data_misaligned_i        ( data_misaligned_i ),
           .ex_ready_i               ( ex_ready_i ),// EX stage is ready for the next instruction
@@ -3114,6 +3114,10 @@ generate
         assign sel_bypass_mult_ex_o 	= 2'b0;
         assign alu_totally_defective_o	= 1'b0;
         assign mult_totally_defective_o = 1'b0;
+        assign only_two_alu_o           = 1'b0;
+        assign only_two_mult_o          = 1'b0;
+        assign sel_mux_only_two_alu_o   = 2'b0;
+        assign sel_mux_only_two_mult_o  = 2'b0;
 
 
         assign pc_ex_o[3:1] 			= 3'b000;
@@ -3208,7 +3212,7 @@ generate
         assign data_load_event_ex_voted_o = data_load_event_ex_o[0];
         assign data_reg_offset_ex_voted_o = data_reg_offset_ex_o[0];
         assign data_misaligned_ex_voted_o = data_misaligned_ex_o[0];
-        assign useincr_addr_ex_vote_o     = prepost_useincr_ex_o[0];
+        assign useincr_addr_ex_voted_o    = prepost_useincr_ex_o[0];
         assign atop_ex_voted_o            = atop_ex_o[0];
 
         // output signals used inside ex_stage but not in the ALU
