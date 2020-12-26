@@ -265,20 +265,23 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [31:0]    mhpm_rdata_ft_alu;    // the value of the performance_counter/csr we want to read from alu
   logic [31:0]    mhpm_rdata_ft_mult;   // the value of the performance_counter/csr we want to read from mult
  
-  // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
-  cv32e40p_3voter #(1,1) voter_mult_en_ex
-  (
-    .in_1_i           ( mult_en_i[0] ),
-    .in_2_i           ( mult_en_i[1] ),
-    .in_3_i           ( mult_en_i[2] ),
-    .only_two_i       ( 1'b0 ),
-    .voted_o          ( mult_en_ex_voted ),
-    .err_detected_1_o (  ),
-    .err_detected_2_o (  ),
-    .err_detected_3_o (  ),
-    .err_corrected_o  (  ),
-    .err_detected_o   (  )
-  );
+  if (FT) begin // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
+    cv32e40p_3voter #(1,1) voter_mult_en_ex
+    (
+      .in_1_i           ( mult_en_i[0] ),
+      .in_2_i           ( mult_en_i[1] ),
+      .in_3_i           ( mult_en_i[2] ),
+      .only_two_i       ( 1'b0 ),
+      .voted_o          ( mult_en_ex_voted ),
+      .err_detected_1_o (  ),
+      .err_detected_2_o (  ),
+      .err_detected_3_o (  ),
+      .err_corrected_o  (  ),
+      .err_detected_o   (  )
+    ); 
+  end else begin
+    assign mult_en_ex_voted = mult_en_i;
+  end
 
 
   // ALU write port mux
