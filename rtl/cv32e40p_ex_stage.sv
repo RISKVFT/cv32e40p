@@ -163,7 +163,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   output logic [3:0][8:0]  permanent_faulty_alu_s_o,
   output logic [2:0][3:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
   output logic [2:0][3:0]  permanent_faulty_mult_s_o,  
-  input  logic [3:0]       clock_enable_alu_i,
+  input  logic [3:0]       clock_enable_i,
 
   // addictional inputs coming from the id_stage pipeline after a voting mechanism
   input logic                 alu_en_ex_voted_i,
@@ -345,7 +345,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   cv32e40p_clock_gate clk_gate_alu_4[3:0]
   (
    .clk_i        ( clk ),
-   .en_i         ( clock_enable_alu_i ),
+   .en_i         ( clock_enable_i ),
    .scan_cg_en_i ( 1'b0 ), // not used here
    .clk_o        ( clk_gated_alu_ft   )
   );
@@ -391,7 +391,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ready_o             ( alu_ready       ),
     .ex_ready_i          ( ex_ready_o      ),
 
-    .clock_en_i             (clock_enable_alu_i ),
+    .clock_en_i             (clock_enable_i     ),
     .err_corrected_o        (err_corrected_alu_o),
     .err_detected_o         (err_detected_alu_o ),
     .permanent_faulty_alu_o (permanent_faulty_alu_o),
@@ -470,7 +470,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ready_o         ( mult_ready           ),
     .ex_ready_i      ( ex_ready_o           ),
 
-    .clock_en_i      ( clock_enable_alu_i   ),
+    .clock_en_i      ( clock_enable_i   ),
     .err_corrected_o ( err_corrected_mult_o ),
     .err_detected_o  ( err_detected_mult_o  ),
 

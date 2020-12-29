@@ -69,21 +69,6 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   // bypass if more than 2 ALU are faulty
   input  logic [1:0]					sel_bypass_alu_i
 
-  /*// signal for single ALU if FT==0 (remove these if everithing is made selectable by (if FT==1))
-  input  logic                     enable_single_i,
-  input  logic [ALU_OP_WIDTH-1:0]  operator_single_i,
-  input  logic [31:0]              operand_a_single_i,
-  input  logic [31:0]              operand_b_single_i,
-  input  logic [31:0]              operand_c_single_i,
-
-  input  logic [ 1:0]              vector_mode_single_i,
-  input  logic [ 4:0]              bmask_a_single_i,
-  input  logic [ 4:0]              bmask_b_single_i,
-  input  logic [ 1:0]              imm_vec_ext_single_i,
-
-  input  logic                     is_clpx_single_i,
-  input  logic                     is_subrot_single_i,
-  input  logic [ 1:0]              clpx_shift_single_i*/
 );
 
 
@@ -214,10 +199,9 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 
 
-	        // MUX
-
+	        /// MUXS ///
 	        
-	        // Insantiate 3 mux to select 3 of the 4 units available
+	        // Insantiate 3 muxs to select 3 of the 4 units available
 	        assign voter_res_1_only_two_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
 	        assign voter_res_2_only_two_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
 	        assign voter_res_3_only_two_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
@@ -243,26 +227,11 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	        assign voter_ready_2_in = sel_mux_only_two_alu_i[1] ? voter_ready_3_only_two_in : voter_ready_2_only_two_in;
 	        assign voter_ready_3_in = voter_ready_3_only_two_in;
 			
-			
-
-			/*
-			assign voter_res_1_in = sel_mux_ex_i[0] ? result_o_ft[3] : result_o_ft[0];
-	        assign voter_res_2_in = sel_mux_ex_i[1] ? result_o_ft[3] : result_o_ft[1];
-	        assign voter_res_3_in = sel_mux_ex_i[2] ? result_o_ft[3] : result_o_ft[2];
-
-	        assign voter_comp_1_in = sel_mux_ex_i[0] ? comparison_result_o_ft[3] : comparison_result_o_ft[0];
-	        assign voter_comp_2_in = sel_mux_ex_i[1] ? comparison_result_o_ft[3] : comparison_result_o_ft[1];
-	        assign voter_comp_3_in = sel_mux_ex_i[2] ? comparison_result_o_ft[3] : comparison_result_o_ft[2];
-
-	        assign voter_ready_1_in = sel_mux_ex_i[0] ? ready_o_ft[3] : ready_o_ft[0];
-	        assign voter_ready_2_in = sel_mux_ex_i[1] ? ready_o_ft[3] : ready_o_ft[1];
-	        assign voter_ready_3_in = sel_mux_ex_i[2] ? ready_o_ft[3] : ready_o_ft[2];
-	        */
-
-	        // VOTER 
 
 
-	        // the voter of result_o. 
+	        /// VOTERS ///
+
+	        // voter of result_o. 
 	        cv32e40p_3voter #(32,1) voter_result
 	         (
 	          .in_1_i           ( voter_res_1_in 	 ),
@@ -292,7 +261,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	         .err_detected_o   ( err_detected_comp 	      )
 	        );
 
-	        //voter of ready_o
+	        // voter of ready_o
 	        cv32e40p_3voter #(1,1) voter_ready
 	        (
 		     .in_1_i           ( voter_ready_1_in     ),
@@ -559,9 +528,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 	        cv32e40p_alu_err_counter_ft err_counter_result
 			(
-			  .clk 									( clk        ),
-	         //.clk                                   ( clk_g       ),
-			  .clock_en 							( clock_en_i ),
+	          .clock_gated                          ( clk_g      ),
 			  .rst_n								( rst_n      ),
 			  .alu_enable_i 						( enable_i   ),
 			  .alu_operator_i 						( operator_i ),
@@ -569,7 +536,6 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .ready_o_div_count                    ( ready_o    ),
 			  .permanent_faulty_alu_o     			( permanent_faulty_alu_o   ),
 			  .permanent_faulty_alu_s               ( permanent_faulty_alu_s   ),  
-			  //.perf_counter_permanent_faulty_alu_o	( perf_counter_permanent_faulty_alu_o ),
 			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
 			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),     // read enable 
 			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),     // the value of the performance counter we want to read
@@ -583,38 +549,6 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 
 
 
-
-	/*cv32e40p_alu alu_x
-	        (
-	         .clk                 ( clk             ),
-	         .rst_n               ( rst_n           ),
-	         .enable_i            ( enable_single_i    ),
-	         .operator_i          ( operator_single_i  ),
-	         .operand_a_i         ( operand_a_single_i ),
-	         .operand_b_i         ( operand_b_single_i ),
-	         .operand_c_i         ( operand_c_single_i ),
-
-	         .vector_mode_i       ( vector_mode_single_i   ),
-	         .bmask_a_i           ( bmask_a_single_i       ),
-	         .bmask_b_i           ( bmask_b_single_i       ),
-	         .imm_vec_ext_i       ( imm_vec_ext_single_i   ),
-
-	         .is_clpx_i           ( is_clpx_single_i   ),
-	         .clpx_shift_i        ( clpx_shift_single_i),
-	         .is_subrot_i         ( is_subrot_single_i ),
-
-	         .result_o            ( result_o      ),
-	         .comparison_result_o ( comparison_result_o  ),
-
-	         .ready_o             ( ready_o       ),
-	         .ex_ready_i          ( ex_ready_i       )
-	        );
-
-			assign err_corrected_o = 1'b0;
-	  		assign err_detected_o  = 1'b0;
-			assign permanent_faulty_alu_o = 36'b0; 
-			assign perf_counter_permanent_faulty_alu_o = 4'b0;
-		*/
 
         end
         else begin

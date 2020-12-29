@@ -253,7 +253,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     
 
     output logic [2:0]        sel_mux_ex_o, // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-    output logic [3:0]        clock_enable_alu_o,
+    output logic [3:0]        clock_enable_o,
     output logic [1:0]		  sel_bypass_alu_ex_o,
     output logic [1:0]		  sel_bypass_mult_ex_o,
 
@@ -1953,7 +1953,7 @@ generate
           .sel_mux_ex_i		     ( sel_mux_alu_s ),
           .sel_mux_ex_o		     ( sel_mux_alu_o ),
           .clock_enable_alu_i        ( clk_enable_ft ),
-          .clock_enable_alu_o        ( clock_enable_alu_o )*/
+          .clock_enable_o        ( clock_enable_o )*/
 
         );
 
@@ -1966,7 +1966,7 @@ generate
         always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
           if(~rst_n) begin
             sel_mux_ex_o             <= 3'b0;
-            clock_enable_alu_o       <= 3'b0;
+            clock_enable_o       <= 3'b0;
             sel_bypass_alu_ex_o      <= 2'b0;
             sel_bypass_mult_ex_o     <= 2'b0;
             alu_totally_defective_o  <= 1'b0;
@@ -1981,7 +1981,7 @@ generate
             if(id_valid_o) begin
                 //if (alu_en) begin
                     sel_mux_ex_o             <= sel_mux_ex_s;
-                    clock_enable_alu_o       <= clock_en;
+                    clock_enable_o       <= clock_en;
                     sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
                     alu_totally_defective_o  <= alu_totally_defective_s;
                     only_two_alu_o           <= only_two_alu_s;
@@ -1996,7 +1996,7 @@ generate
                 //end
             end /*else if(ex_ready_i) begin
                 sel_mux_ex_o                 <= sel_mux_ex_s_sltu;
-                clock_enable_alu_o           <= clock_en_sltu;
+                clock_enable_o           <= clock_en_sltu;
                 sel_bypass_alu_ex_o          <= sel_bypass_alu_ex_s_sltu;
                 sel_bypass_mult_ex_o         <= sel_bypass_mult_ex_s_sltu;
                 alu_totally_defective_o      <= alu_totally_defective_s_sltu; 
@@ -2686,13 +2686,13 @@ generate
           .sel_mux_ex_i          ( sel_mux_alu_s ),
           .sel_mux_ex_o          ( sel_mux_alu_o ),
           .clock_enable_alu_i        ( clk_enable_ft ),
-          .clock_enable_alu_o        ( clock_enable_alu_o )*/
+          .clock_enable_o        ( clock_enable_o )*/
 
         );
 
 
         assign sel_mux_ex_o             = 3'b0;
-        assign clock_enable_alu_o       = 4'b0;
+        assign clock_enable_o           = 4'b0;
         assign sel_bypass_alu_ex_o 		= 2'b0;
         assign sel_bypass_mult_ex_o 	= 2'b0;
         assign alu_totally_defective_o	= 1'b0;

@@ -361,7 +361,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [2:0][3:0]   permanent_faulty_mult;  // set of 3 4bit register for a each MULT.
   logic [2:0][3:0]   permanent_faulty_mult_s; 
   logic [2:0]        sel_mux_ex;             // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-  logic [3:0]        clock_enable_alu;		 // FT: output of quadruplicated pipe
+  logic [3:0]        clock_enable;		     // FT: output of quadruplicated pipe
   logic              only_two_alu;
   logic              only_two_mult;
   logic [1:0]        sel_mux_only_two_alu;
@@ -822,7 +822,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .permanent_faulty_mult_i 	  ( permanent_faulty_mult   ),  // one for each counter: 3 MULT and 4 subpart of MULT
     .permanent_faulty_mult_s_i    ( permanent_faulty_mult_s ),   
     .sel_mux_ex_o                 ( sel_mux_ex              ), // selector of the three mux to choose three of the four alu_operator // FT: output of quadruplicated pipe
-    .clock_enable_alu_o           ( clock_enable_alu        ),
+    .clock_enable_o               ( clock_enable            ),
     .sel_bypass_alu_ex_o          ( sel_bypass_alu          ),
     .sel_bypass_mult_ex_o         ( sel_bypass_mult         ),
     .only_two_alu_o               ( only_two_alu            ),
@@ -1028,7 +1028,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   	),  // set of 4 9bit register for a each ALU 
     .permanent_faulty_mult_o 	( permanent_faulty_mult  	),
     .permanent_faulty_mult_s_o 	( permanent_faulty_mult_s	),
-    .clock_enable_alu_i         ( clock_enable_alu         	),
+    .clock_enable_i             ( clock_enable            	),
     .alu_en_ex_voted_i          ( alu_en_ex_core           	),
     /*
     .mult_operator_ex_voted_i   ( mult_operator_ex_core ),   

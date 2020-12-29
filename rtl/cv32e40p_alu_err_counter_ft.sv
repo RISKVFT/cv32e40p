@@ -21,8 +21,7 @@
 //-----------------------------------------------------
 module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
   (
-  input  logic                clk,
-  input  logic [3:0]          clock_en,
+  input  logic [3:0]          clock_gated,
   input  logic                rst_n,
   input  logic [3:0]          alu_enable_i,
   input  logic [3:0][ALU_OP_WIDTH-1:0]      alu_operator_i,
@@ -89,23 +88,12 @@ logic [31:0]      threshold;
 
 //logic [3:0][8:0] permanent_faulty_alu_s; // one for each counter: 4 ALU and 9 subpart of ALU
 
-logic [3:0]       clock_gated;
 logic [1:0]		    error_increase;
 logic [1:0]		    error_decrease;
 
 logic [3:0]       signal;
 
 assign signal = 4'b0011;
-
-// CLOCK GATING for the counter that have already reached the end.
-cv32e40p_clock_gate CG_counter[3:0]
-(
- .clk_i        ( clk              ),
- .en_i         ( clock_en[3:0]    ),
- .scan_cg_en_i ( 1'b0             ), // not used
- .clk_o        ( clock_gated[3:0] )
-);
-
 
 
 // Special purpose registers to store the threshold value and the increase and decrease amounts for the counters 
