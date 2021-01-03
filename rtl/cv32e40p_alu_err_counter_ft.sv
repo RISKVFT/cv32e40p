@@ -28,7 +28,7 @@ module cv32e40p_alu_err_counter_ft import cv32e40p_pkg::*; import cv32e40p_apu_c
   input  logic [3:0]          error_detected_i,
   input  logic                ready_o_div_count, 
   output logic [3:0][8:0]     permanent_faulty_alu_o,             // one for each counter: 4 ALU and 9 subpart of ALU
-  output logic [3:0][8:0]     permanent_faulty_alu_s,             // one for each counter: 4 ALU and 9 subpart of ALU
+  output logic [3:0][8:0]     permanent_faulty_alu_s_o,             // one for each counter: 4 ALU and 9 subpart of ALU
   //output logic [3:0]          perf_counter_permanent_faulty_alu_o, // decided to use only four performance counters, one for each ALU and increment them only if there is a permanent error (in any of the subset of istructions) into the corresponding ALU.
 
   // CSR: Performance counters
@@ -72,7 +72,7 @@ logic [3:0][31:0] count_min_max_nw;
 logic [3:0][31:0] count_div_rem_nw;
 logic [3:0][31:0] count_shuf_nw;
 
-logic [37:0]      sel; // select one between <counter>_n and <counter>_nw and one between permanent_faulty_alu_s and permanent_faulty_alu_nw
+logic [37:0]      sel; // select one between <counter>_n and <counter>_nw and one between permanent_faulty_alu_s_o and permanent_faulty_alu_nw
 
 // we need 36 bits to store the information on the permanent faulty ALUs so we use two 32b readonly CSR 
 logic [31:0]      alu_faulty_map0;
@@ -86,7 +86,7 @@ logic [3:0][8:0]     permanent_faulty_alu_nw;
 // maximum value reachable by the counters
 logic [31:0]      threshold;
 
-//logic [3:0][8:0] permanent_faulty_alu_s; // one for each counter: 4 ALU and 9 subpart of ALU
+//logic [3:0][8:0] permanent_faulty_alu_s_o; // one for each counter: 4 ALU and 9 subpart of ALU
 
 logic [1:0]		    error_increase;
 logic [1:0]		    error_decrease;
@@ -152,7 +152,7 @@ generate
           case (alu_operator_i[i])
 
             ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
-              if (~permanent_faulty_alu_s[i][0] & ~permanent_faulty_alu_o[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
+              if (~permanent_faulty_alu_s_o[i][0] & ~permanent_faulty_alu_o[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
                 if (error_detected_i[i]) begin      // TUTTAVIA SE C'È LO STESSO ERRORE PERMANENTE IN DUE ALU ALLORA NE VERRÀ SCELTA UNA TRA LE DUE CHE NON SAPRÀ FARE L'OPERAZIONE 
                   count_shift_q[i]=count_shift_q[i]+error_increase;
                 end
@@ -190,7 +190,7 @@ generate
 
           // shift
           ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:  
-          if (~permanent_faulty_alu_s[i][0] & ~permanent_faulty_alu_o[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
+          if (~permanent_faulty_alu_s_o[i][0] & ~permanent_faulty_alu_o[i][0]) begin // PROBABILMENTE QUESTO CONTROLLO È SUPERFLUO PERCHÈ NON DOVREBBE ESSERE SELEZIONATA QUESTA ALU SE NON È IN GRADO DI FARE L'OPERAZIONE. 
             if (error_detected_i[i]) begin      // TUTTAVIA SE C'È LO STESSO ERRORE PERMANENTE IN DUE ALU ALLORA NE VERRÀ SCELTA UNA TRA LE DUE CHE NON SAPRÀ FARE L'OPERAZIONE 
               count_shift_n[i]=count_shift_q[i]+error_increase;
             end
@@ -210,7 +210,7 @@ generate
 
           // Logic
           ALU_XOR, ALU_OR, ALU_AND:  
-          if (~permanent_faulty_alu_s[i][1] & ~permanent_faulty_alu_o[i][1]) begin
+          if (~permanent_faulty_alu_s_o[i][1] & ~permanent_faulty_alu_o[i][1]) begin
             if (error_detected_i[i]) begin
               count_logic_n[i]=count_logic_n[i]+error_increase;
             end
@@ -230,7 +230,7 @@ generate
 
           // Bit manipulation
           ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV:  
-          if (~permanent_faulty_alu_s[i][2] & ~permanent_faulty_alu_o[i][2]) begin
+          if (~permanent_faulty_alu_s_o[i][2] & ~permanent_faulty_alu_o[i][2]) begin
             if (error_detected_i[i]) begin
               count_bit_man_n[i]=count_bit_man_q[i]+error_increase;
             end
@@ -249,7 +249,7 @@ generate
 
           // Bit counting
           ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
-          if (~permanent_faulty_alu_s[i][3] & ~permanent_faulty_alu_o[i][3]) begin  
+          if (~permanent_faulty_alu_s_o[i][3] & ~permanent_faulty_alu_o[i][3]) begin  
             if (error_detected_i[i]) begin
               count_bit_count_n[i]=count_bit_count_q[i]+error_increase;
             end
@@ -268,7 +268,7 @@ generate
 
           // Shuffle
           ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:  
-          if (~permanent_faulty_alu_s[i][4] & ~permanent_faulty_alu_o[i][4]) begin
+          if (~permanent_faulty_alu_s_o[i][4] & ~permanent_faulty_alu_o[i][4]) begin
             if (error_detected_i[i]) begin
               count_shuf_n[i]=count_shuf_q[i]+error_increase;
             end
@@ -287,7 +287,7 @@ generate
 
           // Comparisons
           ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:  
-          if (~permanent_faulty_alu_s[i][5] & ~permanent_faulty_alu_o[i][5]) begin
+          if (~permanent_faulty_alu_s_o[i][5] & ~permanent_faulty_alu_o[i][5]) begin
             if (error_detected_i[i]) begin
               count_comparison_n[i]=count_comparison_q[i]+error_increase;
             end
@@ -305,7 +305,7 @@ generate
 
           // Absolute value
           ALU_ABS, ALU_CLIP, ALU_CLIPU: 
-          if (~permanent_faulty_alu_s[i][6] & ~permanent_faulty_alu_o[i][6]) begin 
+          if (~permanent_faulty_alu_s_o[i][6] & ~permanent_faulty_alu_o[i][6]) begin 
             if (error_detected_i[i]) begin
               count_abs_n[i]=count_abs_q[i]+error_increase;
             end
@@ -324,7 +324,7 @@ generate
 
           // min/max
           ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:  
-          if (~permanent_faulty_alu_s[i][7] & ~permanent_faulty_alu_o[i][7]) begin
+          if (~permanent_faulty_alu_s_o[i][7] & ~permanent_faulty_alu_o[i][7]) begin
             if (error_detected_i[i]) begin
               count_min_max_n[i]=count_min_max_q[i]+error_increase;
             end
@@ -342,7 +342,7 @@ generate
 
           // div/rem
           ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM:  
-          if (~permanent_faulty_alu_s[i][8] & ~permanent_faulty_alu_o[i][8]) begin
+          if (~permanent_faulty_alu_s_o[i][8] & ~permanent_faulty_alu_o[i][8]) begin
           	if (ready_o_div_count) begin // the counter can increment or decrement only if the divider has finished the computation that may require more than one cycle
 	            if (error_detected_i[i]) begin
 	              count_div_rem_n[i]=count_div_rem_q[i]+error_increase;
@@ -390,7 +390,7 @@ generate
 
   always_comb begin : permanent_error_threshold_alu
     if (~rst_n) begin
-      permanent_faulty_alu_s[i]     = 9'b0;
+      permanent_faulty_alu_s_o[i]     = 9'b0;
     end
     else begin
       case (alu_operator_i[i])
@@ -399,21 +399,21 @@ generate
         ALU_ADD, ALU_SUB, ALU_ADDU, ALU_SUBU, ALU_ADDR, ALU_SUBR, ALU_ADDUR, ALU_SUBUR, ALU_SRA, ALU_SRL, ALU_ROR, ALU_SLL:
         if (~permanent_faulty_alu_o[i][0]) begin
           if (count_shift_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][0] = 1'b1;
+             permanent_faulty_alu_s_o[i][0] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
 		      end
 		    end 
         //end else 
-        //	 permanent_faulty_alu_s[i] = 9'b0;
+        //	 permanent_faulty_alu_s_o[i] = 9'b0;
 
         // Logic
         ALU_XOR, ALU_OR, ALU_AND:
         if (~permanent_faulty_alu_o[i][1]) begin
           if (count_logic_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][1] = 1'b1;
+             permanent_faulty_alu_s_o[i][1] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
           
@@ -421,9 +421,9 @@ generate
         ALU_BEXT, ALU_BEXTU, ALU_BINS, ALU_BCLR, ALU_BSET, ALU_BREV: 
         if (~permanent_faulty_alu_o[i][2]) begin
           if (count_bit_man_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][2] = 1'b1;
+             permanent_faulty_alu_s_o[i][2] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -431,9 +431,9 @@ generate
         ALU_FF1, ALU_FL1, ALU_CNT, ALU_CLB:
         if (~permanent_faulty_alu_o[i][3]) begin
           if (count_bit_count_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][3] = 1'b1;
+             permanent_faulty_alu_s_o[i][3] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -441,9 +441,9 @@ generate
         ALU_EXTS, ALU_EXT, ALU_SHUF, ALU_SHUF2, ALU_PCKLO, ALU_PCKHI, ALU_INS:
         if (~permanent_faulty_alu_o[i][4]) begin
           if (count_shuf_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][4] = 1'b1;
+             permanent_faulty_alu_s_o[i][4] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -452,9 +452,9 @@ generate
         ALU_LTS, ALU_LTU, ALU_LES, ALU_LEU, ALU_GTS, ALU_GTU, ALU_GES, ALU_GEU, ALU_EQ, ALU_NE, ALU_SLTS, ALU_SLTU, ALU_SLETS, ALU_SLETU:
         if (~permanent_faulty_alu_o[i][5]) begin
           if (count_comparison_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][5] = 1'b1;
+             permanent_faulty_alu_s_o[i][5] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -462,9 +462,9 @@ generate
         ALU_ABS, ALU_CLIP, ALU_CLIPU:
         if (~permanent_faulty_alu_o[i][6]) begin
           if (count_abs_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][6] = 1'b1;
+             permanent_faulty_alu_s_o[i][6] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -472,9 +472,9 @@ generate
         ALU_MIN, ALU_MINU, ALU_MAX, ALU_MAXU:
         if (~permanent_faulty_alu_o[i][7]) begin
           if (count_min_max_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][7] = 1'b1;
+             permanent_faulty_alu_s_o[i][7] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
@@ -482,14 +482,14 @@ generate
         ALU_DIVU, ALU_DIV, ALU_REMU, ALU_REM: 
         if (~permanent_faulty_alu_o[i][8]) begin
           if (count_div_rem_q[i]==threshold) begin
-             permanent_faulty_alu_s[i][8] = 1'b1;
+             permanent_faulty_alu_s_o[i][8] = 1'b1;
           end else begin
-             permanent_faulty_alu_s[i] = 9'b0;
+             permanent_faulty_alu_s_o[i] = 9'b0;
           end
         end
 
         default: 
-          permanent_faulty_alu_s[i] = 9'b0;
+          permanent_faulty_alu_s_o[i] = 9'b0;
 
       endcase
     end 
@@ -505,41 +505,41 @@ generate
 
         // shift
         if (~permanent_faulty_alu_o[i][0])
-          permanent_faulty_alu_o[i][0] <= sel[36] ? permanent_faulty_alu_nw[i][0] : permanent_faulty_alu_s[i][0];
+          permanent_faulty_alu_o[i][0] <= sel[36] ? permanent_faulty_alu_nw[i][0] : permanent_faulty_alu_s_o[i][0];
           //permanent_faulty_alu_o[i][0] <= signal[i];
 
 
          // Logic
         if (~permanent_faulty_alu_o[i][1])
-          permanent_faulty_alu_o[i][1] <= sel[36] ? permanent_faulty_alu_nw[i][1] : permanent_faulty_alu_s[i][1];
+          permanent_faulty_alu_o[i][1] <= sel[36] ? permanent_faulty_alu_nw[i][1] : permanent_faulty_alu_s_o[i][1];
           
         // Bit manipulation
         if (~permanent_faulty_alu_o[i][2])
-          permanent_faulty_alu_o[i][2] <= sel[36] ? permanent_faulty_alu_nw[i][2] : permanent_faulty_alu_s[i][2];
+          permanent_faulty_alu_o[i][2] <= sel[36] ? permanent_faulty_alu_nw[i][2] : permanent_faulty_alu_s_o[i][2];
 
         // Bit counting
         if (~permanent_faulty_alu_o[i][3])
-          permanent_faulty_alu_o[i][3] <= sel[36] ? permanent_faulty_alu_nw[i][3] : permanent_faulty_alu_s[i][3];
+          permanent_faulty_alu_o[i][3] <= sel[36] ? permanent_faulty_alu_nw[i][3] : permanent_faulty_alu_s_o[i][3];
 
         // Shuffle
         if (~permanent_faulty_alu_o[i][4])
-          permanent_faulty_alu_o[i][4] <= sel[36] ? permanent_faulty_alu_nw[i][4] : permanent_faulty_alu_s[i][4];
+          permanent_faulty_alu_o[i][4] <= sel[36] ? permanent_faulty_alu_nw[i][4] : permanent_faulty_alu_s_o[i][4];
 
         // Comparisons
         if (~permanent_faulty_alu_o[i][5])
-          permanent_faulty_alu_o[i][5] <= sel[36] ? permanent_faulty_alu_nw[i][5] : permanent_faulty_alu_s[i][5];
+          permanent_faulty_alu_o[i][5] <= sel[36] ? permanent_faulty_alu_nw[i][5] : permanent_faulty_alu_s_o[i][5];
 
         // Absolute value
         if (~permanent_faulty_alu_o[i][6])
-          permanent_faulty_alu_o[i][6] <= sel[36] ? permanent_faulty_alu_nw[i][6] : permanent_faulty_alu_s[i][6];
+          permanent_faulty_alu_o[i][6] <= sel[36] ? permanent_faulty_alu_nw[i][6] : permanent_faulty_alu_s_o[i][6];
 
         // min/max
         if (~permanent_faulty_alu_o[i][7])
-          permanent_faulty_alu_o[i][7] <= sel[36] ? permanent_faulty_alu_nw[i][7] : permanent_faulty_alu_s[i][7];
+          permanent_faulty_alu_o[i][7] <= sel[36] ? permanent_faulty_alu_nw[i][7] : permanent_faulty_alu_s_o[i][7];
 
         // div/rem
         if (~permanent_faulty_alu_o[i][8])
-          permanent_faulty_alu_o[i][8] <= sel[37] ? permanent_faulty_alu_nw[i][8] : permanent_faulty_alu_s[i][8];
+          permanent_faulty_alu_o[i][8] <= sel[37] ? permanent_faulty_alu_nw[i][8] : permanent_faulty_alu_s_o[i][8];
     end
   end
 
@@ -578,10 +578,10 @@ assign permanent_faulty_alu_o[3] = permanent_faulty[3];
 // These signals trigger the performance counters related to the 4 alu. Each of this signals is anabled if the respective ALU encounter a serious (permanent) error in one of the 9 sub-units it has been divided in.
 // Because this output signals are combinatorially obtained from the output of the registers of the internal counters, the performance caunter will be incremented one clock cycle after the internal counter increment. 
 // To CS-Registers
-assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_s[0];
-assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_s[1];
-assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_s[2];
-assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_s[3];
+assign perf_counter_permanent_faulty_alu_o[0] = | permanent_faulty_alu_s_o[0];
+assign perf_counter_permanent_faulty_alu_o[1] = | permanent_faulty_alu_s_o[1];
+assign perf_counter_permanent_faulty_alu_o[2] = | permanent_faulty_alu_s_o[2];
+assign perf_counter_permanent_faulty_alu_o[3] = | permanent_faulty_alu_s_o[3];
 */
 
 

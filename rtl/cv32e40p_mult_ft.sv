@@ -58,7 +58,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
   output logic                err_corrected_o,
   output logic                err_detected_o,
   output logic [2:0][3:0]     permanent_faulty_mult_o,             // one for each counter: 3 MULT and 4 subpart of MULT
-  output logic [2:0][3:0]     permanent_faulty_mult_s,             // one for each counter: 3 MULT and 4 subpart of MULT
+  output logic [2:0][3:0]     permanent_faulty_mult_s_o,             // one for each counter: 3 MULT and 4 subpart of MULT
   input  logic [2:0]          sel_mux_ex_i, // selector of the three mux to choose three of the four alu
 
   // CSR: Performance counters
@@ -338,15 +338,15 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	        cv32e40p_mult_err_counter_ft err_counter_result
 			(
 			  .clk 									( clk         ),
-	         //.clk                                   ( clk_g       ),
+	         //.clk                                 ( clk_g       ),
 			  .clock_en 							( clock_en_in ),
 			  .rst_n								( rst_n       ),
 			  .mult_enable_i 						( enable_in   ),
 			  .mult_operator_i 						( operator_in ),
 			  .error_detected_i						( {err_detected_mult[2], err_detected_mult[1], err_detected_mult[0]} ), 
 			  .ready_o_div_count                    ( ready_o     ),
-			  .permanent_faulty_mult_o     			( permanent_faulty_mult_o ),
-			  .permanent_faulty_mult_s              ( permanent_faulty_mult_s ),  
+			  .permanent_faulty_mult_o     			( permanent_faulty_mult_o   ),
+			  .permanent_faulty_mult_s_o            ( permanent_faulty_mult_s_o ),  
 			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
 			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),     // read enable 
 			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),     // the value of the performance counter we want to read
@@ -402,7 +402,7 @@ module cv32e40p_mult_ft import cv32e40p_pkg::*;
 	  		genvar y;
  			for (y=0; y<3; y++) begin
 	  			assign permanent_faulty_mult_o[y] = 4'b0;
-	  			assign permanent_faulty_mult_s[y] = 4'b0;
+	  			assign permanent_faulty_mult_s_o[y] = 4'b0;
 	  		end
 	  		
 			assign mhpm_rdata_ft_o = 32'b0;

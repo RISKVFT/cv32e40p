@@ -36,7 +36,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter FT 		            =  1
+  parameter FT 		              =  1
   //parameter APU_NARGS_CPU       =  APU_NARGS_CPU,
   //parameter APU_WOP_CPU         =  APU_WOP_CPU,
   //parameter APU_NDSFLAGS_CPU    =  APU_NDSFLAGS_CPU,
@@ -370,11 +370,6 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [1:0]        sel_bypass_mult;
 
   // FT - EX stage
-  logic             err_corrected_alu;
-  logic             err_detected_alu;
-  logic             err_corrected_mult;
-  logic             err_detected_mult; 
-
   logic 			alu_totally_defective;
   logic 			mult_totally_defective;
 
@@ -419,7 +414,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic             mult_is_clpx_ex_core;
   logic [ 1:0]      mult_clpx_shift_ex_core;
   logic             mult_clpx_img_ex_core;*/
-  logic [APU_WOP_CPU-1:0]      apu_op_ex_core;
+  logic [APU_WOP_CPU-1:0]          apu_op_ex_core;
   logic [APU_NARGS_CPU-1:0][31:0]  apu_operands_ex_core;
   logic [ 5:0]      apu_waddr_ex_core;
   logic [ 5:0]      regfile_alu_waddr_ex_core;
@@ -441,7 +436,12 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic                 mhpm_re_ft;      // read enable 
   logic [31:0]          mhpm_rdata_ft;   // the value of the performance counter we want to read
   logic                 mhpm_we_ft;      // write enable 
-  logic [31:0]          mhpm_wdata_ft;    // the we want to write into the perf counter
+  logic [31:0]          mhpm_wdata_ft;   // the we want to write into the perf counter
+
+  // Signals to summarize the faults detection and correction of every stages
+  logic [ 1:0]          vector_err_detected_ex;
+  logic [ 1:0]          vector_err_corrected_ex;
+
 
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -1022,8 +1022,6 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     // FT
     .sel_mux_ex_i               ( sel_mux_ex               	), // selector of the three mux to choose three of the four alu
-    .err_corrected_alu_o        ( err_corrected_alu        	),
-    .err_detected_alu_o         ( err_detected_alu         	),
     .permanent_faulty_alu_o     ( permanent_faulty_alu     	),  // set of 4 9bit register for a each ALU 
     .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   	),  // set of 4 9bit register for a each ALU 
     .permanent_faulty_mult_o 	( permanent_faulty_mult  	),
@@ -1047,9 +1045,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .mult_clpx_shift_ex_voted_i ( mult_clpx_shift_ex_core ),
     .mult_clpx_img_ex_voted_i   ( mult_clpx_img_ex_core ),
     */
-     
-    .err_corrected_mult_o       ( err_corrected_mult 		),
-    .err_detected_mult_o        ( err_detected_mult 		), 
+      
     .apu_op_ex_voted_i          ( apu_op_ex_core 			),
     .apu_operands_ex_voted_i    ( apu_operands_ex_core 		),
     .apu_waddr_ex_voted_i       ( apu_waddr_ex_core 		),
@@ -1090,7 +1086,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .sel_mux_only_two_mult_i ( sel_mux_only_two_mult   ),
     
     .sel_bypass_alu_ex_i     ( sel_bypass_alu          ),
-    .sel_bypass_mult_ex_i    ( sel_bypass_mult         )
+    .sel_bypass_mult_ex_i    ( sel_bypass_mult         ),
+    .vector_err_detected_o   ( vector_err_detected_ex  ), 
+    .vector_err_corrected_o  ( vector_err_corrected_ex )
 
   );
 

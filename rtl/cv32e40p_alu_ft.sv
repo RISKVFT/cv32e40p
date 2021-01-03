@@ -51,7 +51,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
   output logic                     		err_corrected_o,
   output logic                     		err_detected_o,
   output logic [3:0][8:0] 		   		permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
-  output logic [3:0][8:0]          		permanent_faulty_alu_s,  // one for each counter: 4 ALU and 9 subpart of ALU 
+  output logic [3:0][8:0]          		permanent_faulty_alu_s_o,  // one for each counter: 4 ALU and 9 subpart of ALU 
   //output logic [3:0]      		   	perf_counter_permanent_faulty_alu_o, // trigger the performance counter relative to the specific ALU
   input  logic [2:0]               		sel_mux_ex_i,            // selector of the three mux to choose three of the four alu
 
@@ -535,7 +535,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 			  .error_detected_i						( {err_detected_alu3, err_detected_alu2, err_detected_alu1, err_detected_alu0} ), 
 			  .ready_o_div_count                    ( ready_o    ),
 			  .permanent_faulty_alu_o     			( permanent_faulty_alu_o   ),
-			  .permanent_faulty_alu_s               ( permanent_faulty_alu_s   ),  
+			  .permanent_faulty_alu_s_o             ( permanent_faulty_alu_s_o ),  
 			  .mhpm_addr_ft_i						( mhpm_addr_ft_i   ),     // the address of the perf counter to be written
 			  .mhpm_re_ft_i							( mhpm_re_ft_i     ),     // read enable 
 			  .mhpm_rdata_ft_o						( mhpm_rdata_ft_o  ),     // the value of the performance counter we want to read
@@ -585,7 +585,7 @@ module cv32e40p_alu_ft import cv32e40p_pkg::*;
 	  		genvar y;
 			for (y=0; y<4; y++) begin
   				assign permanent_faulty_alu_o[y] = 9'b0;
-  				assign permanent_faulty_alu_s[y] = 9'b0;
+  				assign permanent_faulty_alu_s_o[y] = 9'b0;
   			end
 
 			assign mhpm_rdata_ft_o        = 32'b0;

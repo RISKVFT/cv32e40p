@@ -38,7 +38,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   parameter APU_WOP_CPU      =  6,
   parameter APU_NDSFLAGS_CPU = 15,
   parameter APU_NUSFLAGS_CPU =  5,
-  parameter FT 		     =  0
+  parameter FT 		           =  0
 )
 (
   input  logic        clk,
@@ -157,8 +157,6 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // ft
   input  logic [2:0]       sel_mux_ex_i, // selector of the three mux to choose three of the four alu
-  output logic             err_corrected_alu_o,
-  output logic             err_detected_alu_o,
   output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
   output logic [3:0][8:0]  permanent_faulty_alu_s_o,
   output logic [2:0][3:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
@@ -183,8 +181,6 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input logic                 mult_is_clpx_ex_voted_i,
   input logic [ 1:0]          mult_clpx_shift_ex_voted_i,
   input logic                 mult_clpx_img_ex_voted_i,*/
-  output logic                err_corrected_mult_o,
-  output logic                err_detected_mult_o,
 
   input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
   input logic [APU_NARGS_CPU-1:0][31:0]      apu_operands_ex_voted_i,
@@ -214,8 +210,11 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // bypass if more than 2 ALU/MULT are permanent faulty
   input  logic [1:0]          sel_bypass_alu_ex_i,
-  input  logic [1:0]          sel_bypass_mult_ex_i
+  input  logic [1:0]          sel_bypass_mult_ex_i,
 
+  // output signals to summarize the faults detection and correction of EX stage
+  output logic [ 1:0]    vector_err_detected_o,
+  output logic [ 1:0]    vector_err_corrected_o
 
   /*// for those single signal (not quadruplicated used by the ALU)
   input  logic                     enable_single_i,
@@ -263,7 +262,12 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic           mult_en_ex_voted;
 
   logic [31:0]    mhpm_rdata_ft_alu;    // the value of the performance_counter/csr we want to read from alu
-  logic [31:0]    mhpm_rdata_ft_mult;   // the value of the performance_counter/csr we want to read from mult
+  logic [31:0]    mhpm_rdata_ft_mult;   // the value of the performance_counter/csr we want to read from mult 
+
+  logic           err_corrected_alu;
+  logic           err_detected_alu;
+  logic           err_corrected_mult;
+  logic           err_detected_mult;   
  
   if (FT) begin // mult_en is used inside the mult and inside the ex_stage so we have to vote it to reduce it to a single signal
     cv32e40p_3voter #(1,1) voter_mult_en_ex
@@ -367,35 +371,35 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
    )
    alu_ft_i
   (
-    .clk                 ( clk             ),
+    .clk                 ( clk              ),
     .clk_g               ( clk_gated_alu_ft ),
-    .rst_n               ( rst_n           ),
-    .enable_i            ( alu_en_i        ),
-    .operator_i          ( alu_operator_i  ),
-    .operand_a_i         ( alu_operand_a_i ),
-    .operand_b_i         ( alu_operand_b_i ),
-    .operand_c_i         ( alu_operand_c_i ),
+    .rst_n               ( rst_n            ),
+    .enable_i            ( alu_en_i         ),
+    .operator_i          ( alu_operator_i   ),
+    .operand_a_i         ( alu_operand_a_i  ),
+    .operand_b_i         ( alu_operand_b_i  ),
+    .operand_c_i         ( alu_operand_c_i  ),
 
-    .vector_mode_i       ( alu_vec_mode_i  ),
-    .bmask_a_i           ( bmask_a_i       ),
-    .bmask_b_i           ( bmask_b_i       ),
-    .imm_vec_ext_i       ( imm_vec_ext_i   ),
+    .vector_mode_i       ( alu_vec_mode_i   ),
+    .bmask_a_i           ( bmask_a_i        ),
+    .bmask_b_i           ( bmask_b_i        ),
+    .imm_vec_ext_i       ( imm_vec_ext_i    ),
 
-    .is_clpx_i           ( alu_is_clpx_i   ),
-    .clpx_shift_i        ( alu_clpx_shift_i),
-    .is_subrot_i         ( alu_is_subrot_i ),
+    .is_clpx_i           ( alu_is_clpx_i    ),
+    .clpx_shift_i        ( alu_clpx_shift_i ),
+    .is_subrot_i         ( alu_is_subrot_i  ),
 
-    .result_o            ( alu_result      ),
-    .comparison_result_o ( alu_cmp_result  ),
+    .result_o            ( alu_result       ),
+    .comparison_result_o ( alu_cmp_result   ),
 
-    .ready_o             ( alu_ready       ),
-    .ex_ready_i          ( ex_ready_o      ),
+    .ready_o             ( alu_ready        ),
+    .ex_ready_i          ( ex_ready_o       ),
 
-    .clock_en_i             (clock_enable_i     ),
-    .err_corrected_o        (err_corrected_alu_o),
-    .err_detected_o         (err_detected_alu_o ),
-    .permanent_faulty_alu_o (permanent_faulty_alu_o),
-    .permanent_faulty_alu_s (permanent_faulty_alu_s_o), 
+    .clock_en_i               ( clock_enable_i           ),
+    .err_corrected_o          ( err_corrected_alu_o      ),
+    .err_detected_o           ( err_detected_alu_o       ),
+    .permanent_faulty_alu_o   ( permanent_faulty_alu_o   ),
+    .permanent_faulty_alu_s_o ( permanent_faulty_alu_s_o ), 
     //.perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
     .sel_mux_ex_i        ( sel_mux_ex_i      ),
     .mhpm_addr_ft_i      ( mhpm_addr_ft_i    ),   // the address of the perf counter to be written
@@ -474,8 +478,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_corrected_o ( err_corrected_mult_o ),
     .err_detected_o  ( err_detected_mult_o  ),
 
-    .permanent_faulty_mult_o ( permanent_faulty_mult_o   ),
-    .permanent_faulty_mult_s ( permanent_faulty_mult_s_o ),
+    .permanent_faulty_mult_o   ( permanent_faulty_mult_o   ),
+    .permanent_faulty_mult_s_o ( permanent_faulty_mult_s_o ),
     
     .sel_mux_ex_i        ( sel_mux_ex_i       ),
 
@@ -644,5 +648,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
                        & wb_ready_i & ~wb_contention) | (branch_in_ex_voted_i);
   assign ex_valid_o = (apu_valid | alu_en_ex_voted_i | mult_en_ex_voted | csr_access_ex_voted_i | lsu_en_voted_i)
                        & (alu_ready & mult_ready & lsu_ready_ex_i & wb_ready_i);
+
+  // output signals to summarize the faults detection and correction of EX stage
+  assign vector_err_detected_o = {err_detected_alu, err_detected_mult};
+  assign vector_err_corrected_o = {err_corrected_alu, err_corrected_mult};
 
 endmodule
