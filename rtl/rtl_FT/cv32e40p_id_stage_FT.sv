@@ -69,11 +69,14 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 )
 (
 	// FT ports
-	// Errors signal: [0] no error, [1] sec, [2] ded
-	output logic [1:0]			   error_regfile_o, // signals to state if an error occurred	
-	output logic [1:0]			   error_controller_o, // signals to state if an error occurred	
-	output logic [1:0]			   error_decoder_o, // signals to state if an error occurred	
-	output logic [1:0]			   error_pipeline_o, // signals to state if an error occurred	
+	// each bit is referred to 3->regfile, 2->pipeline, 1->decoder, 0->controller
+	output logic [3:0]				vector_err_corrected_o,
+	output logic [3:0]				vector_err_detected_o,
+	//// Errors signal: [0] no error, [1] sec, [2] ded
+	//output logic [1:0]			   error_regfile_o, // signals to state if an error occurred	
+	//output logic [1:0]			   error_controller_o, // signals to state if an error occurred	
+	//output logic [1:0]			   error_decoder_o, // signals to state if an error occurred	
+	//output logic [1:0]			   error_pipeline_o, // signals to state if an error occurred	
 	// FT signals to/from performance counters
 	input  logic [31:0]			   regfile_location_valid_i, // input coming from performance counter (?)
 	output logic [31:0]			   regfile_location_valid_o, // updated valid locations info to send to the performance counter (?)
@@ -91,11 +94,11 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
     output logic        is_decoding_o,
 
     // Interface to IF stage
-    input  logic              instr_valid_i,
-    input  logic       [31:0] instr_rdata_i,      // comes from pipeline of IF stage
-    output logic              instr_req_o,
-    input  logic              is_compressed_i,
-    input  logic              illegal_c_insn_i,
+    input  logic       [2:0]       instr_valid_i, //triplicated
+    input  logic       [2:0][31:0] instr_rdata_i,  //triplicated    // comes from pipeline of IF stage
+    output logic              	   instr_req_o,
+    input  logic       [2:0]       is_compressed_i, //triplicated
+    input  logic       [2:0]       illegal_c_insn_i, //triplicated
 
     // Jumps and branches
     output logic        branch_in_ex_o,
@@ -110,9 +113,9 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
     output logic [1:0]  trap_addr_mux_o,
 
 
-    input  logic        is_fetch_failed_i,
+    input  logic [2:0]       is_fetch_failed_i, //triplicated
 
-    input  logic [31:0] pc_id_i,
+    input  logic [2:0][31:0] pc_id_i, //triplicated
 
     // Stalls
     output logic        halt_if_o,      // controller requests a halt of the IF stage
@@ -503,8 +506,25 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
   logic        uret_dec;
   logic        dret_dec;
 
+//// FT SIGNALS
+  // signals from IF pipeline
+  logic [2:0]		 	instr_valid_ft;
+  logic [2:0][31:0]		instr_rdata_ft;
+  logic [2:0]		 	is_fetch_failed_ft;
+  logic [2:0][31:0]		pc_id_ft;
+  logic [2:0]		 	is_compressed_ft;
+  logic [2:0]		 	illegal_c_insn_ft;
+  logic [6:1]			err_pipeline_corrected;
+  logic [6:1]			err_pipeline_detected;
 
-  assign instr = instr_rdata_i;
+  // signals to state the error
+  logic [1:0]			   error_regfile_ft; // signals to state if an error occurred	
+  logic [1:0]			   error_controller_ft; // signals to state if an error occurred	
+  logic [1:0]			   error_decoder_ft; // signals to state if an error occurred	
+  logic [1:0]			   error_pipeline_ft; // signals to state if an error occurred	
+
+
+  assign instr = instr_rdata_ft;
 
 
   // immediate extraction and sign extension
@@ -585,6 +605,185 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 
 
   assign mult_en = mult_int_en | mult_dot_en;
+	
+
+//////// Assignment of output vectors
+  always_comb begin : output_error_vector
+    unique case (error_controller_ft)
+      0: vector_err_corrected_o[0] = 0;
+		 vector_err_detected_o[0] = 0;
+      1: vector_err_corrected_o[0] = 1;
+		 vector_err_detected_o[0] = 0;
+      2: vector_err_corrected_o[0] = 0;
+		 vector_err_detected_o[0] = 1;
+      default: vector_err_corrected_o[0] = 0;
+		 	   vector_err_detected_o[0] = 0;
+    endcase
+
+	unique case (error_decoder_ft)
+      0: vector_err_corrected_o[1] = 0;
+		 vector_err_detected_o[1] = 0;
+      1: vector_err_corrected_o[1] = 1;
+		 vector_err_detected_o[1] = 0;
+      2: vector_err_corrected_o[1] = 0;
+		 vector_err_detected_o[1] = 1;
+      default: vector_err_corrected_o[1] = 0;
+		 	   vector_err_detected_o[1] = 0;
+    endcase
+
+    unique case (error_pipeline_ft)
+      0: vector_err_corrected_o[2] = 0;
+		 vector_err_detected_o[2] = 0;
+      1: vector_err_corrected_o[2] = 1;
+		 vector_err_detected_o[2] = 0;
+      2: vector_err_corrected_o[2] = 0;
+		 vector_err_detected_o[2] = 1;
+      default: vector_err_corrected_o[2] = 0;
+		 	   vector_err_detected_o[2] = 0;
+    endcase
+
+	unique case (error_regfile_ft)
+      0: vector_err_corrected_o[3] = 0;
+		 vector_err_detected_o[3] = 0;
+      1: vector_err_corrected_o[3] = 1;
+		 vector_err_detected_o[3] = 0;
+      2: vector_err_corrected_o[3] = 0;
+		 vector_err_detected_o[3] = 1;
+      default: vector_err_corrected_o[3] = 0;
+		 	   vector_err_detected_o[3] = 0;
+    endcase
+  end
+
+///////////////////////////////////////////
+////// IF/ID PIPELINE /////////////////////
+///////////////////////////////////////////
+generate
+	if (ID_FAULT_TOLERANCE[2]==1) begin
+	// SOFT ERRORS FAULT TOLERANCE
+  ////////////////// TMR of pipeline //////////////////////////////
+ 
+	cv32e40p_3voter 
+	#(
+		.L1			( 1	),
+		.L2			( 1		)
+	)
+	voter_result_1
+	(
+		.in_1_i           	( instr_valid_i[0] 	 ),
+		.in_2_i           	( instr_valid_i[1] 	 ),
+		.in_3_i           	( instr_valid_i[2] 	 ),
+		.voted_o          	( instr_valid_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[1]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[1] 	)
+	);
+
+	cv32e40p_3voter 
+	#(
+		.L1			( 32	),
+		.L2			( 1		)
+	)
+	voter_result_2
+	(
+		.in_1_i           	( instr_rdata_i[0] 	 ),
+		.in_2_i           	( instr_rdata_i[1] 	 ),
+		.in_3_i           	( instr_rdata_i[2] 	 ),
+		.voted_o          	( instr_rdata_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[2]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[2] 	)
+	);
+
+	cv32e40p_3voter 
+	#(
+		.L1			( 1	),
+		.L2			( 1		)
+	)
+	voter_result_3
+	(
+		.in_1_i           	( is_fetch_failed_i[0] 	 ),
+		.in_2_i           	( is_fetch_failed_i[1] 	 ),
+		.in_3_i           	( is_fetch_failed_i[2] 	 ),
+		.voted_o          	( is_fetch_failed_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[3]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[3] 	)
+	);
+
+	cv32e40p_3voter 
+	#(
+		.L1			( 32	),
+		.L2			( 1		)
+	)
+	voter_result_4
+	(
+		.in_1_i           	( pc_id_i[0] 	 ),
+		.in_2_i           	( pc_id_i[1] 	 ),
+		.in_3_i           	( pc_id_i[2] 	 ),
+		.voted_o          	( pc_id_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[4]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[4] 	)
+	);
+
+	cv32e40p_3voter 
+	#(
+		.L1			( 1	),
+		.L2			( 1		)
+	)
+	voter_result_5
+	(
+		.in_1_i           	( is_compressed_i[0] 	 ),
+		.in_2_i           	( is_compressed_i[1] 	 ),
+		.in_3_i           	( is_compressed_i[2] 	 ),
+		.voted_o          	( is_compressed_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[5]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[5] 	)
+	);
+
+	cv32e40p_3voter 
+	#(
+		.L1			( 1	),
+		.L2			( 1		)
+	)
+	voter_result_6
+	(
+		.in_1_i           	( illegal_c_insn_i[0] 	 ),
+		.in_2_i           	( illegal_c_insn_i[1] 	 ),
+		.in_3_i           	( illegal_c_insn_i[2] 	 ),
+		.voted_o          	( illegal_c_insn_ft  		 ),
+		.err_pipeline_detected_1 	(  ),
+		.err_pipeline_detected_2 	(  ),
+		.err_pipeline_detected_3 	(  ),
+		.err_pipeline_corrected_o  	( err_pipeline_corrected[6]	),
+		.err_pipeline_detected_o 	( err_pipeline_detected[6] 	)
+	);
+
+	
+	
+	assign error_pipeline_ft[0] = |err_pipeline_corrected;
+	assign error_pipeline_ft[1] = |err_pipeline_detected;
+
+	end else begin
+		instr_valid_ft = instr_valid_i[0];
+		instr_rdata_ft = instr_rdata_i[0];
+		is_compressed_ft = is_compressed_i[0];
+		illegal_c_insn_ft = illegal_c_insn_i[0];
+		pc_id_ft = pc_id_i[0];
+		is_fetch_failed_ft = is_fetch_failed_i[0];
+	end
+endgenerate
 
 
   //////////////////////////////////////////////////////////////////
@@ -598,8 +797,8 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 
   always_comb begin : jump_target_mux
     unique case (ctrl_transfer_target_mux_sel)
-      JT_JAL:  jump_target = pc_id_i + imm_uj_type;
-      JT_COND: jump_target = pc_id_i + imm_sb_type;
+      JT_JAL:  jump_target = pc_id_ft + imm_uj_type;
+      JT_COND: jump_target = pc_id_ft + imm_sb_type;
 
       // JALR: Cannot forward RS1, since the path is too long
       JT_JALR: jump_target = regfile_data_ra_id + imm_i_type;
@@ -625,7 +824,7 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
       OP_A_REGA_OR_FWD:  alu_operand_a = operand_a_fw_id;
       OP_A_REGB_OR_FWD:  alu_operand_a = operand_b_fw_id;
       OP_A_REGC_OR_FWD:  alu_operand_a = operand_c_fw_id;
-      OP_A_CURRPC:       alu_operand_a = pc_id_i;
+      OP_A_CURRPC:       alu_operand_a = pc_id_ft;
       OP_A_IMM:          alu_operand_a = imm_a;
       default:           alu_operand_a = operand_a_fw_id;
     endcase; // case (alu_op_a_mux_sel)
@@ -663,7 +862,7 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
       IMMB_I:      imm_b = imm_i_type;
       IMMB_S:      imm_b = imm_s_type;
       IMMB_U:      imm_b = imm_u_type;
-      IMMB_PCINCR: imm_b = is_compressed_i ? 32'h2 : 32'h4;
+      IMMB_PCINCR: imm_b = is_compressed_ft ? 32'h2 : 32'h4;
       IMMB_S2:     imm_b = imm_s2_type;
       IMMB_BI:     imm_b = imm_bi_type;
       IMMB_S3:     imm_b = imm_s3_type;
@@ -983,7 +1182,7 @@ generate
 		.wdata_b_i          ( regfile_alu_wdata_fw_i ),
 		.we_b_i             ( regfile_alu_we_fw_i 	 ),
 
-		.errors_vector		( error_regfile_o		 )
+		.errors_vector		( error_regfile_ft		 )
 	  );
 
 	end if (ID_FAULT_TOLERANCE[4:3]>=2) begin
@@ -1026,7 +1225,7 @@ generate
 		.we_b_i             ( regfile_alu_we_fw_i ),
 
 		// Errors signal: ded, sec
-		.errors_vector					( error_regfile_o			 ),	// signals to state if an error occurred
+		.errors_vector					( error_regfile_ft			 ),	// signals to state if an error occurred
 		.regfile_location_valid_i		( regfile_location_valid_i 	 ), // input coming from performance counter (?)
 		.regfile_location_valid_o		( regfile_location_valid_o   ), // updated valid locations info to send to the performance counter (?)
 		.write_performance_counter_o	( write_performance_counter_o)  // write enable to update performance counter register
@@ -1137,7 +1336,7 @@ generate
 
 		// from IF/ID pipeline
 		.instr_rdata_i                   ( instr                     ),
-		.illegal_c_insn_i                ( illegal_c_insn_i          ),
+		.illegal_c_insn_i                ( illegal_c_insn_ft          ),
 
 		// ALU signals
 		.alu_en_o                        ( alu_en                    ),
@@ -1216,8 +1415,8 @@ generate
 		// HPM related control signals
 		.mcounteren_i                    ( mcounteren_i              ),
 
-		.error_corrected_o				 ( error_decoder_o[0]		 ),
-		.error_detected_o				 ( error_decoder_o[1]	 	 )
+		.error_corrected_o				 ( error_decoder_ft[0]		 ),
+		.error_detected_o				 ( error_decoder_ft[1]	 	 )
 
 	  );
 	end else begin
@@ -1271,7 +1470,7 @@ generate
 
 		// from IF/ID pipeline
 		.instr_rdata_i                   ( instr                     ),
-		.illegal_c_insn_i                ( illegal_c_insn_i          ),
+		.illegal_c_insn_i                ( illegal_c_insn_ft          ),
 
 		// ALU signals
 		.alu_en_o                        ( alu_en                    ),
@@ -1382,7 +1581,7 @@ generate
 		.fetch_enable_i                 ( fetch_enable_i         ),
 		.ctrl_busy_o                    ( ctrl_busy_o            ),
 		.is_decoding_o                  ( is_decoding_o          ),
-		.is_fetch_failed_i              ( is_fetch_failed_i      ),
+		.is_fetch_failed_i              ( is_fetch_failed_ft      ),
 
 		// decoder related signals
 		.deassert_we_o                  ( deassert_we            ),
@@ -1407,7 +1606,7 @@ generate
 		.hwlp_mask_o                    ( hwlp_mask              ),
 
 		// from IF/ID pipeline
-		.instr_valid_i                  ( instr_valid_i          ),
+		.instr_valid_i                  ( instr_valid_ft          ),
 
 		// from prefetcher
 		.instr_req_o                    ( instr_req_o            ),
@@ -1420,8 +1619,8 @@ generate
 		.trap_addr_mux_o                ( trap_addr_mux_o        ),
 
 		 // HWLoop signls
-		.pc_id_i                        ( pc_id_i                ),
-		.is_compressed_i                ( is_compressed_i        ),
+		.pc_id_i                        ( pc_id_ft                ),
+		.is_compressed_i                ( is_compressed_ft        ),
 
 		.hwlp_start_addr_i              ( hwlp_start_o           ),
 		.hwlp_end_addr_i                ( hwlp_end_o             ),
@@ -1540,8 +1739,8 @@ generate
 		.perf_ld_stall_o                ( perf_ld_stall_o        ),
 		.perf_pipeline_stall_o          ( perf_pipeline_stall_o  ),
 		
-		.error_corrected_o				 ( error_controller_o[0] ),
-		.error_detected_o				 ( error_controller_o[1] )
+		.error_corrected_o				 ( error_controller_ft[0] ),
+		.error_detected_o				 ( error_controller_ft[1] )
 	  );
 
 	end else begin
@@ -1560,7 +1759,7 @@ generate
 		.fetch_enable_i                 ( fetch_enable_i         ),
 		.ctrl_busy_o                    ( ctrl_busy_o            ),
 		.is_decoding_o                  ( is_decoding_o          ),
-		.is_fetch_failed_i              ( is_fetch_failed_i      ),
+		.is_fetch_failed_i              ( is_fetch_failed_ft      ),
 
 		// decoder related signals
 		.deassert_we_o                  ( deassert_we            ),
@@ -1585,7 +1784,7 @@ generate
 		.hwlp_mask_o                    ( hwlp_mask              ),
 
 		// from IF/ID pipeline
-		.instr_valid_i                  ( instr_valid_i          ),
+		.instr_valid_i                  ( instr_valid_ft          ),
 
 		// from prefetcher
 		.instr_req_o                    ( instr_req_o            ),
@@ -1598,8 +1797,8 @@ generate
 		.trap_addr_mux_o                ( trap_addr_mux_o        ),
 
 		 // HWLoop signls
-		.pc_id_i                        ( pc_id_i                ),
-		.is_compressed_i                ( is_compressed_i        ),
+		.pc_id_i                        ( pc_id_ft                ),
+		.is_compressed_i                ( is_compressed_ft        ),
 
 		.hwlp_start_addr_i              ( hwlp_start_o           ),
 		.hwlp_end_addr_i                ( hwlp_end_o             ),
@@ -1800,7 +1999,7 @@ endgenerate
         .hwlp_dec_cnt_i        ( hwlp_dec_cnt            )
       );
 
-      assign hwlp_valid     = instr_valid_i & clear_instr_valid_o;
+      assign hwlp_valid     = instr_valid_ft & clear_instr_valid_o;
 
       // hwloop register id
       assign hwlp_regid_int = instr[7];   // rd contains hwloop register id
@@ -1808,8 +2007,8 @@ endgenerate
       // hwloop target mux
       always_comb begin
         case (hwlp_target_mux_sel)
-          1'b0: hwlp_target = pc_id_i + {imm_iz_type[30:0], 1'b0};
-          1'b1: hwlp_target = pc_id_i + {imm_z_type[30:0], 1'b0};
+          1'b0: hwlp_target = pc_id_ft + {imm_iz_type[30:0], 1'b0};
+          1'b1: hwlp_target = pc_id_ft + {imm_z_type[30:0], 1'b0};
         endcase
       end
 
@@ -1817,7 +2016,7 @@ endgenerate
       always_comb begin
         case (hwlp_start_mux_sel)
           1'b0: hwlp_start_int = hwlp_target;   // for PC + I imm
-          1'b1: hwlp_start_int = pc_id_i+4;       // for next PC
+          1'b1: hwlp_start_int = pc_id_ft+4;       // for next PC
         endcase
       end
 
@@ -2053,7 +2252,7 @@ endgenerate
         data_misaligned_ex_o        <= 1'b0;
 
         if ((ctrl_transfer_insn_in_id == BRANCH_COND) || data_req_id) begin
-          pc_ex_o                   <= pc_id_i;
+          pc_ex_o                   <= pc_id_ft;
         end
 
         branch_in_ex_o              <= ctrl_transfer_insn_in_id == BRANCH_COND;
@@ -2117,7 +2316,7 @@ endgenerate
 
     // the instruction delivered to the ID stage should always be valid
     a_valid_instr : assert property (
-      @(posedge clk) (instr_valid_i & (~illegal_c_insn_i)) |-> (!$isunknown(instr)) ) else $warning("%t, Instruction is valid, but has at least one X", $time);
+      @(posedge clk) (instr_valid_ft & (~illegal_c_insn_ft)) |-> (!$isunknown(instr)) ) else $warning("%t, Instruction is valid, but has at least one X", $time);
 
     // Check that instruction after taken branch is flushed (more should actually be flushed, but that is not checked here)
     // and that EX stage is ready to receive flushed instruction immediately

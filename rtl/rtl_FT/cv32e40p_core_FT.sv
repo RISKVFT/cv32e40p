@@ -455,13 +455,11 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
     .PULP_XPULP          ( PULP_XPULP        ),
     .PULP_OBI            ( PULP_OBI          ),
     .PULP_SECURE         ( PULP_SECURE       ),
-    .FPU                 ( FPU               ),
+    .FPU                 ( FPU               ),	
 	.ID_FAULT_TOLERANCE	 ( ID_FAULT_TOLERANCE   )
   )
   if_stage_i
   (
-	.error_pipeline_if_id_o  	 ( errors_ft_o[2]		 ),
-
     .clk                 ( clk               ),
     .rst_n               ( rst_ni            ),
 

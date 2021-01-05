@@ -31,6 +31,7 @@ module cv32e40p_if_stage_ft
   parameter PULP_OBI        = 0,                        // Legacy PULP OBI behavior
   parameter PULP_SECURE     = 0,
   parameter FPU             = 0,
+  parameter INTERFACE_IF_ID_FT = 0,  // 0: only one signal is assigned, 1: three signals are assigned to emulate triplication of pipeline
   parameter ID_FAULT_TOLERANCE = 31 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
 								   //	0			X			X			X			X
 								   //	1			YES			X			X			X
@@ -54,9 +55,6 @@ module cv32e40p_if_stage_ft
 								   //   OTHERS CODES LIKE 0
 )
 (
-	// FT signals
-	output logic [1:0]	error_pipeline_if_id_o, // [0] error corrected, [1] double error detected
-
 	// original entity
     input  logic        clk,
     input  logic        rst_n,
@@ -84,14 +82,14 @@ module cv32e40p_if_stage_ft
     input  logic                   instr_err_i,      // External bus error (validity defined by instr_rvalid_i) (not used yet)
     input  logic                   instr_err_pmp_i,  // PMP error (validity defined by instr_gnt_i)
 
-    // Output of IF Pipeline stage
-    output logic              instr_valid_id_o,      // instruction in IF/ID pipeline is valid
-    output logic       [31:0] instr_rdata_id_o,      // read instruction is sampled and sent to ID stage for decoding
-    output logic              is_compressed_id_o,    // compressed decoder thinks this is a compressed instruction
-    output logic              illegal_c_insn_id_o,   // compressed decoder thinks this is an invalid instruction
-    output logic       [31:0] pc_if_o,
-    output logic       [31:0] pc_id_o,
-    output logic              is_fetch_failed_o,
+    // Output of IF Pipeline stage (triplicated except for pc_if_o which goes to CSRs)
+    output logic       [2:0]       instr_valid_id_o,      // instruction in IF/ID pipeline is valid
+    output logic       [2:0][31:0] instr_rdata_id_o,      // read instruction is sampled and sent to ID stage for decoding
+    output logic       [2:0]       is_compressed_id_o,    // compressed decoder thinks this is a compressed instruction
+    output logic       [2:0]       illegal_c_insn_id_o,   // compressed decoder thinks this is an invalid instruction
+    output logic       [31:0] 	   pc_if_o,
+    output logic       [2:0][31:0] pc_id_o,
+    output logic       [2:0]       is_fetch_failed_o,
 
     // Forwarding ports - control signals
     input  logic        clear_instr_valid_i,   // clear instruction valid bit in IF/ID pipe
@@ -152,15 +150,6 @@ module cv32e40p_if_stage_ft
   logic [31:0]       instr_decompressed;
   logic              instr_compressed_int;
 
-// FT signals
-  logic [2:0]		 	instr_valid_id_ft;
-  logic [2:0][31:0]	instr_rdata_id_ft;
-  logic [2:0]		 	is_fetch_failed_ft;
-  logic [2:0][31:0]	pc_id_ft;
-  logic [2:0]		 	is_compressed_id_ft;
-  logic [2:0]		 	illegal_c_insn_id_ft;
-  logic [6:1]	 	err_corrected;
-  logic [6:1]	 	err_detected;
 
 
   // exception PC selection mux
@@ -271,9 +260,16 @@ module cv32e40p_if_stage_ft
   // IF-ID pipeline registers, frozen when the ID stage is stalled
 
 generate
-	if (ID_FAULT_TOLERANCE[2]==1) begin
+	if (INTERFACE_IF_ID_FT==1) begin
 	// SOFT ERRORS FAULT TOLERANCE
 		for (genvar i=0; i<3; i++) begin
+			instr_valid_id_o[i] = instr_valid_id_ft[i];
+    		instr_rdata_id_o[i] = instr_rdata_id_ft[i];
+   			is_compressed_id_o[i] = is_compressed_id_ft[i];
+    		illegal_c_insn_id_o[i] = illegal_c_insn_id_ft[i];
+    		pc_id_o[i] = pc_id_ft[i];
+    		is_fetch_failed_o[i] = is_fetch_failed_ft[i];
+
 		  ////////////////// TMR of pipeline //////////////////////////////
 		  always_ff @(posedge clk, negedge rst_n)
 		  begin : IF_ID_PIPE_REGISTERS
@@ -304,116 +300,6 @@ generate
 			end
 		  end
 		end
-			cv32e40p_3voter 
-			#(
-				.L1			( 1	),
-				.L2			( 1		)
-			)
-			voter_result_1
-			(
-				.in_1_i           	( instr_valid_id_ft[0] 	 ),
-				.in_2_i           	( instr_valid_id_ft[1] 	 ),
-				.in_3_i           	( instr_valid_id_ft[2] 	 ),
-				.voted_o          	( instr_valid_id_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[1]	),
-				.err_detected_o 	( err_detected[1] 	)
-			);
-
-			cv32e40p_3voter 
-			#(
-				.L1			( 32	),
-				.L2			( 1		)
-			)
-			voter_result_2
-			(
-				.in_1_i           	( instr_rdata_id_ft[0] 	 ),
-				.in_2_i           	( instr_rdata_id_ft[1] 	 ),
-				.in_3_i           	( instr_rdata_id_ft[2] 	 ),
-				.voted_o          	( instr_rdata_id_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[2]	),
-				.err_detected_o 	( err_detected[2] 	)
-			);
-
-			cv32e40p_3voter 
-			#(
-				.L1			( 1	),
-				.L2			( 1		)
-			)
-			voter_result_3
-			(
-				.in_1_i           	( is_fetch_failed_ft[0] 	 ),
-				.in_2_i           	( is_fetch_failed_ft[1] 	 ),
-				.in_3_i           	( is_fetch_failed_ft[2] 	 ),
-				.voted_o          	( is_fetch_failed_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[3]	),
-				.err_detected_o 	( err_detected[3] 	)
-			);
-
-			cv32e40p_3voter 
-			#(
-				.L1			( 32	),
-				.L2			( 1		)
-			)
-			voter_result_4
-			(
-				.in_1_i           	( pc_id_ft[0] 	 ),
-				.in_2_i           	( pc_id_ft[1] 	 ),
-				.in_3_i           	( pc_id_ft[2] 	 ),
-				.voted_o          	( pc_id_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[4]	),
-				.err_detected_o 	( err_detected[4] 	)
-			);
-
-			cv32e40p_3voter 
-			#(
-				.L1			( 1	),
-				.L2			( 1		)
-			)
-			voter_result_5
-			(
-				.in_1_i           	( is_compressed_id_ft[0] 	 ),
-				.in_2_i           	( is_compressed_id_ft[1] 	 ),
-				.in_3_i           	( is_compressed_id_ft[2] 	 ),
-				.voted_o          	( is_compressed_id_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[5]	),
-				.err_detected_o 	( err_detected[5] 	)
-			);
-
-			cv32e40p_3voter 
-			#(
-				.L1			( 1	),
-				.L2			( 1		)
-			)
-			voter_result_6
-			(
-				.in_1_i           	( illegal_c_insn_id_ft[0] 	 ),
-				.in_2_i           	( illegal_c_insn_id_ft[1] 	 ),
-				.in_3_i           	( illegal_c_insn_id_ft[2] 	 ),
-				.voted_o          	( illegal_c_insn_id_o  		 ),
-				.err_detected_1 	(  ),
-				.err_detected_2 	(  ),
-				.err_detected_3 	(  ),
-				.err_corrected_o  	( err_corrected[6]	),
-				.err_detected_o 	( err_detected[6] 	)
-			);
-			
-			assign error_pipeline_if_id_o[0] = |err_corrected;
-			assign error_pipeline_if_id_o[1] = |err_detected;
 
 	end else begin
 	// NO FAULT TOLERANCE
@@ -421,27 +307,27 @@ generate
 	  begin : IF_ID_PIPE_REGISTERS
 		if (rst_n == 1'b0)
 		begin
-		  instr_valid_id_o      <= 1'b0;
-		  instr_rdata_id_o      <= '0;
-		  is_fetch_failed_o     <= 1'b0;
-		  pc_id_o               <= '0;
-		  is_compressed_id_o    <= 1'b0;
-		  illegal_c_insn_id_o   <= 1'b0;
+		  instr_valid_id_o[0]      <= 1'b0;
+		  instr_rdata_id_o[0]      <= '0;
+		  is_fetch_failed_o[0]     <= 1'b0;
+		  pc_id_o[0]               <= '0;
+		  is_compressed_id_o[0]    <= 1'b0;
+		  illegal_c_insn_id_o[0]   <= 1'b0;
 		end
 		else
 		begin
 
 		  if (if_valid && instr_valid)
 		  begin
-		    instr_valid_id_o    <= 1'b1;
-		    instr_rdata_id_o    <= instr_decompressed;
-		    is_compressed_id_o  <= instr_compressed_int;
+		    instr_valid_id_o[0]    <= 1'b1;
+		    instr_rdata_id_o[0]    <= instr_decompressed;
+		    is_compressed_id_o[0][0]  <= instr_compressed_int;
 		    illegal_c_insn_id_o <= illegal_c_insn;
-		    is_fetch_failed_o   <= 1'b0;
-		    pc_id_o             <= pc_if_o;
+		    is_fetch_failed_o[0]   <= 1'b0;
+		    pc_id_o[0]             <= pc_if_o;
 		  end else if (clear_instr_valid_i) begin
-		    instr_valid_id_o    <= 1'b0;
-		    is_fetch_failed_o   <= fetch_failed;
+		    instr_valid_id_o[0]    <= 1'b0;
+		    is_fetch_failed_o[0]   <= fetch_failed;
 		  end
 		end
 	  end
