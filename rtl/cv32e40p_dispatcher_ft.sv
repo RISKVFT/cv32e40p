@@ -243,5 +243,25 @@ end
 assign only_two_alu_o  = sel_mux_only_two_alu_o[1]  || sel_mux_only_two_alu_o[0];
 assign only_two_mult_o = sel_mux_only_two_mult_o[1] || sel_mux_only_two_mult_o[0];
 
+/*
+
+// If the three mults are all defective we enable the translation mechanism to translate a multiplication is sums and shifts
+always_comb begin: proc_translating_mul
+	if (mult_totally_defective_o) begin //activate the mechanism
+		// output the enable to start the translation
+		// give the decoded mul instruction to the translator
+	end
+
+	// TODO:
+	//	1) The enable will be recognized by the translator to start the translations;
+	//	2) The enable has to be recognized also by the if stage to stall the pipe, that is no new fetchnig;
+	//	3) The other stages has to work: the ex stage has to perform sums and shift while the WB stage has to perform 
+	//	   the storing of intermediate results 
+	//	4) The translator will be into the ID stage because the EX stage has just to compute sums and shift as they are 
+	//	   normal instructions; 
+	//	5) When the translator ends, the normal flux has to restart.
+	
+end
+*/
 
 endmodule : cv32e40p_dispatcher_ft

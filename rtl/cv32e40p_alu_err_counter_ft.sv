@@ -508,7 +508,6 @@ generate
           permanent_faulty_alu_o[i][0] <= sel[36] ? permanent_faulty_alu_nw[i][0] : permanent_faulty_alu_s_o[i][0];
           //permanent_faulty_alu_o[i][0] <= signal[i];
 
-
          // Logic
         if (~permanent_faulty_alu_o[i][1])
           permanent_faulty_alu_o[i][1] <= sel[36] ? permanent_faulty_alu_nw[i][1] : permanent_faulty_alu_s_o[i][1];

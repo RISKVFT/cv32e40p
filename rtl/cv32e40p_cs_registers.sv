@@ -516,7 +516,7 @@ if(PULP_SECURE==1) begin
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
-      	if (~csr_we_int && ~csr_op_i) begin
+      	if (~csr_we_int && csr_op_i==2'b00) begin
           mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0; 
         end 
@@ -539,7 +539,7 @@ if(PULP_SECURE==1) begin
       CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
       CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
       CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
-        if (~csr_we_int && ~csr_op_i) begin
+        if (~csr_we_int && csr_op_i==2'b00) begin
           mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
         end
@@ -709,7 +709,7 @@ end else begin //PULP_SECURE == 0
 
       // FT: Tables of permanent faulty components
       CSR_PERM_FAULTY_ALUL_FT, CSR_PERM_FAULTY_ALUH_FT, CSR_PERM_FAULTY_MULT_FT: begin
-        if (~csr_we_int && ~csr_op_i) begin
+        if (~csr_we_int && csr_op_i==2'b00) begin
         	mhpm_re_ft_o   = FT ? 1'b1 : 1'b0;
           csr_rdata_int  = FT ? mhpm_rdata_ft_i : 'b0;  
         end
@@ -732,7 +732,7 @@ end else begin //PULP_SECURE == 0
       CSR_MHPMCOUNTERM0_FT, CSR_MHPMCOUNTERM1_FT, CSR_MHPMCOUNTERM2_FT, CSR_MHPMCOUNTERM3_FT,
       CSR_MHPMCOUNTERM4_FT, CSR_MHPMCOUNTERM5_FT, CSR_MHPMCOUNTERM6_FT, CSR_MHPMCOUNTERM7_FT,
       CSR_MHPMCOUNTERM8_FT, CSR_MHPMCOUNTERM9_FT, CSR_MHPMCOUNTERM10_FT, CSR_MHPMCOUNTERM11_FT: begin
-        if (~csr_we_int && ~csr_op_i) begin
+        if (~csr_we_int && csr_op_i==2'b00) begin
           mhpm_re_ft_o  = FT ? 1'b1 : 1'b0;
           csr_rdata_int = FT ? mhpm_rdata_ft_i : 'b0; 
         end
