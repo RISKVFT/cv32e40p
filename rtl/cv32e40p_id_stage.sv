@@ -1786,6 +1786,7 @@ generate
          .mult_totally_defective_o   ( mult_totally_defective_s 			)
         );
 
+        /*
         cv32e40p_dispatcher_ft dispatcher_ft_sltu // DISPATCHER SLTU
         (       
          .rst_n                      ( rst_n                                   ),
@@ -1804,7 +1805,7 @@ generate
          .alu_totally_defective_o    ( alu_totally_defective_s_sltu            ), 
          .mult_totally_defective_o   ( mult_totally_defective_s_sltu           )
         );
-
+        */
 
         // Clock gate to put one of the four ALU in standby. This means to clock gate one of the 4 pipe register replicas
         cv32e40p_clock_gate clk_gate_4[3:0]
@@ -1966,7 +1967,7 @@ generate
         always_ff @(posedge clk, negedge rst_n) begin : proc_sel_mux
           if(~rst_n) begin
             sel_mux_ex_o             <= 3'b0;
-            clock_enable_o       <= 3'b0;
+            clock_enable_o           <= 3'b0;
             sel_bypass_alu_ex_o      <= 2'b0;
             sel_bypass_mult_ex_o     <= 2'b0;
             alu_totally_defective_o  <= 1'b0;
@@ -1981,7 +1982,7 @@ generate
             if(id_valid_o) begin
                 //if (alu_en) begin
                     sel_mux_ex_o             <= sel_mux_ex_s;
-                    clock_enable_o       <= clock_en;
+                    clock_enable_o           <= clock_en;
                     sel_bypass_alu_ex_o      <= sel_bypass_alu_ex_s;
                     alu_totally_defective_o  <= alu_totally_defective_s;
                     only_two_alu_o           <= only_two_alu_s;
@@ -1996,7 +1997,7 @@ generate
                 //end
             end /*else if(ex_ready_i) begin
                 sel_mux_ex_o                 <= sel_mux_ex_s_sltu;
-                clock_enable_o           <= clock_en_sltu;
+                clock_enable_o               <= clock_en_sltu;
                 sel_bypass_alu_ex_o          <= sel_bypass_alu_ex_s_sltu;
                 sel_bypass_mult_ex_o         <= sel_bypass_mult_ex_s_sltu;
                 alu_totally_defective_o      <= alu_totally_defective_s_sltu; 

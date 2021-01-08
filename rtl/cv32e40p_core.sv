@@ -1021,11 +1021,11 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .wb_ready_i                 ( lsu_ready_wb        	    ),
 
     // FT
-    .sel_mux_ex_i               ( sel_mux_ex               	), // selector of the three mux to choose three of the four alu
+    .sel_mux_ex_i               ( sel_mux_ex               	),  // selector of the three mux to choose three of the four alu
     .permanent_faulty_alu_o     ( permanent_faulty_alu     	),  // set of 4 9bit register for a each ALU 
     .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   	),  // set of 4 9bit register for a each ALU 
-    .permanent_faulty_mult_o 	( permanent_faulty_mult  	),
-    .permanent_faulty_mult_s_o 	( permanent_faulty_mult_s	),
+    .permanent_faulty_mult_o 	  ( permanent_faulty_mult  	  ),
+    .permanent_faulty_mult_s_o 	( permanent_faulty_mult_s	  ),
     .clock_enable_i             ( clock_enable            	),
     .alu_en_ex_voted_i          ( alu_en_ex_core           	),
     /*

@@ -170,60 +170,60 @@ always_comb begin : proc_decoder_faulty_alu
 
 	end else if (mult_used) begin
 		unique case (permanent_faulty_mult_i)
-			4'b000: begin
+			3'b000: begin
 				clock_gate_pipe_replica_o = 4'b0111;
 				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o   = 2'b00;
 			end
-			4'b001: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b001;
+			3'b001: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
      			sel_mux_only_two_mult_o  = 2'b01;
 
 			end
-			4'b010: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b010;
+			3'b010: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o  = 2'b10;
 			end
-			4'b011: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b010;
+			3'b011: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b11;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o   = 2'b00;
 
 			end
-			4'b100: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b100;
+			3'b100: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o  = 2'b0;
 			end
-			4'b101: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-			    sel_mux_ex_o = 3'b100;
+			3'b101: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+			    sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b10;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o   = 2'b00;
 			end
-			4'b110: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b100;
+			3'b110: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b01;
 				mult_totally_defective_o = 1'b0;
 				sel_mux_only_two_mult_o   = 2'b00;
 			end
-			4'b111: begin
-				clock_gate_pipe_replica_o = ~permanent_faulty_mult_i;
-				sel_mux_ex_o = 3'b100;
+			3'b111: begin
+				clock_gate_pipe_replica_o = {1'b0, ~permanent_faulty_mult_i};
+				sel_mux_ex_o = 3'b000;
 				sel_bypass_mult_o = 2'b00;
 				mult_totally_defective_o = 1'b1; // In this case it is activated the mechanism to compute the multiplication as sequence of sums and shifts
 				sel_mux_only_two_mult_o   = 2'b00;
@@ -243,7 +243,14 @@ end
 assign only_two_alu_o  = sel_mux_only_two_alu_o[1]  || sel_mux_only_two_alu_o[0];
 assign only_two_mult_o = sel_mux_only_two_mult_o[1] || sel_mux_only_two_mult_o[0];
 
+
+
 /*
+
+//////////////////////////////////////////////////////////////
+//////////  Translate mult operation with add+shift //////////
+//////////////////////////////////////////////////////////////
+
 
 // If the three mults are all defective we enable the translation mechanism to translate a multiplication is sums and shifts
 always_comb begin: proc_translating_mul
