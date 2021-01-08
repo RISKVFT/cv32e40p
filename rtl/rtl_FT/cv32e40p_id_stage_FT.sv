@@ -610,47 +610,79 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 //////// Assignment of output vectors
   always_comb begin : output_error_vector
     unique case (error_controller_ft)
-      0: vector_err_corrected_o[0] = 0;
-		 vector_err_detected_o[0] = 0;
-      1: vector_err_corrected_o[0] = 1;
-		 vector_err_detected_o[0] = 0;
-      2: vector_err_corrected_o[0] = 0;
-		 vector_err_detected_o[0] = 1;
-      default: vector_err_corrected_o[0] = 0;
-		 	   vector_err_detected_o[0] = 0;
+      0: begin
+			vector_err_corrected_o[0] = 0;
+		 	vector_err_detected_o[0] = 0;
+		end
+      1: begin
+			vector_err_corrected_o[0] = 1;
+		 	vector_err_detected_o[0] = 0;
+		end
+      2: begin
+			vector_err_corrected_o[0] = 0;
+		 	vector_err_detected_o[0] = 1;
+		end
+      default: begin
+			vector_err_corrected_o[0] = 0;
+		 	vector_err_detected_o[0] = 0;
+		end
     endcase
 
 	unique case (error_decoder_ft)
-      0: vector_err_corrected_o[1] = 0;
-		 vector_err_detected_o[1] = 0;
-      1: vector_err_corrected_o[1] = 1;
-		 vector_err_detected_o[1] = 0;
-      2: vector_err_corrected_o[1] = 0;
-		 vector_err_detected_o[1] = 1;
-      default: vector_err_corrected_o[1] = 0;
+      0: begin
+			vector_err_corrected_o[1] = 0;
+		 	vector_err_detected_o[1] = 0;
+		end
+      1: begin
+			vector_err_corrected_o[1] = 1;
+		 	vector_err_detected_o[1] = 0;
+		end
+      2: begin
+			vector_err_corrected_o[1] = 0;
+		 	vector_err_detected_o[1] = 1;
+		end
+      default: begin
+			vector_err_corrected_o[1] = 0;
 		 	   vector_err_detected_o[1] = 0;
+		end
     endcase
 
     unique case (error_pipeline_ft)
-      0: vector_err_corrected_o[2] = 0;
-		 vector_err_detected_o[2] = 0;
-      1: vector_err_corrected_o[2] = 1;
-		 vector_err_detected_o[2] = 0;
-      2: vector_err_corrected_o[2] = 0;
-		 vector_err_detected_o[2] = 1;
-      default: vector_err_corrected_o[2] = 0;
-		 	   vector_err_detected_o[2] = 0;
+      0: begin
+			vector_err_corrected_o[2] = 0;
+		 	vector_err_detected_o[2] = 0;
+		end
+      1: begin
+			vector_err_corrected_o[2] = 1;
+		 	vector_err_detected_o[2] = 0;
+		end
+      2: begin
+			vector_err_corrected_o[2] = 0;
+		 	vector_err_detected_o[2] = 1;
+		end
+      default: begin
+			vector_err_corrected_o[2] = 0;
+		 	vector_err_detected_o[2] = 0;
+		end
     endcase
 
-	unique case (error_regfile_ft)
-      0: vector_err_corrected_o[3] = 0;
-		 vector_err_detected_o[3] = 0;
-      1: vector_err_corrected_o[3] = 1;
-		 vector_err_detected_o[3] = 0;
-      2: vector_err_corrected_o[3] = 0;
-		 vector_err_detected_o[3] = 1;
-      default: vector_err_corrected_o[3] = 0;
-		 	   vector_err_detected_o[3] = 0;
+	unique case (error_regfile_ft) // this signal is SECDED, that means LSB->SEC (1 error detected and corrected), MSB->DED (2 error detected and not corrected)
+      0: begin
+			vector_err_corrected_o[3] = 0;
+		 	vector_err_detected_o[3] = 0;
+		end
+      1: begin
+			vector_err_corrected_o[3] = 1;
+		 	vector_err_detected_o[3] = 1;
+		end
+      2: begin
+			vector_err_corrected_o[3] = 0;
+		 	vector_err_detected_o[3] = 1;
+		end
+      default: begin
+			vector_err_corrected_o[3] = 0;
+		 	vector_err_detected_o[3] = 0;
+		end
     endcase
   end
 
@@ -673,11 +705,11 @@ generate
 		.in_2_i           	( instr_valid_i[1] 	 ),
 		.in_3_i           	( instr_valid_i[2] 	 ),
 		.voted_o          	( instr_valid_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[1]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[1] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[1]	),
+		.err_detected_o 	( err_pipeline_detected[1] 	)
 	);
 
 	cv32e40p_3voter 
@@ -691,11 +723,11 @@ generate
 		.in_2_i           	( instr_rdata_i[1] 	 ),
 		.in_3_i           	( instr_rdata_i[2] 	 ),
 		.voted_o          	( instr_rdata_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[2]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[2] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[2]	),
+		.err_detected_o 	( err_pipeline_detected[2] 	)
 	);
 
 	cv32e40p_3voter 
@@ -709,11 +741,11 @@ generate
 		.in_2_i           	( is_fetch_failed_i[1] 	 ),
 		.in_3_i           	( is_fetch_failed_i[2] 	 ),
 		.voted_o          	( is_fetch_failed_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[3]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[3] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[3]	),
+		.err_detected_o 	( err_pipeline_detected[3] 	)
 	);
 
 	cv32e40p_3voter 
@@ -727,11 +759,11 @@ generate
 		.in_2_i           	( pc_id_i[1] 	 ),
 		.in_3_i           	( pc_id_i[2] 	 ),
 		.voted_o          	( pc_id_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[4]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[4] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[4]	),
+		.err_detected_o 	( err_pipeline_detected[4] 	)
 	);
 
 	cv32e40p_3voter 
@@ -745,11 +777,11 @@ generate
 		.in_2_i           	( is_compressed_i[1] 	 ),
 		.in_3_i           	( is_compressed_i[2] 	 ),
 		.voted_o          	( is_compressed_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[5]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[5] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[5]	),
+		.err_detected_o 	( err_pipeline_detected[5] 	)
 	);
 
 	cv32e40p_3voter 
@@ -763,11 +795,11 @@ generate
 		.in_2_i           	( illegal_c_insn_i[1] 	 ),
 		.in_3_i           	( illegal_c_insn_i[2] 	 ),
 		.voted_o          	( illegal_c_insn_ft  		 ),
-		.err_pipeline_detected_1 	(  ),
-		.err_pipeline_detected_2 	(  ),
-		.err_pipeline_detected_3 	(  ),
-		.err_pipeline_corrected_o  	( err_pipeline_corrected[6]	),
-		.err_pipeline_detected_o 	( err_pipeline_detected[6] 	)
+		.err_detected_1 	(  ),
+		.err_detected_2 	(  ),
+		.err_detected_3 	(  ),
+		.err_corrected_o  	( err_pipeline_corrected[6]	),
+		.err_detected_o 	( err_pipeline_detected[6] 	)
 	);
 
 	
@@ -776,12 +808,12 @@ generate
 	assign error_pipeline_ft[1] = |err_pipeline_detected;
 
 	end else begin
-		instr_valid_ft = instr_valid_i[0];
-		instr_rdata_ft = instr_rdata_i[0];
-		is_compressed_ft = is_compressed_i[0];
-		illegal_c_insn_ft = illegal_c_insn_i[0];
-		pc_id_ft = pc_id_i[0];
-		is_fetch_failed_ft = is_fetch_failed_i[0];
+		assign instr_valid_ft = instr_valid_i[0];
+		assign instr_rdata_ft = instr_rdata_i[0];
+		assign is_compressed_ft = is_compressed_i[0];
+		assign illegal_c_insn_ft = illegal_c_insn_i[0];
+		assign pc_id_ft = pc_id_i[0];
+		assign is_fetch_failed_ft = is_fetch_failed_i[0];
 	end
 endgenerate
 

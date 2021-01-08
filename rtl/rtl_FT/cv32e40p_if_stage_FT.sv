@@ -31,7 +31,7 @@ module cv32e40p_if_stage_ft
   parameter PULP_OBI        = 0,                        // Legacy PULP OBI behavior
   parameter PULP_SECURE     = 0,
   parameter FPU             = 0,
-  parameter INTERFACE_IF_ID_FT = 0,  // 0: only one signal is assigned, 1: three signals are assigned to emulate triplication of pipeline
+  parameter INTERFACE_IF_ID_FT = 1,  // 0: only one signal is assigned, 1: three signals are assigned to emulate triplication of pipeline
   parameter ID_FAULT_TOLERANCE = 31 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
 								   //	0			X			X			X			X
 								   //	1			YES			X			X			X
@@ -150,7 +150,12 @@ module cv32e40p_if_stage_ft
   logic [31:0]       instr_decompressed;
   logic              instr_compressed_int;
 
-
+  logic [2:0]		 	instr_valid_id_ft;
+  logic [2:0][31:0]		instr_rdata_id_ft;
+  logic [2:0]		 	is_fetch_failed_ft;
+  logic [2:0][31:0]		pc_id_ft;
+  logic [2:0]		 	is_compressed_id_ft;
+  logic [2:0]		 	illegal_c_insn_id_ft;
 
   // exception PC selection mux
   always_comb
@@ -263,12 +268,12 @@ generate
 	if (INTERFACE_IF_ID_FT==1) begin
 	// SOFT ERRORS FAULT TOLERANCE
 		for (genvar i=0; i<3; i++) begin
-			instr_valid_id_o[i] = instr_valid_id_ft[i];
-    		instr_rdata_id_o[i] = instr_rdata_id_ft[i];
-   			is_compressed_id_o[i] = is_compressed_id_ft[i];
-    		illegal_c_insn_id_o[i] = illegal_c_insn_id_ft[i];
-    		pc_id_o[i] = pc_id_ft[i];
-    		is_fetch_failed_o[i] = is_fetch_failed_ft[i];
+			assign instr_valid_id_o[i] = instr_valid_id_ft[i];
+    		assign instr_rdata_id_o[i] = instr_rdata_id_ft[i];
+   			assign is_compressed_id_o[i] = is_compressed_id_ft[i];
+    		assign illegal_c_insn_id_o[i] = illegal_c_insn_id_ft[i];
+    		assign pc_id_o[i] = pc_id_ft[i];
+    		assign is_fetch_failed_o[i] = is_fetch_failed_ft[i];
 
 		  ////////////////// TMR of pipeline //////////////////////////////
 		  always_ff @(posedge clk, negedge rst_n)
@@ -276,9 +281,9 @@ generate
 			if (rst_n == 1'b0)
 			begin
 			  instr_valid_id_ft[i]      <= 1'b0;
-			  instr_rdata_id_ft[i]      <= '0;
+			  instr_rdata_id_ft[i]      <= 0;
 			  is_fetch_failed_ft[i]     <= 1'b0;
-			  pc_id_ft[i]               <= '0;
+			  pc_id_ft[i]               <= 0;
 			  is_compressed_id_ft[i]    <= 1'b0;
 			  illegal_c_insn_id_ft[i]   <= 1'b0;
 			end
@@ -308,9 +313,9 @@ generate
 		if (rst_n == 1'b0)
 		begin
 		  instr_valid_id_o[0]      <= 1'b0;
-		  instr_rdata_id_o[0]      <= '0;
+		  instr_rdata_id_o[0]      <= 0;
 		  is_fetch_failed_o[0]     <= 1'b0;
-		  pc_id_o[0]               <= '0;
+		  pc_id_o[0]               <= 0;
 		  is_compressed_id_o[0]    <= 1'b0;
 		  illegal_c_insn_id_o[0]   <= 1'b0;
 		end
@@ -321,8 +326,8 @@ generate
 		  begin
 		    instr_valid_id_o[0]    <= 1'b1;
 		    instr_rdata_id_o[0]    <= instr_decompressed;
-		    is_compressed_id_o[0][0]  <= instr_compressed_int;
-		    illegal_c_insn_id_o <= illegal_c_insn;
+		    is_compressed_id_o[0]  <= instr_compressed_int;
+		    illegal_c_insn_id_o[0] <= illegal_c_insn;
 		    is_fetch_failed_o[0]   <= 1'b0;
 		    pc_id_o[0]             <= pc_if_o;
 		  end else if (clear_instr_valid_i) begin

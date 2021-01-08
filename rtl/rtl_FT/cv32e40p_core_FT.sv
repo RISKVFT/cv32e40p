@@ -122,7 +122,8 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   //	2. pipeline if/id
   //	1. decoder
   //	0. controller
-  output logic[3:0][1:0]  errors_ft_o // 0 = corrected, 1 = detected but not corrected
+  output logic[3:0]  err_corrected_ft_o, // 0 = corrected, 1 = detected but not corrected
+  output logic[3:0]  err_detected_ft_o // 0 = corrected, 1 = detected but not corrected
 );
 
   import cv32e40p_pkg::*;
@@ -154,11 +155,11 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
 
 
   // IF/ID signals
-  logic              instr_valid_id;
-  logic [31:0]       instr_rdata_id;    // Instruction sampled inside IF stage
-  logic              is_compressed_id;
-  logic              illegal_c_insn_id;
-  logic              is_fetch_failed_id;
+  logic [2:0]             instr_valid_id; //triplicated  
+  logic [2:0][31:0]       instr_rdata_id;  //triplicated    // Instruction sampled inside IF stage
+  logic [2:0]             is_compressed_id; //triplicated  
+  logic [2:0]             illegal_c_insn_id; //triplicated  
+  logic [2:0]             is_fetch_failed_id; //triplicated  
 
   logic              clear_instr_valid;
   logic              pc_set;
@@ -172,7 +173,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   logic [1:0]        trap_addr_mux;
 
   logic [31:0]       pc_if;             // Program counter in IF stage
-  logic [31:0]       pc_id;             // Program counter in ID stage
+  logic [2:0][31:0]       pc_id;        //triplicated     // Program counter in ID stage
 
   // ID performance counter signals
   logic        is_decoding;
@@ -377,6 +378,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   logic [31:0]                      instr_addr_pmp;
   logic                             instr_err_pmp;
 
+
   // FT signals from/to performance counter for hard errors
   logic [31:0]						regfile_location_valid_from_perf_counter, regfile_location_valid_to_perf_counter;
   logic 							regfile_location_valid_we_perf_counter;
@@ -563,9 +565,8 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   )
   id_stage_i
   (
-	.error_regfile_o			  ( errors_ft_o[3]		 ),
-	.error_controller_o			  ( errors_ft_o[0]		 ),
-	.error_decoder_o  			  ( errors_ft_o[1]		 ),
+	.vector_err_corrected_o			  ( err_corrected_ft_o		 ),
+	.vector_err_detected_o			  ( err_detected_ft_o		 ),
 	.regfile_location_valid_i	  ( regfile_location_valid_from_perf_counter ), // (32 bit) questo segnale in realtà arriva dal registro dei performance counter
 	.regfile_location_valid_o	  (	regfile_location_valid_to_perf_counter 	 ), 
 	.write_performance_counter_o  (	regfile_location_valid_we_perf_counter   ), 
