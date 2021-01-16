@@ -68,6 +68,6 @@ ${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_register_file_ff_FT.sv
 ${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_decoder_FT.sv
 ${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_controller_feedback.sv
 ${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_controller_FT.sv
-${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_id_stage_FT.sv
-${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_if_stage_FT.sv
-${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_core_FT.sv
+${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_id_stage.sv
+${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_if_stage.sv
+${DESIGN_RTL_DIR}/rtl_FT/cv32e40p_core.sv

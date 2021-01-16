@@ -25,14 +25,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-module cv32e40p_if_stage_ft
+module cv32e40p_if_stage
 #(
   parameter PULP_XPULP      = 0,                        // PULP ISA Extension (including PULP specific CSRs and hardware loop, excluding p.elw)
   parameter PULP_OBI        = 0,                        // Legacy PULP OBI behavior
   parameter PULP_SECURE     = 0,
   parameter FPU             = 0,
-  parameter INTERFACE_IF_ID_FT = 1,  // 0: only one signal is assigned, 1: three signals are assigned to emulate triplication of pipeline
-  parameter ID_FAULT_TOLERANCE = 31 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
+  parameter ID_FAULT_TOLERANCE = 0 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
 								   //	0			X			X			X			X
 								   //	1			YES			X			X			X
 								   //	2			X			YES			X			X
@@ -265,7 +264,7 @@ module cv32e40p_if_stage_ft
   // IF-ID pipeline registers, frozen when the ID stage is stalled
 
 generate
-	if (INTERFACE_IF_ID_FT==1) begin
+	if (ID_FAULT_TOLERANCE[2]==1) begin
 	// SOFT ERRORS FAULT TOLERANCE
 		for (genvar i=0; i<3; i++) begin
 			assign instr_valid_id_o[i] = instr_valid_id_ft[i];

@@ -27,7 +27,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
+module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*;
 #(
   parameter PULP_XPULP        =  1,                     // PULP ISA Extension (including PULP specific CSRs and hardware loop, excluding p.elw)
   parameter PULP_CLUSTER      =  0,
@@ -70,17 +70,17 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 (
 	// FT ports
 	// each bit is referred to 3->regfile, 2->pipeline, 1->decoder, 0->controller
-	output logic [3:0]				vector_err_corrected_o,
-	output logic [3:0]				vector_err_detected_o,
+	output logic [3:0]				vector_err_corrected_ft_o,
+	output logic [3:0]				vector_err_detected_ft_o,
 	//// Errors signal: [0] no error, [1] sec, [2] ded
 	//output logic [1:0]			   error_regfile_o, // signals to state if an error occurred	
 	//output logic [1:0]			   error_controller_o, // signals to state if an error occurred	
 	//output logic [1:0]			   error_decoder_o, // signals to state if an error occurred	
 	//output logic [1:0]			   error_pipeline_o, // signals to state if an error occurred	
 	// FT signals to/from performance counters
-	input  logic [31:0]			   regfile_location_valid_i, // input coming from performance counter (?)
-	output logic [31:0]			   regfile_location_valid_o, // updated valid locations info to send to the performance counter (?)
-	output logic				   write_performance_counter_o, // write enable to update performance counter register
+	input  logic [31:0]			   regfile_location_valid_ft_i, // input coming from performance counter (?)
+	output logic [31:0]			   regfile_location_valid_ft_o, // updated valid locations info to send to the performance counter (?)
+	output logic				   write_performance_counter_ft_o, // write enable to update performance counter register
 
 	// Start of original entity
     input  logic        clk,                    // Gated clock
@@ -95,7 +95,7 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 
     // Interface to IF stage
     input  logic       [2:0]       instr_valid_i, //triplicated
-    input  logic       [2:0][31:0] instr_rdata_i,  //triplicated    // comes from pipeline of IF stage
+    input  logic       [32*3-1:0] instr_rdata_i,  //triplicated    // comes from pipeline of IF stage
     output logic              	   instr_req_o,
     input  logic       [2:0]       is_compressed_i, //triplicated
     input  logic       [2:0]       illegal_c_insn_i, //triplicated
@@ -115,7 +115,7 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 
     input  logic [2:0]       is_fetch_failed_i, //triplicated
 
-    input  logic [2:0][31:0] pc_id_i, //triplicated
+    input  logic  [32*3-1:0]  pc_id_i, //triplicated
 
     // Stalls
     output logic        halt_if_o,      // controller requests a halt of the IF stage
@@ -508,12 +508,12 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
 
 //// FT SIGNALS
   // signals from IF pipeline
-  logic [2:0]		 	instr_valid_ft;
-  logic [2:0][31:0]		instr_rdata_ft;
-  logic [2:0]		 	is_fetch_failed_ft;
-  logic [2:0][31:0]		pc_id_ft;
-  logic [2:0]		 	is_compressed_ft;
-  logic [2:0]		 	illegal_c_insn_ft;
+  logic 		 	instr_valid_ft;
+  logic [31:0]		instr_rdata_ft;
+  logic 		 	is_fetch_failed_ft;
+  logic [31:0]		pc_id_ft;
+  logic 		 	is_compressed_ft;
+  logic 		 	illegal_c_insn_ft;
   logic [6:1]			err_pipeline_corrected;
   logic [6:1]			err_pipeline_detected;
 
@@ -611,77 +611,77 @@ module cv32e40p_id_stage_ft import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg
   always_comb begin : output_error_vector
     unique case (error_controller_ft)
       0: begin
-			vector_err_corrected_o[0] = 0;
-		 	vector_err_detected_o[0] = 0;
+			vector_err_corrected_ft_o[0] = 0;
+		 	vector_err_detected_ft_o[0] = 0;
 		end
       1: begin
-			vector_err_corrected_o[0] = 1;
-		 	vector_err_detected_o[0] = 0;
+			vector_err_corrected_ft_o[0] = 1;
+		 	vector_err_detected_ft_o[0] = 0;
 		end
       2: begin
-			vector_err_corrected_o[0] = 0;
-		 	vector_err_detected_o[0] = 1;
+			vector_err_corrected_ft_o[0] = 0;
+		 	vector_err_detected_ft_o[0] = 1;
 		end
       default: begin
-			vector_err_corrected_o[0] = 0;
-		 	vector_err_detected_o[0] = 0;
+			vector_err_corrected_ft_o[0] = 0;
+		 	vector_err_detected_ft_o[0] = 0;
 		end
     endcase
 
 	unique case (error_decoder_ft)
       0: begin
-			vector_err_corrected_o[1] = 0;
-		 	vector_err_detected_o[1] = 0;
+			vector_err_corrected_ft_o[1] = 0;
+		 	vector_err_detected_ft_o[1] = 0;
 		end
       1: begin
-			vector_err_corrected_o[1] = 1;
-		 	vector_err_detected_o[1] = 0;
+			vector_err_corrected_ft_o[1] = 1;
+		 	vector_err_detected_ft_o[1] = 0;
 		end
       2: begin
-			vector_err_corrected_o[1] = 0;
-		 	vector_err_detected_o[1] = 1;
+			vector_err_corrected_ft_o[1] = 0;
+		 	vector_err_detected_ft_o[1] = 1;
 		end
       default: begin
-			vector_err_corrected_o[1] = 0;
-		 	   vector_err_detected_o[1] = 0;
+			vector_err_corrected_ft_o[1] = 0;
+		 	   vector_err_detected_ft_o[1] = 0;
 		end
     endcase
 
     unique case (error_pipeline_ft)
       0: begin
-			vector_err_corrected_o[2] = 0;
-		 	vector_err_detected_o[2] = 0;
+			vector_err_corrected_ft_o[2] = 0;
+		 	vector_err_detected_ft_o[2] = 0;
 		end
       1: begin
-			vector_err_corrected_o[2] = 1;
-		 	vector_err_detected_o[2] = 0;
+			vector_err_corrected_ft_o[2] = 1;
+		 	vector_err_detected_ft_o[2] = 0;
 		end
       2: begin
-			vector_err_corrected_o[2] = 0;
-		 	vector_err_detected_o[2] = 1;
+			vector_err_corrected_ft_o[2] = 0;
+		 	vector_err_detected_ft_o[2] = 1;
 		end
       default: begin
-			vector_err_corrected_o[2] = 0;
-		 	vector_err_detected_o[2] = 0;
+			vector_err_corrected_ft_o[2] = 0;
+		 	vector_err_detected_ft_o[2] = 0;
 		end
     endcase
 
 	unique case (error_regfile_ft) // this signal is SECDED, that means LSB->SEC (1 error detected and corrected), MSB->DED (2 error detected and not corrected)
       0: begin
-			vector_err_corrected_o[3] = 0;
-		 	vector_err_detected_o[3] = 0;
+			vector_err_corrected_ft_o[3] = 0;
+		 	vector_err_detected_ft_o[3] = 0;
 		end
       1: begin
-			vector_err_corrected_o[3] = 1;
-		 	vector_err_detected_o[3] = 1;
+			vector_err_corrected_ft_o[3] = 1;
+		 	vector_err_detected_ft_o[3] = 1;
 		end
       2: begin
-			vector_err_corrected_o[3] = 0;
-		 	vector_err_detected_o[3] = 1;
+			vector_err_corrected_ft_o[3] = 0;
+		 	vector_err_detected_ft_o[3] = 1;
 		end
       default: begin
-			vector_err_corrected_o[3] = 0;
-		 	vector_err_detected_o[3] = 0;
+			vector_err_corrected_ft_o[3] = 0;
+		 	vector_err_detected_ft_o[3] = 0;
 		end
     endcase
   end
@@ -719,9 +719,9 @@ generate
 	)
 	voter_result_2
 	(
-		.in_1_i           	( instr_rdata_i[0] 	 ),
-		.in_2_i           	( instr_rdata_i[1] 	 ),
-		.in_3_i           	( instr_rdata_i[2] 	 ),
+		.in_1_i           	( instr_rdata_i[31:0] 	 ),
+		.in_2_i           	( instr_rdata_i[63:32] 	 ),
+		.in_3_i           	( instr_rdata_i[95:64] 	 ),
 		.voted_o          	( instr_rdata_ft  		 ),
 		.err_detected_1 	(  ),
 		.err_detected_2 	(  ),
@@ -755,9 +755,9 @@ generate
 	)
 	voter_result_4
 	(
-		.in_1_i           	( pc_id_i[0] 	 ),
-		.in_2_i           	( pc_id_i[1] 	 ),
-		.in_3_i           	( pc_id_i[2] 	 ),
+		.in_1_i           	( pc_id_i[31:0] 	 ),
+		.in_2_i           	( pc_id_i[63:32] 	 ),
+		.in_3_i           	( pc_id_i[95:64] 	 ),
 		.voted_o          	( pc_id_ft  		 ),
 		.err_detected_1 	(  ),
 		.err_detected_2 	(  ),
@@ -809,10 +809,10 @@ generate
 
 	end else begin
 		assign instr_valid_ft = instr_valid_i[0];
-		assign instr_rdata_ft = instr_rdata_i[0];
+		assign instr_rdata_ft = instr_rdata_i[31:0];
 		assign is_compressed_ft = is_compressed_i[0];
 		assign illegal_c_insn_ft = illegal_c_insn_i[0];
-		assign pc_id_ft = pc_id_i[0];
+		assign pc_id_ft = pc_id_i[31:0];
 		assign is_fetch_failed_ft = is_fetch_failed_i[0];
 	end
 endgenerate
@@ -1258,9 +1258,9 @@ generate
 
 		// Errors signal: ded, sec
 		.errors_vector					( error_regfile_ft			 ),	// signals to state if an error occurred
-		.regfile_location_valid_i		( regfile_location_valid_i 	 ), // input coming from performance counter (?)
-		.regfile_location_valid_o		( regfile_location_valid_o   ), // updated valid locations info to send to the performance counter (?)
-		.write_performance_counter_o	( write_performance_counter_o)  // write enable to update performance counter register
+		.regfile_location_valid_i		( regfile_location_valid_ft_i 	 ), // input coming from performance counter (?)
+		.regfile_location_valid_o		( regfile_location_valid_ft_o   ), // updated valid locations info to send to the performance counter (?)
+		.write_performance_counter_o	( write_performance_counter_ft_o)  // write enable to update performance counter register
 	  );
 	end else begin
 	// NO FAULT TOLERANCE	

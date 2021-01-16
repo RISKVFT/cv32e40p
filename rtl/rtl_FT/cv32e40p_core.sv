@@ -28,14 +28,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
+module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 #(
   parameter PULP_XPULP          =  0,                   // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
   parameter PULP_CLUSTER        =  0,                   // PULP Cluster interface (incl. p.elw)
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter ID_FAULT_TOLERANCE  =  31  // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID) REGFILE
+  parameter ID_FAULT_TOLERANCE  =  15  // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID) REGFILE
 									   //	0			X			X			X			X
 									   //	1			YES			X			X			X
 									   //	2			X			YES			X			X
@@ -122,8 +122,8 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   //	2. pipeline if/id
   //	1. decoder
   //	0. controller
-  output logic[3:0]  err_corrected_ft_o, // 0 = corrected, 1 = detected but not corrected
-  output logic[3:0]  err_detected_ft_o // 0 = corrected, 1 = detected but not corrected
+  output logic[3:0]  err_corrected_ft_o, // 0 = no error, 1 = error corrected
+  output logic[3:0]  err_detected_ft_o // 0 = corrected, 1 = at least one error detected
 );
 
   import cv32e40p_pkg::*;
@@ -544,7 +544,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   //  |___|____/  |____/ |_/_/   \_\____|_____|  //
   //                                             //
   /////////////////////////////////////////////////
-  cv32e40p_id_stage_ft
+  cv32e40p_id_stage
   #(
     .PULP_XPULP                   ( PULP_XPULP           ),
     .PULP_CLUSTER                 ( PULP_CLUSTER         ),
@@ -565,11 +565,11 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
   )
   id_stage_i
   (
-	.vector_err_corrected_o			  ( err_corrected_ft_o		 ),
-	.vector_err_detected_o			  ( err_detected_ft_o		 ),
-	.regfile_location_valid_i	  ( regfile_location_valid_from_perf_counter ), // (32 bit) questo segnale in realtà arriva dal registro dei performance counter
-	.regfile_location_valid_o	  (	regfile_location_valid_to_perf_counter 	 ), 
-	.write_performance_counter_o  (	regfile_location_valid_we_perf_counter   ), 
+	.vector_err_corrected_ft_o			  ( err_corrected_ft_o		 ),
+	.vector_err_detected_ft_o			  ( err_detected_ft_o		 ),
+	.regfile_location_valid_ft_i	  ( regfile_location_valid_from_perf_counter ), // (32 bit) questo segnale in realtà arriva dal registro dei performance counter
+	.regfile_location_valid_ft_o	  (	regfile_location_valid_to_perf_counter 	 ), 
+	.write_performance_counter_ft_o  (	regfile_location_valid_we_perf_counter   ), 
 
     .clk                          ( clk                  ),     // Gated clock
     .clk_ungated_i                ( clk_i                ),     // Ungated clock
@@ -584,7 +584,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
 
     // Interface to instruction memory
     .instr_valid_i                ( instr_valid_id       ),
-    .instr_rdata_i                ( instr_rdata_id       ),
+    .instr_rdata_i                ( {instr_rdata_id[2],instr_rdata_id[1],instr_rdata_id[0]}       ),
     .instr_req_o                  ( instr_req_int        ),
 
     // Jumps and branches
@@ -602,7 +602,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
 
     .is_fetch_failed_i            ( is_fetch_failed_id   ),
 
-    .pc_id_i                      ( pc_id                ),
+    .pc_id_i                      ( {pc_id[2], pc_id[1], pc_id[0]}               ),
 
     .is_compressed_i              ( is_compressed_id     ),
     .illegal_c_insn_i             ( illegal_c_insn_id    ),
@@ -724,7 +724,7 @@ module cv32e40p_core_ft import cv32e40p_apu_core_pkg::*;
 
     // Interrupt Signals
     .irq_i                        ( irq_i                ),
-    .irq_sec_i                    ( (PULP_SECURE) ? irq_sec_i : 1'b0 ),
+    .irq_sec_i                    ( (PULP_SECURE) ? irq_sec_i: 1'b0 ),
     .mie_bypass_i                 ( mie_bypass           ),
     .mip_o                        ( mip                  ),
     .m_irq_enable_i               ( m_irq_enable         ),
