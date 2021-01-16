@@ -157,30 +157,14 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
   // ft
   input  logic [2:0]       sel_mux_ex_i, // selector of the three mux to choose three of the four alu
-  output logic [3:0][8:0]  permanent_faulty_alu_o,  // set of 4 9bit register for a each ALU
-  output logic [3:0][8:0]  permanent_faulty_alu_s_o,
-  output logic [2:0][3:0]  permanent_faulty_mult_o,  // set of 4 9bit register for a each ALU
-  output logic [2:0][3:0]  permanent_faulty_mult_s_o,  
+  output logic [3:0][8:0]  permanent_faulty_alu_ft_o,  // set of 4 9bit register for a each ALU
+  output logic [3:0][8:0]  permanent_faulty_alu_s_ft_o,
+  output logic [2:0][3:0]  permanent_faulty_mult_ft_o,  // set of 4 9bit register for a each ALU
+  output logic [2:0][3:0]  permanent_faulty_mult_s_ft_o,  
   input  logic [3:0]       clock_enable_i,
 
   // addictional inputs coming from the id_stage pipeline after a voting mechanism
   input logic                 alu_en_ex_voted_i,
-  /*
-  input logic [2:0]           mult_operator_ex_voted_i,   
-  input logic [31:0]          mult_operand_a_ex_voted_i, 
-  input logic [31:0]          mult_operand_b_ex_voted_i,
-  input logic [31:0]          mult_operand_c_ex_voted_i,
-  input logic                 mult_en_ex_voted_i,
-  input logic                 mult_sel_subword_ex_voted_i,   
-  input logic [ 1:0]          mult_signed_mode_voted_i, 
-  input logic [ 4:0]          mult_imm_ex_voted_i,
-  input logic [31:0]          mult_dot_op_a_ex_voted_i,
-  input logic [31:0]          mult_dot_op_b_ex_voted_i,
-  input logic [31:0]          mult_dot_op_c_ex_voted_i,
-  input logic [ 1:0]          mult_dot_signed_ex_voted_i,
-  input logic                 mult_is_clpx_ex_voted_i,
-  input logic [ 1:0]          mult_clpx_shift_ex_voted_i,
-  input logic                 mult_clpx_img_ex_voted_i,*/
 
   input logic [APU_WOP_CPU-1:0]              apu_op_ex_voted_i,
   input logic [APU_NARGS_CPU-1:0][31:0]      apu_operands_ex_voted_i,
@@ -213,24 +197,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   input  logic [1:0]          sel_bypass_mult_ex_i,
 
   // output signals to summarize the faults detection and correction of EX stage
-  output logic [ 1:0]    vector_err_detected_o,
-  output logic [ 1:0]    vector_err_corrected_o
+  output logic [ 1:0]    vector_err_detected_ft_o,
+  output logic [ 1:0]    vector_err_corrected_ft_o
 
-  /*// for those single signal (not quadruplicated used by the ALU)
-  input  logic                     enable_single_i,
-  input  logic [ALU_OP_WIDTH-1:0]  operator_single_i,
-  input  logic [31:0]              operand_a_single_i,
-  input  logic [31:0]              operand_b_single_i,
-  input  logic [31:0]              operand_c_single_i,
-
-  input  logic [ 1:0]          vector_mode_single_i,
-  input  logic [ 4:0]          bmask_a_single_i,
-  input  logic [ 4:0]          bmask_b_single_i,
-  input  logic [ 1:0]          imm_vec_ext_single_i,
-
-  input  logic                 is_clpx_single_i,
-  input  logic                 is_subrot_single_i,
-  input  logic [ 1:0]          clpx_shift_single_i*/
 );
 
   logic [31:0]    alu_result;
@@ -398,9 +367,9 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .clock_en_i               ( clock_enable_i           ),
     .err_corrected_o          ( err_corrected_alu_o      ),
     .err_detected_o           ( err_detected_alu_o       ),
-    .permanent_faulty_alu_o   ( permanent_faulty_alu_o   ),
-    .permanent_faulty_alu_s_o ( permanent_faulty_alu_s_o ), 
-    //.perf_counter_permanent_faulty_alu_o    (perf_counter_permanent_faulty_alu_o),
+    .permanent_faulty_alu_o   ( permanent_faulty_alu_ft_o   ),
+    .permanent_faulty_alu_s_o ( permanent_faulty_alu_s_ft_o ), 
+    //.perf_counter_permanent_faulty_alu_ft_o    (perf_counter_permanent_faulty_alu_ft_o),
     .sel_mux_ex_i        ( sel_mux_ex_i      ),
     .mhpm_addr_ft_i      ( mhpm_addr_ft_i    ),   // the address of the perf counter to be written
     .mhpm_re_ft_i        ( mhpm_re_ft_i      ),   // read enable 
@@ -412,20 +381,6 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .sel_mux_only_two_alu_i ( sel_mux_only_two_alu_i ),
     .sel_bypass_alu_i       ( sel_bypass_alu_ex_i    )
 
-    /*// for those single signal (not quadruplicated used by the ALU)
-    .enable_single_i      ( enable_single_i ),
-    .operator_single_i    ( operator_single_i ),
-    .operand_a_single_i   ( operand_a_single_i ),
-    .operand_b_single_i   ( operand_b_single_i ),
-    .operand_c_single_i   ( operand_c_single_i ),
-    .vector_mode_single_i ( vector_mode_single_i ),
-    .bmask_a_single_i     ( bmask_a_single_i ),
-    .bmask_b_single_i     ( bmask_b_single_i ),   
-    .imm_vec_ext_single_i ( imm_vec_ext_single_i ), 
-
-    .is_clpx_single_i     ( is_clpx_single_i ),
-    .is_subrot_single_i   ( is_subrot_single_i ),
-    .clpx_shift_single_i  ( clpx_shift_single_i )*/
   );
 
 
@@ -478,8 +433,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .err_corrected_o ( err_corrected_mult_o ),
     .err_detected_o  ( err_detected_mult_o  ),
 
-    .permanent_faulty_mult_o   ( permanent_faulty_mult_o   ),
-    .permanent_faulty_mult_s_o ( permanent_faulty_mult_s_o ),
+    .permanent_faulty_mult_o   ( permanent_faulty_mult_ft_o   ),
+    .permanent_faulty_mult_s_o ( permanent_faulty_mult_s_ft_o ),
     
     .sel_mux_ex_i        ( sel_mux_ex_i       ),
 
@@ -650,7 +605,7 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
                        & (alu_ready & mult_ready & lsu_ready_ex_i & wb_ready_i);
 
   // output signals to summarize the faults detection and correction of EX stage
-  assign vector_err_detected_o = {err_detected_alu, err_detected_mult};
-  assign vector_err_corrected_o = {err_corrected_alu, err_corrected_mult};
+  assign vector_err_detected_ft_o = {err_detected_alu, err_detected_mult};
+  assign vector_err_corrected_ft_o = {err_corrected_alu, err_corrected_mult};
 
 endmodule

@@ -1021,57 +1021,28 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .wb_ready_i                 ( lsu_ready_wb        	    ),
 
     // FT
-    .sel_mux_ex_i               ( sel_mux_ex               	),  // selector of the three mux to choose three of the four alu
-    .permanent_faulty_alu_o     ( permanent_faulty_alu     	),  // set of 4 9bit register for a each ALU 
-    .permanent_faulty_alu_s_o   ( permanent_faulty_alu_s   	),  // set of 4 9bit register for a each ALU 
-    .permanent_faulty_mult_o 	  ( permanent_faulty_mult  	  ),
-    .permanent_faulty_mult_s_o 	( permanent_faulty_mult_s	  ),
-    .clock_enable_i             ( clock_enable            	),
-    .alu_en_ex_voted_i          ( alu_en_ex_core           	),
-    /*
-    .mult_operator_ex_voted_i   ( mult_operator_ex_core ),   
-    .mult_operand_a_ex_voted_i  ( mult_operand_a_ex_core ), 
-    .mult_operand_b_ex_voted_i  ( mult_operand_b_ex_core ),
-    .mult_operand_c_ex_voted_i  ( mult_operand_c_ex_core ),
-    .mult_en_ex_voted_i         ( mult_en_ex_core ),
-    .mult_sel_subword_ex_voted_i( mult_sel_subword_ex_core ),   
-    .mult_signed_mode_voted_i   ( mult_signed_mode_core ), 
-    .mult_imm_ex_voted_i        ( mult_imm_ex_core ),
-    .mult_dot_op_a_ex_voted_i   ( mult_dot_op_a_ex_core ),
-    .mult_dot_op_b_ex_voted_i   ( mult_dot_op_b_ex_core ),
-    .mult_dot_op_c_ex_voted_i   ( mult_dot_op_c_ex_core ),
-    .mult_dot_signed_ex_voted_i ( mult_dot_signed_ex_core ),
-    .mult_is_clpx_ex_voted_i    ( mult_is_clpx_ex_core ),
-    .mult_clpx_shift_ex_voted_i ( mult_clpx_shift_ex_core ),
-    .mult_clpx_img_ex_voted_i   ( mult_clpx_img_ex_core ),
-    */
-      
-    .apu_op_ex_voted_i          ( apu_op_ex_core 			),
-    .apu_operands_ex_voted_i    ( apu_operands_ex_core 		),
-    .apu_waddr_ex_voted_i       ( apu_waddr_ex_core 		),
-    .regfile_alu_waddr_ex_voted_i  ( regfile_alu_waddr_ex_core ),
-    .regfile_alu_we_ex_voted_i     ( regfile_alu_we_ex_core ),
-    .apu_en_ex_voted_i          ( apu_en_ex_core 			),
-    .apu_lat_ex_voted_i         ( apu_lat_ex_core 			),
-    .branch_in_ex_voted_i       ( branch_in_ex_core 		),
-    .regfile_waddr_ex_voted_i   ( regfile_waddr_ex_core 	),
-    .regfile_we_ex_voted_i      ( regfile_we_ex_core 		),
-    .csr_access_ex_voted_i      ( csr_access_ex_core		),
-    .lsu_en_voted_i		        ( data_req_ex_core 			),
+    .sel_mux_ex_i                 ( sel_mux_ex               ),  // selector of the three mux to choose three of the four alu
+    .permanent_faulty_alu_ft_o    ( permanent_faulty_alu     ),  // set of 4 9bit register for a each ALU 
+    .permanent_faulty_alu_s_ft_o  ( permanent_faulty_alu_s   ),  // set of 4 9bit register for a each ALU 
+    .permanent_faulty_mult_ft_o   ( permanent_faulty_mult  	 ),
+    .permanent_faulty_mult_s_ft_o ( permanent_faulty_mult_s	 ),
+    .clock_enable_i               ( clock_enable             ),
+    .alu_en_ex_voted_i            ( alu_en_ex_core           ),
 
-    /*// signal output of the voters for the outputs of id_stage that are used into the ex_stage in particular for the singl alu in case FT==0
-    .enable_single_i          ( apu_en_ex_core ),
-    .operand_a_single_i       ( alu_operand_a_ex_core ), 
-    .operand_b_single_i       ( alu_operand_b_ex_core ),
-    .operand_c_single_i       ( alu_operand_c_ex_core ),
-    .operator_single_i        ( alu_operator_ex_core ),
-    .vector_mode_single_i     ( vector_mode_core ),
-    .bmask_a_single_i         ( bmask_a_single_core ),
-    .bmask_b_single_i         ( bmask_b_single_core ),
-    .imm_vec_ext_single_i     ( imm_vec_ext_sigle_core ),
-    .is_clpx_single_i         ( is_clpx_single_core ),
-    .is_subrot_single_i       ( is_subrot_single_core ),
-    .clpx_shift_single_i      ( clpx_shift_single_core )*/
+      
+    .apu_op_ex_voted_i            ( apu_op_ex_core 			  ),
+    .apu_operands_ex_voted_i      ( apu_operands_ex_core 	  ),
+    .apu_waddr_ex_voted_i         ( apu_waddr_ex_core 		  ),
+    .regfile_alu_waddr_ex_voted_i ( regfile_alu_waddr_ex_core ),
+    .regfile_alu_we_ex_voted_i    ( regfile_alu_we_ex_core    ),
+    .apu_en_ex_voted_i            ( apu_en_ex_core 			  ),
+    .apu_lat_ex_voted_i           ( apu_lat_ex_core 		  ),
+    .branch_in_ex_voted_i         ( branch_in_ex_core 		  ),
+    .regfile_waddr_ex_voted_i     ( regfile_waddr_ex_core 	  ),
+    .regfile_we_ex_voted_i        ( regfile_we_ex_core 		  ),
+    .csr_access_ex_voted_i        ( csr_access_ex_core		  ),
+    .lsu_en_voted_i		          ( data_req_ex_core 		  ),
+
 
     // Performance counters
     .mhpm_addr_ft_i          ( mhpm_addr_ft  ),    // the address of the perf counter to be written
@@ -1085,10 +1056,10 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .sel_mux_only_two_alu_i  ( sel_mux_only_two_alu    ),
     .sel_mux_only_two_mult_i ( sel_mux_only_two_mult   ),
     
-    .sel_bypass_alu_ex_i     ( sel_bypass_alu          ),
-    .sel_bypass_mult_ex_i    ( sel_bypass_mult         ),
-    .vector_err_detected_o   ( vector_err_detected_ex  ), 
-    .vector_err_corrected_o  ( vector_err_corrected_ex )
+    .sel_bypass_alu_ex_i       ( sel_bypass_alu          ),
+    .sel_bypass_mult_ex_i      ( sel_bypass_mult         ),
+    .vector_err_detected_ft_o  ( vector_err_detected_ex  ), 
+    .vector_err_corrected_ft_o ( vector_err_corrected_ex )
 
   );
 
