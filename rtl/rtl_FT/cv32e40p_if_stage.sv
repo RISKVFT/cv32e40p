@@ -194,7 +194,7 @@ module cv32e40p_if_stage
       PC_MRET:      branch_addr_n = mepc_i; // PC is restored when returning from IRQ/exception
       PC_URET:      branch_addr_n = uepc_i; // PC is restored when returning from IRQ/exception
       PC_DRET:      branch_addr_n = depc_i; //
-      PC_FENCEI:    branch_addr_n = pc_id_o + 4; // jump to next instr forces prefetch buffer reload
+      PC_FENCEI:    branch_addr_n = pc_id_o[0] + 4; // jump to next instr forces prefetch buffer reload
       PC_HWLOOP:    branch_addr_n = hwlp_target_i;
       default:;
     endcase

@@ -35,7 +35,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   parameter FPU                 =  0,                   // Floating Point Unit (interfaced via APU interface)
   parameter PULP_ZFINX          =  0,                   // Float-in-General Purpose registers
   parameter NUM_MHPMCOUNTERS    =  1,
-  parameter ID_FAULT_TOLERANCE  =  15  // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID) REGFILE
+  parameter ID_FAULT_TOLERANCE  =  31  //   CODE   CONTROLLER    DECODER  PIPELINE(IF/ID) REGFILE
 									   //	0			X			X			X			X
 									   //	1			YES			X			X			X
 									   //	2			X			YES			X			X
@@ -383,7 +383,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]						regfile_location_valid_from_perf_counter, regfile_location_valid_to_perf_counter;
   logic 							regfile_location_valid_we_perf_counter;
 
-  assign regfile_location_valid_from_perf_counter = {32{1'b0}};
+  assign regfile_location_valid_from_perf_counter =  {32{1'b0}}; // {16{2'b10}};
   // Mux selector for vectored IRQ PC
   assign m_exc_vec_pc_mux_id = (mtvec_mode == 2'b0) ? 5'h0 : exc_cause;
   assign u_exc_vec_pc_mux_id = (utvec_mode == 2'b0) ? 5'h0 : exc_cause;
@@ -452,7 +452,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   //  |___|_|     |____/ |_/_/   \_\____|_____|   //
   //                                              //
   //////////////////////////////////////////////////
-  cv32e40p_if_stage_ft
+  cv32e40p_if_stage
   #(
     .PULP_XPULP          ( PULP_XPULP        ),
     .PULP_OBI            ( PULP_OBI          ),
