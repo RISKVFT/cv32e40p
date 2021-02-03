@@ -1030,18 +1030,18 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .alu_en_ex_voted_i            ( alu_en_ex_core           ),
 
       
-    .apu_op_ex_voted_i            ( apu_op_ex_core 			  ),
-    .apu_operands_ex_voted_i      ( apu_operands_ex_core 	  ),
-    .apu_waddr_ex_voted_i         ( apu_waddr_ex_core 		  ),
+    .apu_op_ex_voted_i            ( apu_op_ex_core 			      ),
+    .apu_operands_ex_voted_i      ( apu_operands_ex_core 	    ),
+    .apu_waddr_ex_voted_i         ( apu_waddr_ex_core 		    ),
     .regfile_alu_waddr_ex_voted_i ( regfile_alu_waddr_ex_core ),
     .regfile_alu_we_ex_voted_i    ( regfile_alu_we_ex_core    ),
-    .apu_en_ex_voted_i            ( apu_en_ex_core 			  ),
-    .apu_lat_ex_voted_i           ( apu_lat_ex_core 		  ),
-    .branch_in_ex_voted_i         ( branch_in_ex_core 		  ),
+    .apu_en_ex_voted_i            ( apu_en_ex_core 			      ),
+    .apu_lat_ex_voted_i           ( apu_lat_ex_core 		      ),
+    .branch_in_ex_voted_i         ( branch_in_ex_core 		    ),
     .regfile_waddr_ex_voted_i     ( regfile_waddr_ex_core 	  ),
-    .regfile_we_ex_voted_i        ( regfile_we_ex_core 		  ),
-    .csr_access_ex_voted_i        ( csr_access_ex_core		  ),
-    .lsu_en_voted_i		          ( data_req_ex_core 		  ),
+    .regfile_we_ex_voted_i        ( regfile_we_ex_core 		    ),
+    .csr_access_ex_voted_i        ( csr_access_ex_core		    ),
+    .lsu_en_voted_i		            ( data_req_ex_core 		      ),
 
 
     // Performance counters
