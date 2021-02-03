@@ -234,6 +234,7 @@ module cv32e40p_wrapper_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_cor
 
 genvar y;
 genvar z;
+genvar a;
 genvar b;
 genvar c;
 genvar d;
@@ -246,6 +247,8 @@ genvar j;
 genvar k;
 genvar l;
 genvar m;
+genvar n;
+genvar o;
 generate //transpose the permanent_faulty_alu matrix
     for (y=0; y<4; y++) begin
 
@@ -289,7 +292,7 @@ generate //transpose the permanent_faulty_alu matrix
         for (d=0; d<6; d++) begin
             assign apu_waddr_unflatten[y][d] = apu_waddr_i[(y*6)+d];
             assign regfile_alu_waddr_unflatten[y][d] = regfile_alu_waddr_i[(y*6)+d];
-            assign apu_write_regs_unflatten[y][d] = apu_write_regs_i[(y*6)+d];
+            assign regfile_waddr_unflatten[y][d] = regfile_waddr_i[(y*6)+d];
         end
 
         for (e=0; e<APU_WOP_CPU; e++) begin
@@ -303,8 +306,13 @@ generate //transpose the permanent_faulty_alu matrix
         for (g=0; g<APU_NARGS_CPU; g++) begin
             for (k=0; k<32; k++) begin
               assign apu_operands_unflatten[y][g][k] = apu_operands_i[(y*3)+(g*32)+k];
-              assign apu_operands_ex_voted_unflatten[y][g][k] = apu_operands_ex_voted_i[(y*3)+(g*32)+k];
             end
+        end
+    end
+
+    for (n=0; n<APU_NARGS_CPU; n++) begin
+        for (o=0; o<32; o++) begin
+          assign apu_operands_ex_voted_unflatten[n][o] = apu_operands_ex_voted_i[(n*32)+o];
         end
     end
 
@@ -491,3 +499,5 @@ cv32e40p_ex_stage
     .vector_err_corrected_ft_o ( vector_err_corrected_ft_o )
 
   );
+
+endmodule
