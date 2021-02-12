@@ -19,7 +19,7 @@
 
 module cv32e40p_mult_ft import cv32e40p_pkg::*;
 #(
-  parameter FT = 0
+  parameter FT = 1
 )
 (
   input  logic        clk,

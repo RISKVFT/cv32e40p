@@ -42,7 +42,7 @@ module cv32e40p_cs_registers import cv32e40p_pkg::*;
   parameter PULP_XPULP       = 0,
   parameter PULP_CLUSTER     = 0,
   parameter DEBUG_TRIGGER_EN = 1,
-  parameter FT               = 0
+  parameter FT               = 1
 )
 (
   // Clock and Reset
