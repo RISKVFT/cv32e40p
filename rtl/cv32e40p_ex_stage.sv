@@ -365,8 +365,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ex_ready_i          ( ex_ready_o       ),
 
     .clock_en_i               ( clock_enable_i           ),
-    .err_corrected_o          ( err_corrected_alu_o      ),
-    .err_detected_o           ( err_detected_alu_o       ),
+    .err_corrected_o          ( err_corrected_alu      ),
+    .err_detected_o           ( err_detected_alu       ),
     .permanent_faulty_alu_o   ( permanent_faulty_alu_ft_o   ),
     .permanent_faulty_alu_s_o ( permanent_faulty_alu_s_ft_o ), 
     //.perf_counter_permanent_faulty_alu_ft_o    (perf_counter_permanent_faulty_alu_ft_o),
@@ -430,8 +430,8 @@ module cv32e40p_ex_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .ex_ready_i      ( ex_ready_o           ),
 
     .clock_en_i      ( clock_enable_i   ),
-    .err_corrected_o ( err_corrected_mult_o ),
-    .err_detected_o  ( err_detected_mult_o  ),
+    .err_corrected_o ( err_corrected_mult ),
+    .err_detected_o  ( err_detected_mult  ),
 
     .permanent_faulty_mult_o   ( permanent_faulty_mult_ft_o   ),
     .permanent_faulty_mult_s_o ( permanent_faulty_mult_s_ft_o ),
