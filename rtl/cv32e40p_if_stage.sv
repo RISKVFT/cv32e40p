@@ -299,7 +299,7 @@ module cv32e40p_if_stage
 	.set_broken_i('0),
 	.is_broken_o(),
 	.err_detected_o(),
-	.err_corrected_o(),
+	.err_corrected_o()
   );
 
   //----------------------------------------------------------------------------
