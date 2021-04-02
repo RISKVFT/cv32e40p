@@ -122,10 +122,10 @@ module cv32e40p_if_stage
   logic              aligner_ready;
   logic              instr_valid;
 
-  logic              illegal_c_insn;
-  logic [31:0]       instr_aligned;
-  logic [31:0]       instr_decompressed;
-  logic              instr_compressed_int;
+  logic [2:0]             illegal_c_insn;
+  logic [2:0][31:0]       instr_aligned;
+  logic [2:0][31:0]       instr_decompressed;
+  logic [2:0]             instr_compressed_int;
 
 
   // exception PC selection mux
@@ -251,9 +251,9 @@ module cv32e40p_if_stage
       if (if_valid && instr_valid)
       begin
         instr_valid_id_o    <= 1'b1;
-        instr_rdata_id_o    <= instr_decompressed;
-        is_compressed_id_o  <= instr_compressed_int;
-        illegal_c_insn_id_o <= illegal_c_insn;
+        instr_rdata_id_o    <= instr_decompressed[0];
+        is_compressed_id_o  <= instr_compressed_int[0];
+        illegal_c_insn_id_o <= illegal_c_insn[0];
         is_fetch_failed_o   <= 1'b0;
         pc_id_o             <= pc_if_o;
       end else if (clear_instr_valid_i) begin
@@ -274,7 +274,7 @@ module cv32e40p_if_stage
     .aligner_ready_o   ( aligner_ready                ),
     .if_valid_i        ( if_valid                     ),
     .fetch_rdata_i     ( fetch_rdata                  ),
-    .instr_aligned_o   ( instr_aligned                ),
+    .instr_aligned_o   ( instr_aligned[0]             ),
     .instr_valid_o     ( instr_valid                  ),
     .branch_addr_i     ( {branch_addr_n[31:1], 1'b0}  ),
     .branch_i          ( branch_req                   ),
@@ -289,10 +289,17 @@ module cv32e40p_if_stage
      )
   compressed_decoder_i
   (
-    .instr_i         ( instr_aligned        ),
-    .instr_o         ( instr_decompressed   ),
-    .is_compressed_o ( instr_compressed_int ),
-    .illegal_instr_o ( illegal_c_insn       )
+
+	.clk(clk),
+	.rst_n(rst_n),
+	.instr_i         ( instr_aligned        ),
+	.instr_o         ( instr_decompressed   ),
+	.is_compressed_o ( instr_compressed_int ),
+	.illegal_instr_o ( illegal_c_insn       ),
+	.set_broken_i('0),
+	.is_broken_o(),
+	.err_detected_o(),
+	.err_corrected_o(),
   );
 
   //----------------------------------------------------------------------------
