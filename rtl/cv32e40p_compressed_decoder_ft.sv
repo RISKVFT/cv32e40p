@@ -24,7 +24,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-import ft_pkg::*;
+import cv32e40p_ft_pkg::*;
 
 module cv32e40p_compressed_decoder_ft
 #(
