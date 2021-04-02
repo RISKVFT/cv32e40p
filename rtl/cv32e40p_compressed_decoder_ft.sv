@@ -148,25 +148,13 @@ module cv32e40p_compressed_decoder_ft
 				) v_illegal_instr_o
 				(
 					.to_vote_i( illegal_instr_o_to_vote ),
-cv32e40p_conf_voter
-                                #(
-                                        .L1(1),
-                                        .TOUT(CDEC_TOUT[1])
-                                ) v_is_compressed_o
-                                (
-                                        .to_vote_i( is_compressed_o_to_vote ),
-                                        .voted_o( is_compressed_o),
-                                        .block_err_o( is_compressed_o_block_err),
-                                        .broken_block_i(is_broken_o),
-                                        .err_detected_o(err_detected[1]),
-                                        .err_corrected_o(err_corrected[1])
-                                );
 					.voted_o( illegal_instr_o),
 					.block_err_o( illegal_instr_o_block_err),
 					.broken_block_i(is_broken_o),
 					.err_detected_o(err_detected[2]),
 					.err_corrected_o(err_corrected[2])
 				);
+				
 				
 				assign err_detected_o = err_detected[0] | err_detected[1] | err_detected[2];
 				assign err_corrected_o = err_corrected[0] | err_corrected[1] | err_corrected[2];	
