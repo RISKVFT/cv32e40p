@@ -30,70 +30,92 @@ module cv32e40p_if_stage
   parameter PULP_XPULP      = 0,                        // PULP ISA Extension (including PULP specific CSRs and hardware loop, excluding p.elw)
   parameter PULP_OBI        = 0,                        // Legacy PULP OBI behavior
   parameter PULP_SECURE     = 0,
-  parameter FPU             = 0
+  parameter FPU             = 0,
+  parameter ID_FAULT_TOLERANCE = 0 // 	CODE	CONTROLLER	DECODER		PIPELINE(IF/ID)	REGFILE
+								   //	0			X			X			X			X
+								   //	1			YES			X			X			X
+								   //	2			X			YES			X			X
+								   //	3			YES			YES			X			X
+								   //	4			X			X			YES			X
+								   //	5			YES			X			YES			X
+								   //	6			X			YES			YES			X
+								   //	7			YES			YES			YES			X
+								   //	8			X			X			X			YES
+								   //	9			YES			X			X			YES
+								   //	10			X			YES			X			YES
+								   //	11			YES			YES			X			YES
+								   //	12			X			X			YES			YES
+								   //	13			YES			X			YES			YES
+								   //	14			X			YES			YES			YES
+								   //	15			YES			YES			YES			YES
+								   //	16			X			X			X			HARD
+								   //   OTHERS CODES LIKE 0
+								   //	31			YES			YES			YES			HARD
+								   //   OTHERS CODES LIKE 0
 )
 (
+	// original entity
     input  logic        clk,
     input  logic        rst_n,
 
     // Used to calculate the exception offsets
-    input  logic [23:0] m_trap_base_addr_i, // cs_registers_i
-    input  logic [23:0] u_trap_base_addr_i, // cs_registers_i
-    input  logic  [1:0] trap_addr_mux_i, // id_stage_i
+    input  logic [23:0] m_trap_base_addr_i,
+    input  logic [23:0] u_trap_base_addr_i,
+    input  logic  [1:0] trap_addr_mux_i,
     // Boot address
-    input  logic [31:0] boot_addr_i, // core in 
-    input  logic [31:0] dm_exception_addr_i, // core in
+    input  logic [31:0] boot_addr_i,
+    input  logic [31:0] dm_exception_addr_i,
 
     // Debug mode halt address
-    input  logic [31:0] dm_halt_addr_i, // core in
+    input  logic [31:0] dm_halt_addr_i,
 
     // instruction request control
-    input  logic        req_i, // id_stage_i
+    input  logic        req_i,
 
     // instruction cache interface
-    output logic                   instr_req_o, 
+    output logic                   instr_req_o,
     output logic            [31:0] instr_addr_o,
-    input  logic                   instr_gnt_i, // pmp_unit_i
-    input  logic                   instr_rvalid_i,  // core in
-    input  logic            [31:0] instr_rdata_i, // core in
-    input  logic                   instr_err_i,   // 0 fisso  // External bus error (validity defined by instr_rvalid_i) (not used yet)
-    input  logic                   instr_err_pmp_i, // pmp_unit_i // PMP error (validity defined by instr_gnt_i)
+    input  logic                   instr_gnt_i,
+    input  logic                   instr_rvalid_i,
+    input  logic            [31:0] instr_rdata_i,
+    input  logic                   instr_err_i,      // External bus error (validity defined by instr_rvalid_i) (not used yet)
+    input  logic                   instr_err_pmp_i,  // PMP error (validity defined by instr_gnt_i)
 
-    // Output of IF Pipeline stage
-    output logic              instr_valid_id_o,      // instruction in IF/ID pipeline is valid
-    output logic       [31:0] instr_rdata_id_o,      // read instruction is sampled and sent to ID stage for decoding
-    output logic              is_compressed_id_o,    // compressed decoder thinks this is a compressed instruction
-    output logic              illegal_c_insn_id_o,   // compressed decoder thinks this is an invalid instruction
-    output logic       [31:0] pc_if_o,
-    output logic       [31:0] pc_id_o,
-    output logic              is_fetch_failed_o,
+    // Output of IF Pipeline stage (triplicated except for pc_if_o which goes to CSRs)
+    output logic       [2:0]       instr_valid_id_o,      // instruction in IF/ID pipeline is valid
+    output logic       [2:0][31:0] instr_rdata_id_o,      // read instruction is sampled and sent to ID stage for decoding
+    output logic       [2:0]       is_compressed_id_o,    // compressed decoder thinks this is a compressed instruction
+    output logic       [2:0]       illegal_c_insn_id_o,   // compressed decoder thinks this is an invalid instruction
+    output logic       [31:0] 	   pc_if_o,
+    output logic       [2:0][31:0] pc_id_o,
+    output logic       [2:0]       is_fetch_failed_o,
 
     // Forwarding ports - control signals
-    input  logic        clear_instr_valid_i,   // clear instruction valid bit in IF/ID pipe (id_stage_i)
-    input  logic        pc_set_i,              // set the program counter to a new value (id_stage_i)
-    input  logic [31:0] mepc_i,                // address used to restore PC when the interrupt/exception is served (cs_registers_i)
-    input  logic [31:0] uepc_i,                // address used to restore PC when the interrupt/exception is served (cs_registers_i)
+    input  logic        clear_instr_valid_i,   // clear instruction valid bit in IF/ID pipe
+    input  logic        pc_set_i,              // set the program counter to a new value
+    input  logic [31:0] mepc_i,                // address used to restore PC when the interrupt/exception is served
+    input  logic [31:0] uepc_i,                // address used to restore PC when the interrupt/exception is served
 
-    input  logic [31:0] depc_i,                // address used to restore PC when the debug is served (cs_registers_i)
+    input  logic [31:0] depc_i,                // address used to restore PC when the debug is served
 
-    input  logic  [3:0] pc_mux_i,              // sel for pc multiplexer (id_stage_i)
-    input  logic  [2:0] exc_pc_mux_i,          // selects ISR address (id_stage_i)
+    input  logic  [3:0] pc_mux_i,              // sel for pc multiplexer
+    input  logic  [2:0] exc_pc_mux_i,          // selects ISR address
 
-    input  logic  [4:0] m_exc_vec_pc_mux_i,    // selects ISR address for vectorized interrupt lines (id_stage_i e core)
-    input  logic  [4:0] u_exc_vec_pc_mux_i,    // selects ISR address for vectorized interrupt lines (id_stage_i e core)
-    output logic        csr_mtvec_init_o,      // tell CS regfile to init mtvec (id_stage_i)
+    input  logic  [4:0] m_exc_vec_pc_mux_i,    // selects ISR address for vectorized interrupt lines
+    input  logic  [4:0] u_exc_vec_pc_mux_i,    // selects ISR address for vectorized interrupt lines
+    output logic        csr_mtvec_init_o,      // tell CS regfile to init mtvec
 
     // jump and branch target and decision
-    input  logic [31:0] jump_target_id_i,      // jump target address (id_stage_i)
-    input  logic [31:0] jump_target_ex_i,      // jump target address (ex_stage_i)
+    input  logic [31:0] jump_target_id_i,      // jump target address
+    input  logic [31:0] jump_target_ex_i,      // jump target address
 
     // from hwloop controller
-    input  logic        hwlp_jump_i, // id_stage_i
-    input  logic [31:0] hwlp_target_i, //id_stage_i
+    input  logic        hwlp_jump_i,
+    input  logic [31:0] hwlp_target_i,
 
     // pipeline stall
-    input  logic        halt_if_i, // id_stage_i
-    input  logic        id_ready_i, // id_stage_i
+    input  logic        halt_if_i,
+    input  logic        id_ready_i,
 
     // misc signals
     output logic        if_busy_o,             // is the IF stage busy fetching instructions?
@@ -127,6 +149,12 @@ module cv32e40p_if_stage
   logic [31:0]       instr_decompressed;
   logic              instr_compressed_int;
 
+  logic [2:0]		 	instr_valid_id_ft;
+  logic [2:0][31:0]		instr_rdata_id_ft;
+  logic [2:0]		 	is_fetch_failed_ft;
+  logic [2:0][31:0]		pc_id_ft;
+  logic [2:0]		 	is_compressed_id_ft;
+  logic [2:0]		 	illegal_c_insn_id_ft;
 
   // exception PC selection mux
   always_comb
@@ -166,7 +194,7 @@ module cv32e40p_if_stage
       PC_MRET:      branch_addr_n = mepc_i; // PC is restored when returning from IRQ/exception
       PC_URET:      branch_addr_n = uepc_i; // PC is restored when returning from IRQ/exception
       PC_DRET:      branch_addr_n = depc_i; //
-      PC_FENCEI:    branch_addr_n = pc_id_o + 4; // jump to next instr forces prefetch buffer reload
+      PC_FENCEI:    branch_addr_n = pc_id_o[0] + 4; // jump to next instr forces prefetch buffer reload
       PC_HWLOOP:    branch_addr_n = hwlp_target_i;
       default:;
     endcase
@@ -234,34 +262,81 @@ module cv32e40p_if_stage
   assign perf_imiss_o    = (~fetch_valid) | branch_req;
 
   // IF-ID pipeline registers, frozen when the ID stage is stalled
-  always_ff @(posedge clk, negedge rst_n)
-  begin : IF_ID_PIPE_REGISTERS
-    if (rst_n == 1'b0)
-    begin
-      instr_valid_id_o      <= 1'b0;
-      instr_rdata_id_o      <= '0;
-      is_fetch_failed_o     <= 1'b0;
-      pc_id_o               <= '0;
-      is_compressed_id_o    <= 1'b0;
-      illegal_c_insn_id_o   <= 1'b0;
-    end
-    else
-    begin
 
-      if (if_valid && instr_valid)
-      begin
-        instr_valid_id_o    <= 1'b1;
-        instr_rdata_id_o    <= instr_decompressed;
-        is_compressed_id_o  <= instr_compressed_int;
-        illegal_c_insn_id_o <= illegal_c_insn;
-        is_fetch_failed_o   <= 1'b0;
-        pc_id_o             <= pc_if_o;
-      end else if (clear_instr_valid_i) begin
-        instr_valid_id_o    <= 1'b0;
-        is_fetch_failed_o   <= fetch_failed;
-      end
-    end
-    end
+generate
+	if (ID_FAULT_TOLERANCE[2]==1) begin
+	// SOFT ERRORS FAULT TOLERANCE
+		for (genvar i=0; i<3; i++) begin
+			assign instr_valid_id_o[i] = instr_valid_id_ft[i];
+    		assign instr_rdata_id_o[i] = instr_rdata_id_ft[i];
+   			assign is_compressed_id_o[i] = is_compressed_id_ft[i];
+    		assign illegal_c_insn_id_o[i] = illegal_c_insn_id_ft[i];
+    		assign pc_id_o[i] = pc_id_ft[i];
+    		assign is_fetch_failed_o[i] = is_fetch_failed_ft[i];
+
+		  ////////////////// TMR of pipeline //////////////////////////////
+		  always_ff @(posedge clk, negedge rst_n)
+		  begin : IF_ID_PIPE_REGISTERS
+			if (rst_n == 1'b0)
+			begin
+			  instr_valid_id_ft[i]      <= 1'b0;
+			  instr_rdata_id_ft[i]      <= 0;
+			  is_fetch_failed_ft[i]     <= 1'b0;
+			  pc_id_ft[i]               <= 0;
+			  is_compressed_id_ft[i]    <= 1'b0;
+			  illegal_c_insn_id_ft[i]   <= 1'b0;
+			end
+			else
+			begin
+
+			  if (if_valid && instr_valid)
+			  begin
+				instr_valid_id_ft[i]    <= 1'b1;
+				instr_rdata_id_ft[i]    <= instr_decompressed;
+				is_compressed_id_ft[i]  <= instr_compressed_int;
+				illegal_c_insn_id_ft[i] <= illegal_c_insn;
+				is_fetch_failed_ft[i]   <= 1'b0;
+				pc_id_ft[i]             <= pc_if_o;
+			  end else if (clear_instr_valid_i) begin
+				instr_valid_id_ft[i]    <= 1'b0;
+				is_fetch_failed_ft[i]   <= fetch_failed;
+			  end
+			end
+		  end
+		end
+
+	end else begin
+	// NO FAULT TOLERANCE
+	  always_ff @(posedge clk, negedge rst_n)
+	  begin : IF_ID_PIPE_REGISTERS
+		if (rst_n == 1'b0)
+		begin
+		  instr_valid_id_o[0]      <= 1'b0;
+		  instr_rdata_id_o[0]      <= 0;
+		  is_fetch_failed_o[0]     <= 1'b0;
+		  pc_id_o[0]               <= 0;
+		  is_compressed_id_o[0]    <= 1'b0;
+		  illegal_c_insn_id_o[0]   <= 1'b0;
+		end
+		else
+		begin
+
+		  if (if_valid && instr_valid)
+		  begin
+		    instr_valid_id_o[0]    <= 1'b1;
+		    instr_rdata_id_o[0]    <= instr_decompressed;
+		    is_compressed_id_o[0]  <= instr_compressed_int;
+		    illegal_c_insn_id_o[0] <= illegal_c_insn;
+		    is_fetch_failed_o[0]   <= 1'b0;
+		    pc_id_o[0]             <= pc_if_o;
+		  end else if (clear_instr_valid_i) begin
+		    instr_valid_id_o[0]    <= 1'b0;
+		    is_fetch_failed_o[0]   <= fetch_failed;
+		  end
+		end
+	  end
+	end
+endgenerate
 
   assign if_ready = fetch_valid & id_ready_i;
   assign if_valid = (~halt_if_i) & if_ready;
