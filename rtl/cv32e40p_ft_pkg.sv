@@ -29,11 +29,11 @@ package cv32e40p_ft_pkg;
 	//	
 	//////////////////////////////////////////////////////////////////////
 	parameter int CDEC_FT = 1;
-	parameter int CDEC_TIN = 0;
+	parameter int CDEC_TIN = 1;
         // TOUT is referred to output signal in order of definition
-        // TOUT[0] refers to instr_o
-        // TOUT[1] refers to is_compressed_o
-        // TOUT[2] refers to illegal_instr_o
+        // TOUT[0] refers to instr_o -> Pipeline
+        // TOUT[1] refers to is_compressed_o -> Pipeline
+        // TOUT[2] refers to illegal_instr_o -> Pipeline
         //
 	parameter int CDEC_TOUT [2:0] = {0,0,0};
 
@@ -54,7 +54,7 @@ package cv32e40p_ft_pkg;
 	//////////////////////////////////////////////////////////////////////
 
 	parameter int ALIG_FT = 1; // Used fault tolerance if it is one
-	parameter int ALIG_TIN = 1; // triplicated input if one
+	parameter int ALIG_TIN = 0; // triplicated input if one
         // TOUT is referred to output signal in order of definition
         // TOUT[0] refers to instr_o
         // TOUT[1] refers to is_compressed_o

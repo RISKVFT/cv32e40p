@@ -64,7 +64,7 @@ module cv32e40p_if_stage
     output logic       [31:0] instr_rdata_id_o,      // read instruction is sampled and sent to ID stage for decoding
     output logic              is_compressed_id_o,    // compressed decoder thinks this is a compressed instruction
     output logic              illegal_c_insn_id_o,   // compressed decoder thinks this is an invalid instruction
-    output logic [2:0][31:0] pc_if_o, //PB out 
+    output logic       [31:0] pc_if_o,
     output logic       [31:0] pc_id_o,
     output logic              is_fetch_failed_o,
 
@@ -88,8 +88,8 @@ module cv32e40p_if_stage
     input  logic [31:0] jump_target_ex_i,      // jump target address (ex_stage_i)
 
     // from hwloop controller
-    input  logic        hwlp_jump_i, // id_stage_i //PB in
-    input  logic [31:0] hwlp_target_i, //id_stage_i  //PB in
+    input  logic        hwlp_jump_i, // id_stage_i
+    input  logic [31:0] hwlp_target_i, //id_stage_i
 
     // pipeline stall
     input  logic        halt_if_i, // id_stage_i
@@ -102,16 +102,16 @@ module cv32e40p_if_stage
 
   import cv32e40p_pkg::*;
 
-  logic  [2:0]            if_valid, if_ready; //PB in
+  logic              if_valid, if_ready;
 
   // prefetch buffer related signals
   logic              prefetch_busy;
-  logic [2:0]             branch_req; //PB in
-  logic [2:0]      [31:0] branch_addr_n; // PB in
+  logic              branch_req;
+  logic       [31:0] branch_addr_n;
 
-  logic [2:0]             fetch_valid; //PB in
-  logic [2:0]             fetch_ready; //PB 
-  logic [2:0]      [31:0] fetch_rdata; //PB in 
+  logic              fetch_valid;
+  logic              fetch_ready;
+  logic       [31:0] fetch_rdata;
 
   logic       [31:0] exc_pc;
 
@@ -119,11 +119,11 @@ module cv32e40p_if_stage
   logic  [4:0]       exc_vec_pc_mux;
   logic              fetch_failed;
 
-  logic [2:0]             aligner_ready; //PB out
-  logic [2:0]             instr_valid; //PB out
+  logic              aligner_ready;
+  logic              instr_valid;
 
   logic [2:0]             illegal_c_insn;
-  logic [2:0][31:0]       instr_aligned; //PB out
+  logic [2:0][31:0]       instr_aligned;
   logic [2:0][31:0]       instr_decompressed;
   logic [2:0]             instr_compressed_int;
 
@@ -156,18 +156,18 @@ module cv32e40p_if_stage
   always_comb
   begin
     // Default assign PC_BOOT (should be overwritten in below case)
-    branch_addr_n[0] = {boot_addr_i[31:2], 2'b0};
+    branch_addr_n = {boot_addr_i[31:2], 2'b0};
 
     unique case (pc_mux_i)
-      PC_BOOT:      branch_addr_n[0] = {boot_addr_i[31:2], 2'b0};
-      PC_JUMP:      branch_addr_n[0] = jump_target_id_i;
-      PC_BRANCH:    branch_addr_n[0] = jump_target_ex_i;
-      PC_EXCEPTION: branch_addr_n[0] = exc_pc;             // set PC to exception handler
-      PC_MRET:      branch_addr_n[0] = mepc_i; // PC is restored when returning from IRQ/exception
-      PC_URET:      branch_addr_n[0] = uepc_i; // PC is restored when returning from IRQ/exception
-      PC_DRET:      branch_addr_n[0] = depc_i; //
-      PC_FENCEI:    branch_addr_n[0] = pc_id_o + 4; // jump to next instr forces prefetch buffer reload
-      PC_HWLOOP:    branch_addr_n[0] = hwlp_target_i;
+      PC_BOOT:      branch_addr_n = {boot_addr_i[31:2], 2'b0};
+      PC_JUMP:      branch_addr_n = jump_target_id_i;
+      PC_BRANCH:    branch_addr_n = jump_target_ex_i;
+      PC_EXCEPTION: branch_addr_n = exc_pc;             // set PC to exception handler
+      PC_MRET:      branch_addr_n = mepc_i; // PC is restored when returning from IRQ/exception
+      PC_URET:      branch_addr_n = uepc_i; // PC is restored when returning from IRQ/exception
+      PC_DRET:      branch_addr_n = depc_i; //
+      PC_FENCEI:    branch_addr_n = pc_id_o + 4; // jump to next instr forces prefetch buffer reload
+      PC_HWLOOP:    branch_addr_n = hwlp_target_i;
       default:;
     endcase
   end
@@ -196,9 +196,9 @@ module cv32e40p_if_stage
     .hwlp_jump_i       ( hwlp_jump_i                 ),
     .hwlp_target_i     ( hwlp_target_i               ),
 
-    .fetch_ready_i     ( fetch_ready[0]                 ),
-    .fetch_valid_o     ( fetch_valid[0]                 ),
-    .fetch_rdata_o     ( fetch_rdata[0]                 ),
+    .fetch_ready_i     ( fetch_ready                 ),
+    .fetch_valid_o     ( fetch_valid                 ),
+    .fetch_rdata_o     ( fetch_rdata                 ),
 
     // goes to instruction memory / instruction cache
     .instr_req_o       ( instr_req_o                 ),
@@ -217,21 +217,21 @@ module cv32e40p_if_stage
   always_comb
   begin
 
-    fetch_ready[0]   = 1'b0;
-    branch_req[0]    = 1'b0;
+    fetch_ready   = 1'b0;
+    branch_req    = 1'b0;
     // take care of jumps and branches
     if (pc_set_i) begin
-      branch_req[0]    = 1'b1;
+      branch_req    = 1'b1;
     end
-    else if (fetch_valid[0]) begin
-      if (req_i && if_valid[0]) begin
-        fetch_ready[0]   = aligner_ready[0];
+    else if (fetch_valid) begin
+      if (req_i && if_valid) begin
+        fetch_ready   = aligner_ready;
       end
     end
   end
 
   assign if_busy_o       = prefetch_busy;
-  assign perf_imiss_o    = (~fetch_valid[0]) | branch_req[0];
+  assign perf_imiss_o    = (~fetch_valid) | branch_req;
 
   // IF-ID pipeline registers, frozen when the ID stage is stalled
   always_ff @(posedge clk, negedge rst_n)
@@ -248,14 +248,14 @@ module cv32e40p_if_stage
     else
     begin
 
-      if (if_valid[0] && instr_valid[0])
+      if (if_valid && instr_valid)
       begin
         instr_valid_id_o    <= 1'b1;
         instr_rdata_id_o    <= instr_decompressed[0];
         is_compressed_id_o  <= instr_compressed_int[0];
         illegal_c_insn_id_o <= illegal_c_insn[0];
         is_fetch_failed_o   <= 1'b0;
-        pc_id_o             <= pc_if_o[0];
+        pc_id_o             <= pc_if_o;
       end else if (clear_instr_valid_i) begin
         instr_valid_id_o    <= 1'b0;
         is_fetch_failed_o   <= fetch_failed;
@@ -263,14 +263,10 @@ module cv32e40p_if_stage
     end
     end
 
-  assign if_ready[0] = fetch_valid[0] & id_ready_i;
-  assign if_ready[1] = fetch_valid[1] & id_ready_i;
-  assign if_ready[2] = fetch_valid[2] & id_ready_i;
-  assign if_valid[0] = (~halt_if_i) & if_ready[0];
-  assign if_valid[1] = (~halt_if_i) & if_ready[1];
-  assign if_valid[2] = (~halt_if_i) & if_ready[2];
+  assign if_ready = fetch_valid & id_ready_i;
+  assign if_valid = (~halt_if_i) & if_ready;
 
-  cv32e40p_aligner_ft aligner_i
+  cv32e40p_aligner aligner_i
   (
     .clk               ( clk                          ),
     .rst_n             ( rst_n                        ),
@@ -278,17 +274,13 @@ module cv32e40p_if_stage
     .aligner_ready_o   ( aligner_ready                ),
     .if_valid_i        ( if_valid                     ),
     .fetch_rdata_i     ( fetch_rdata                  ),
-    .instr_aligned_o   ( instr_aligned                ),
+    .instr_aligned_o   ( instr_aligned[0]             ),
     .instr_valid_o     ( instr_valid                  ),
-    .branch_addr_i     ( {{branch_addr_n[2][31:1], 1'b0},{branch_addr_n[1][31:1], 1'b0},{branch_addr_n[0][31:1], 1'b0}}  ),
+    .branch_addr_i     ( {branch_addr_n[31:1], 1'b0}  ),
     .branch_i          ( branch_req                   ),
-    .hwlp_addr_i       ( { hwlp_target_i,hwlp_target_i,hwlp_target_i } ),
-    .hwlp_update_pc_i  ( { hwlp_jump_i, hwlp_jump_i, hwlp_jump_i} ),
-    .pc_o              ( pc_if_o                      ),
-    .set_broken_i      ('0),
-    .is_broken_o       (),
-    .err_detected_o    (),
-    .err_corrected_o   ()
+    .hwlp_addr_i       ( hwlp_target_i                ),
+    .hwlp_update_pc_i  ( hwlp_jump_i                  ),
+    .pc_o              ( pc_if_o                      )
   );
 
   cv32e40p_compressed_decoder_ft

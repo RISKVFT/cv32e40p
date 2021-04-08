@@ -58,8 +58,8 @@ module cv32e40p_conf_voter
 					.err_detected_1_o(err[0][0]),
 					.err_detected_2_o(err[0][1] ),
 					.err_detected_3_o(err[0][2] ),
-					.err_corrected_o(err_detected_o),
-					.err_detected_o(err_corrected_o)
+					.err_corrected_o(err_corrected_o),
+					.err_detected_o(err_detected_o)
 				);
 				// Evaluate if there is an
 				// error in the instr_o
@@ -110,21 +110,21 @@ module cv32e40p_conf_voter
 					.err_corrected_o(err_corrected[2]),
 					.err_detected_o(err_detected[2])
 				);
-				assign block_err_o[0] =   err[0][0]
-							& err[1][0]
-							& err[2][0];
-				assign block_err_o[1] =   err[0][1]
-							& err[1][1]
-							& err[2][1];
-				assign block_err_o[2] =   err[0][2]
-							& err[1][2]
-							& err[2][2];
-				assign err_detected_o =   err_detected[0] 
-							& err_detected[1]
-							& err_detected[2];
-				assign err_corrected_o =   err_corrected[0] 
-							 & err_corrected[1]
-						 	 & err_corrected[2];
+				assign block_err_o[0] =  (err[0][0] & err[1][0] & err[2][0])
+                                                        | (err[0][0] & err[1][0])
+                                                        | (err[1][0] & err[2][0]);
+				assign block_err_o[1] =   (err[0][1] & err[1][1] & err[2][1])
+                                                        | (err[0][1] & err[1][1])
+                                                        | (err[1][1] & err[2][1]);
+				assign block_err_o[2] =   (err[0][2] & err[1][2] & err[2][2])
+                                                        | (err[0][2] & err[1][2])
+                                                        | (err[1][2] & err[2][2]);
+				assign err_detected_o =   (err_detected[0] & err_detected[1] & err_detected[2])
+							| (err_detected[0] & err_detected[1])
+							| (err_detected[1] & err_detected[2]);
+				assign err_corrected_o =  (err_corrected[0] & err_corrected[1] & err_corrected[2])
+							| (err_corrected[0] & err_corrected[1])
+							| (err_corrected[1] & err_corrected[2]);
 			end
 		endcase
 	endgenerate
