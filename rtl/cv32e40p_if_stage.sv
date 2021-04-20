@@ -126,51 +126,76 @@ module cv32e40p_if_stage
   logic [2:0][31:0]       instr_aligned; //PB out
   logic [2:0][31:0]       instr_decompressed;
   logic [2:0]             instr_compressed_int;
+  logic [2:0][31:0] 	branch_addr_n_to_vote;
 
 
-  // exception PC selection mux
-  always_comb
-  begin : EXC_PC_MUX
-    unique case (trap_addr_mux_i)
-      TRAP_MACHINE:  trap_base_addr = m_trap_base_addr_i;
-      TRAP_USER:     trap_base_addr = u_trap_base_addr_i;
-      default:       trap_base_addr = m_trap_base_addr_i;
-    endcase
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Exception PC selection mux
+  //
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  genvar i;
+  generate
+  	for (i=0; i<3; i=i+1) begin
+	  always_comb
+	  begin : EXC_PC_MUX
+	    unique case (trap_addr_mux_i[i])
+	      TRAP_MACHINE:  trap_base_addr[i] = m_trap_base_addr_i[i];
+	      TRAP_USER:     trap_base_addr[i] = u_trap_base_addr_i[i];
+	      default:       trap_base_addr[i] = m_trap_base_addr_i[i];
+	    endcase
 
-    unique case (trap_addr_mux_i)
-      TRAP_MACHINE:  exc_vec_pc_mux = m_exc_vec_pc_mux_i;
-      TRAP_USER:     exc_vec_pc_mux = u_exc_vec_pc_mux_i;
-      default:       exc_vec_pc_mux = m_exc_vec_pc_mux_i;
-    endcase
+	    unique case (trap_addr_mux_i[i])
+	      TRAP_MACHINE:  exc_vec_pc_mux[i] = m_exc_vec_pc_mux_i[i];
+	      TRAP_USER:     exc_vec_pc_mux[i] = u_exc_vec_pc_mux_i[i];
+	      default:       exc_vec_pc_mux[i] = m_exc_vec_pc_mux_i[i];
+	    endcase
 
-    unique case (exc_pc_mux_i)
-      EXC_PC_EXCEPTION:                        exc_pc = { trap_base_addr, 8'h0 }; //1.10 all the exceptions go to base address
-      EXC_PC_IRQ:                              exc_pc = { trap_base_addr, 1'b0, exc_vec_pc_mux, 2'b0 }; // interrupts are vectored
-      EXC_PC_DBD:                              exc_pc = { dm_halt_addr_i[31:2], 2'b0 };
-      EXC_PC_DBE:                              exc_pc = { dm_exception_addr_i[31:2], 2'b0 };
-      default:                                 exc_pc = { trap_base_addr, 8'h0 };
-    endcase
-  end
+	    unique case (exc_pc_mux_i[i])
+	      EXC_PC_EXCEPTION:                        exc_pc[i] = { trap_base_addr[i], 8'h0 }; //1.10 all the exceptions go to base address
+	      EXC_PC_IRQ:                              exc_pc[i] = { trap_base_addr[i], 1'b0, exc_vec_pc_mux[i], 2'b0 }; // interrupts are vectored
+	      EXC_PC_DBD:                              exc_pc[i] = { dm_halt_addr_i[i][31:2], 2'b0 };
+	      EXC_PC_DBE:                              exc_pc[i] = { dm_exception_addr_i[i][31:2], 2'b0 };
+	      default:                                 exc_pc[i] = { trap_base_addr[i], 8'h0 };
+	    endcase
+	  end
 
-  // fetch address selection
-  always_comb
-  begin
-    // Default assign PC_BOOT (should be overwritten in below case)
-    branch_addr_n[0] = {boot_addr_i[31:2], 2'b0};
+	  // fetch address selection
+	  always_comb
+	  begin
+	    // Default assign PC_BOOT (should be overwritten in below case)
+	    branch_addr_n[i] = {boot_addr_i[i][31:2], 2'b0};
 
-    unique case (pc_mux_i)
-      PC_BOOT:      branch_addr_n[0] = {boot_addr_i[31:2], 2'b0};
-      PC_JUMP:      branch_addr_n[0] = jump_target_id_i;
-      PC_BRANCH:    branch_addr_n[0] = jump_target_ex_i;
-      PC_EXCEPTION: branch_addr_n[0] = exc_pc;             // set PC to exception handler
-      PC_MRET:      branch_addr_n[0] = mepc_i; // PC is restored when returning from IRQ/exception
-      PC_URET:      branch_addr_n[0] = uepc_i; // PC is restored when returning from IRQ/exception
-      PC_DRET:      branch_addr_n[0] = depc_i; //
-      PC_FENCEI:    branch_addr_n[0] = pc_id_o + 4; // jump to next instr forces prefetch buffer reload
-      PC_HWLOOP:    branch_addr_n[0] = hwlp_target_i;
-      default:;
-    endcase
-  end
+	    unique case (pc_mux_i[i])
+	      PC_BOOT:      branch_addr_n_to_vote[i] = {boot_addr_i[i][31:2], 2'b0};
+	      PC_JUMP:      branch_addr_n_to_vote[i] = jump_target_id_i[i];
+	      PC_BRANCH:    branch_addr_n_to_vote[i] = jump_target_ex_i[i];
+	      PC_EXCEPTION: branch_addr_n_to_vote[i] = exc_pc[i];             // set PC to exception handler
+	      PC_MRET:      branch_addr_n_to_vote[i] = mepc_i[i]; // PC is restored when returning from IRQ/exception
+	      PC_URET:      branch_addr_n_to_vote[i] = uepc_i[i]; // PC is restored when returning from IRQ/exception
+	      PC_DRET:      branch_addr_n_to_vote[i] = depc_i[i]; //
+	      PC_FENCEI:    branch_addr_n_to_vote[i] = pc_id_o[i] + 4; // jump to next instr forces prefetch buffer reload
+	      PC_HWLOOP:    branch_addr_n_to_vote[i] = hwlp_target_i[i];
+	      default:;
+	    endcase
+	  end
+	end
+  endgenerate
+	cv32e40p_conf_voter
+	#(
+		.L1(32),
+		.TOUT(CDEC_TOUT[0])
+	) v_instr_o
+	(
+		.to_vote_i( branch_addr_n_to_vote ),
+		.voted_o( branch_addr_n),
+		.block_err_o( branch_addr_n_block_err),
+		.broken_block_i(is_broken_o),
+		.err_detected_o(err_detected[0]),
+		.err_corrected_o(err_corrected[0])
+	);
+
+
 
   // tell CS register file to initialize mtvec on boot
   assign csr_mtvec_init_o = (pc_mux_i == PC_BOOT) & pc_set_i;
