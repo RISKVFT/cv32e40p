@@ -77,7 +77,7 @@ module cv32e40p_prefetch_buffer_ft
 
         // Signals that use error signal to find if there is one error on
         // each block, it is the or of previous signals
-        logic [4:0] block_err_detected;
+        logic [2:0] block_err_detected;
         logic [4:0] err_detected;
         logic [4:0] err_corrected;
 
