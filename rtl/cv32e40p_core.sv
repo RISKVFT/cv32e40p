@@ -146,6 +146,23 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   logic [31:0]       pc_if;             // Program counter in IF stage
   logic [31:0]       pc_id;             // Program counter in ID stage
 
+  // FT IF signals
+
+  logic [2:0] instr_req_pmp_tr;
+  logic [2:0] [31:0] instr_addr_pmp_tr;
+  logic [2:0] instr_valid_id_tr;
+  logic [2:0] [31:0] instr_rdata_id_tr;
+  logic [2:0] is_fetch_failed_id_tr;
+  logic [2:0] [31:0] pc_id_tr;
+  logic [2:0] [31:0] pc_if_tr;
+  logic [2:0] is_compressed_id_tr;
+  logic [2:0] illegal_c_insn_id_tr;
+  logic [2:0] csr_mtvec_init_tr;
+  logic [2:0] if_busy_tr;
+  logic [2:0] perf_imiss_tr;
+
+  
+
   // ID performance counter signals
   logic        is_decoding;
 
@@ -360,6 +377,19 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   assign apu_master_type_o  = '0;
   assign apu_master_flags_o = apu_flags_ex;
   assign fflags_csr         = apu_master_flags_i;
+  
+  assign instr_req_pmp = instr_req_pmp_tr[0];
+  assign instr_addr_pmp =  instr_addr_pmp_tr[0];
+  assign instr_valid_id = instr_valid_id_tr[0];
+  assign instr_rdata_id =  instr_rdata_id_tr[0];
+  assign is_fetch_failed_id = is_fetch_failed_id_tr[0];
+  assign pc_id = pc_id_tr[0];
+  assign pc_if = pc_if_tr[0];
+  assign is_compressed_id = is_compressed_id_tr[0];
+  assign illegal_c_insn_id  = illegal_c_insn_id_tr[0];
+  assign csr_mtvec_init =  csr_mtvec_init_tr[0];
+  assign if_busy = if_busy_tr[0];
+  assign perf_imiss =  perf_imiss_tr[0];
 
   //////////////////////////////////////////////////////////////////////////////////////////////
   //   ____ _            _      __  __                                                   _    //
@@ -430,73 +460,73 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .rst_n               ( rst_ni            ),
 
     // boot address
-    .boot_addr_i         ( boot_addr_i[31:0] ),
-    .dm_exception_addr_i ( dm_exception_addr_i[31:0] ),
+    .boot_addr_i         ( {boot_addr_i[31:0], boot_addr_i[31:0], boot_addr_i[31:0]      } ),
+    .dm_exception_addr_i ( {dm_exception_addr_i[31:0], dm_exception_addr_i[31:0], dm_exception_addr_i[31:0] } ),
 
     // debug mode halt address
-    .dm_halt_addr_i      ( dm_halt_addr_i[31:0] ),
+    .dm_halt_addr_i      ( {dm_halt_addr_i[31:0], dm_halt_addr_i[31:0], dm_halt_addr_i[31:0] } ),
 
     // trap vector location
-    .m_trap_base_addr_i  ( mtvec             ),
-    .u_trap_base_addr_i  ( utvec             ),
-    .trap_addr_mux_i     ( trap_addr_mux     ),
+    .m_trap_base_addr_i  ( {mtvec, mtvec, mtvec                                          } ),
+    .u_trap_base_addr_i  ( {utvec, utvec, utvec                                          } ),
+    .trap_addr_mux_i     ( {trap_addr_mux, trap_addr_mux, trap_addr_mux                  } ),
 
     // instruction request control
-    .req_i               ( instr_req_int     ),
+    .req_i               ( {instr_req_int, instr_req_int, instr_req_int                  } ),
 
     // instruction cache interface
-    .instr_req_o         ( instr_req_pmp     ),
-    .instr_addr_o        ( instr_addr_pmp    ),
-    .instr_gnt_i         ( instr_gnt_pmp     ),
-    .instr_rvalid_i      ( instr_rvalid_i    ),
-    .instr_rdata_i       ( instr_rdata_i     ),
-    .instr_err_i         ( 1'b0              ),  // Bus error (not used yet)
-    .instr_err_pmp_i     ( instr_err_pmp     ),  // PMP error
+    .instr_req_o         ( instr_req_pmp_tr     ),
+    .instr_addr_o        ( instr_addr_pmp_tr    ),
+    .instr_gnt_i         ( {instr_gnt_pmp, instr_gnt_pmp, instr_gnt_pmp                  } ),
+    .instr_rvalid_i      ( {instr_rvalid_i, instr_rvalid_i, instr_rvalid_i               } ),
+    .instr_rdata_i       ( {instr_rdata_i, instr_rdata_i, instr_rdata_i                  } ),
+    .instr_err_i         ( {1'b0, 1'b0, 1'b0                                             } ),
+    .instr_err_pmp_i     ( {instr_err_pmp, instr_err_pmp, instr_err_pmp                  } ),
 
     // outputs to ID stage
-    .instr_valid_id_o    ( instr_valid_id    ),
-    .instr_rdata_id_o    ( instr_rdata_id    ),
+    .instr_valid_id_o    ( instr_valid_id_tr    ),
+    .instr_rdata_id_o    ( instr_rdata_id_tr   ),
     .is_fetch_failed_o   ( is_fetch_failed_id ),
 
     // control signals
-    .clear_instr_valid_i ( clear_instr_valid ),
-    .pc_set_i            ( pc_set            ),
+    .clear_instr_valid_i ( {clear_instr_valid, clear_instr_valid, clear_instr_valid      } ),
+    .pc_set_i            ( {pc_set, pc_set, pc_set                                       } ),
 
-    .mepc_i              ( mepc              ), // exception return address
-    .uepc_i              ( uepc              ), // exception return address
+    .mepc_i              ( {mepc, mepc, mepc                                             } ),
+    .uepc_i              ( {uepc, uepc, uepc                                             } ),
 
-    .depc_i              ( depc              ), // debug return address
+    .depc_i              ( {depc, depc, depc                                             } ),
 
-    .pc_mux_i            ( pc_mux_id         ), // sel for pc multiplexer
-    .exc_pc_mux_i        ( exc_pc_mux_id     ),
+    .pc_mux_i            ( {pc_mux_id, pc_mux_id, pc_mux_id                              } ),
+    .exc_pc_mux_i        ( {exc_pc_mux_id, exc_pc_mux_id, exc_pc_mux_id                  } ),
 
 
-    .pc_id_o             ( pc_id             ),
-    .pc_if_o             ( pc_if             ),
+    .pc_id_o             ( pc_id_tr            ),
+    .pc_if_o             ( pc_if_tr             ),
 
-    .is_compressed_id_o  ( is_compressed_id  ),
-    .illegal_c_insn_id_o ( illegal_c_insn_id ),
+    .is_compressed_id_o  ( is_compressed_id_tr  ),
+    .illegal_c_insn_id_o ( illegal_c_insn_id_tr ),
 
-    .m_exc_vec_pc_mux_i  ( m_exc_vec_pc_mux_id ),
-    .u_exc_vec_pc_mux_i  ( u_exc_vec_pc_mux_id ),
+    .m_exc_vec_pc_mux_i  ( {m_exc_vec_pc_mux_id, m_exc_vec_pc_mux_id, m_exc_vec_pc_mux_id } ),
+    .u_exc_vec_pc_mux_i  ( {u_exc_vec_pc_mux_id, u_exc_vec_pc_mux_id, u_exc_vec_pc_mux_id } ),
 
-    .csr_mtvec_init_o    ( csr_mtvec_init    ),
+    .csr_mtvec_init_o    ( csr_mtvec_init_tr    ),
 
     // from hwloop registers
-    .hwlp_jump_i         ( hwlp_jump         ),
-    .hwlp_target_i       ( hwlp_target       ),
+    .hwlp_jump_i         ( {hwlp_jump, hwlp_jump, hwlp_jump                              } ),
+    .hwlp_target_i       ( {hwlp_target, hwlp_target, hwlp_target                        } ),
 
 
     // Jump targets
-    .jump_target_id_i    ( jump_target_id    ),
-    .jump_target_ex_i    ( jump_target_ex    ),
+    .jump_target_id_i    ( {jump_target_id, jump_target_id, jump_target_id               } ),
+    .jump_target_ex_i    ( {jump_target_ex, jump_target_ex, jump_target_ex               } ),
 
     // pipeline stalls
-    .halt_if_i           ( halt_if           ),
-    .id_ready_i          ( id_ready          ),
+    .halt_if_i           ( {halt_if, halt_if, halt_if                                    } ),
+    .id_ready_i          ( {id_ready, id_ready, id_ready                                 } ),
 
-    .if_busy_o           ( if_busy           ),
-    .perf_imiss_o        ( perf_imiss        )
+    .if_busy_o           ( if_busy_tr           ),
+    .perf_imiss_o        ( perf_imiss_tr        )
   );
 
 
