@@ -486,7 +486,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     // outputs to ID stage
     .instr_valid_id_o    ( instr_valid_id_tr    ),
     .instr_rdata_id_o    ( instr_rdata_id_tr   ),
-    .is_fetch_failed_o   ( is_fetch_failed_id ),
+    .is_fetch_failed_o   ( is_fetch_failed_id_tr ),
 
     // control signals
     .clear_instr_valid_i ( {clear_instr_valid, clear_instr_valid, clear_instr_valid      } ),
