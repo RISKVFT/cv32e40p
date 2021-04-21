@@ -447,7 +447,7 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   //  |___|_|     |____/ |_/_/   \_\____|_____|   //
   //                                              //
   //////////////////////////////////////////////////
-  cv32e40p_if_stage_ft
+  cv32e40p_if_stage
   #(
     .PULP_XPULP          ( PULP_XPULP        ),
     .PULP_OBI            ( PULP_OBI          ),
