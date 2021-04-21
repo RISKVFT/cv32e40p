@@ -77,9 +77,9 @@ module cv32e40p_prefetch_buffer_ft
 
         // Signals that use error signal to find if there is one error on
         // each block, it is the or of previous signals
-        logic [2:0] block_err_detected;
-        logic [2:0] err_detected;
-        logic [2:0] err_corrected;
+        logic [4:0] block_err_detected;
+        logic [4:0] err_detected;
+        logic [4:0] err_corrected;
 
         // variable for generate cycle
         generate
@@ -274,26 +274,30 @@ module cv32e40p_prefetch_buffer_ft
                                 
                                 assign err_detected_o =  err_detected[0]
                                                        | err_detected[1]
-                                                       | err_detected[2];
+                                                       | err_detected[2]
+                                                       | err_detected[3]
+                                                       | err_detected[4]; 
                                 assign err_corrected_o =  err_corrected[0]
                                                         | err_corrected[1]
-                                                        | err_corrected[2];
+                                                        | err_corrected[2]
+                                                        | err_corrected[3]
+                                                        | err_corrected[4]; 
                                 
                                 assign block_err_detected[0] =  fetch_valid_o_block_err[0]
-                                | fetch_rdata_o_block_err[0]
-                                | instr_req_o_block_err[0]
-                                | instr_addr_o_block_err[0]
-                                | busy_o_block_err[0]; 
+                                                              | fetch_rdata_o_block_err[0]
+                                                              | instr_req_o_block_err[0]
+                                                              | instr_addr_o_block_err[0]
+                                                              | busy_o_block_err[0]; 
                                 assign block_err_detected[1] =  fetch_valid_o_block_err[1]
-                                | fetch_rdata_o_block_err[1]
-                                | instr_req_o_block_err[1]
-                                | instr_addr_o_block_err[1]
-                                | busy_o_block_err[1]; 
+                                                              | fetch_rdata_o_block_err[1]
+                                                              | instr_req_o_block_err[1]
+                                                              | instr_addr_o_block_err[1]
+                                                              | busy_o_block_err[1]; 
                                 assign block_err_detected[2] =  fetch_valid_o_block_err[2]
-                                | fetch_rdata_o_block_err[2]
-                                | instr_req_o_block_err[2]
-                                | instr_addr_o_block_err[2]
-                                | busy_o_block_err[2]; 
+                                                              | fetch_rdata_o_block_err[2]
+                                                              | instr_req_o_block_err[2]
+                                                              | instr_addr_o_block_err[2]
+                                                              | busy_o_block_err[2]; 
                                         
                                 genvar m;
                                 for (m=0;  m<3 ; m=m+1) begin 

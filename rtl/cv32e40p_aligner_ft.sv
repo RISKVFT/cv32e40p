@@ -66,9 +66,9 @@ module cv32e40p_aligner_ft
 
         // Signals that use error signal to find if there is one error on
         // each block, it is the or of previous signals
-        logic [2:0] block_err_detected;
-        logic [2:0] err_detected;
-        logic [2:0] err_corrected;
+        logic [3:0] block_err_detected;
+        logic [3:0] err_detected;
+        logic [3:0] err_corrected;
 
         // variable for generate cycle
         generate
@@ -217,23 +217,25 @@ module cv32e40p_aligner_ft
                                 
                                 assign err_detected_o =  err_detected[0]
                                                        | err_detected[1]
-                                                       | err_detected[2];
+                                                       | err_detected[2]
+                                                       | err_detected[3]; 
                                 assign err_corrected_o =  err_corrected[0]
                                                         | err_corrected[1]
-                                                        | err_corrected[2];
+                                                        | err_corrected[2]
+                                                        | err_corrected[3]; 
                                 
                                 assign block_err_detected[0] =  aligner_ready_o_block_err[0]
-                                | instr_aligned_o_block_err[0]
-                                | instr_valid_o_block_err[0]
-                                | pc_o_block_err[0]; 
+                                                              | instr_aligned_o_block_err[0]
+                                                              | instr_valid_o_block_err[0]
+                                                              | pc_o_block_err[0]; 
                                 assign block_err_detected[1] =  aligner_ready_o_block_err[1]
-                                | instr_aligned_o_block_err[1]
-                                | instr_valid_o_block_err[1]
-                                | pc_o_block_err[1]; 
+                                                              | instr_aligned_o_block_err[1]
+                                                              | instr_valid_o_block_err[1]
+                                                              | pc_o_block_err[1]; 
                                 assign block_err_detected[2] =  aligner_ready_o_block_err[2]
-                                | instr_aligned_o_block_err[2]
-                                | instr_valid_o_block_err[2]
-                                | pc_o_block_err[2]; 
+                                                              | instr_aligned_o_block_err[2]
+                                                              | instr_valid_o_block_err[2]
+                                                              | pc_o_block_err[2]; 
                                         
                                 genvar m;
                                 for (m=0;  m<3 ; m=m+1) begin 

@@ -71,9 +71,9 @@ module cv32e40p_program_counter_definition_ft
 
         // Signals that use error signal to find if there is one error on
         // each block, it is the or of previous signals
-        logic [2:0] block_err_detected;
-        logic [2:0] err_detected;
-        logic [2:0] err_corrected;
+        logic [1:0] block_err_detected;
+        logic [1:0] err_detected;
+        logic [1:0] err_corrected;
 
         // variable for generate cycle
         generate
@@ -209,19 +209,15 @@ module cv32e40p_program_counter_definition_ft
                                  );
                                  
                                 
-                                assign err_detected_o =  err_detected[0]
-                                                       | err_detected[1]
-                                                       | err_detected[2];
-                                assign err_corrected_o =  err_corrected[0]
-                                                        | err_corrected[1]
-                                                        | err_corrected[2];
+                                assign err_detected_o =  err_detected[0]| err_detected[1]; 
+                                assign err_corrected_o =  err_corrected[0]| err_corrected[1]; 
                                 
                                 assign block_err_detected[0] =  branch_addr_n_block_err[0]
-                                | csr_mtvec_init_o_block_err[0]; 
+                                                              | csr_mtvec_init_o_block_err[0]; 
                                 assign block_err_detected[1] =  branch_addr_n_block_err[1]
-                                | csr_mtvec_init_o_block_err[1]; 
+                                                              | csr_mtvec_init_o_block_err[1]; 
                                 assign block_err_detected[2] =  branch_addr_n_block_err[2]
-                                | csr_mtvec_init_o_block_err[2]; 
+                                                              | csr_mtvec_init_o_block_err[2]; 
                                         
                                 genvar m;
                                 for (m=0;  m<3 ; m=m+1) begin 

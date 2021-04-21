@@ -180,20 +180,20 @@ module cv32e40p_compressed_decoder_ft
                                 
                                 assign err_detected_o =  err_detected[0]
                                                        | err_detected[1]
-                                                       | err_detected[2];
+                                                       | err_detected[2]; 
                                 assign err_corrected_o =  err_corrected[0]
                                                         | err_corrected[1]
-                                                        | err_corrected[2];
+                                                        | err_corrected[2]; 
                                 
                                 assign block_err_detected[0] =  instr_o_block_err[0]
-                                | is_compressed_o_block_err[0]
-                                | illegal_instr_o_block_err[0]; 
+                                                              | is_compressed_o_block_err[0]
+                                                              | illegal_instr_o_block_err[0]; 
                                 assign block_err_detected[1] =  instr_o_block_err[1]
-                                | is_compressed_o_block_err[1]
-                                | illegal_instr_o_block_err[1]; 
+                                                              | is_compressed_o_block_err[1]
+                                                              | illegal_instr_o_block_err[1]; 
                                 assign block_err_detected[2] =  instr_o_block_err[2]
-                                | is_compressed_o_block_err[2]
-                                | illegal_instr_o_block_err[2]; 
+                                                              | is_compressed_o_block_err[2]
+                                                              | illegal_instr_o_block_err[2]; 
                                         
                                 genvar m;
                                 for (m=0;  m<3 ; m=m+1) begin 
