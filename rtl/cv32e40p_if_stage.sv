@@ -27,7 +27,7 @@
 import cv32e40p_pkg::*;
 
 
-module cv32e40p_if_stage_ft
+module cv32e40p_if_stage
 #(
         parameter PULP_XPULP          = 0,
         parameter PULP_OBI            = 0,
