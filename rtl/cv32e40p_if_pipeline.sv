@@ -46,9 +46,9 @@ module cv32e40p_if_pipeline
                         if (if_valid && instr_valid)
                                 begin
                                 instr_valid_id_o    <= 1'b1;
-                                instr_rdata_id_o    <= instr_decompressed[0];
-                                is_compressed_id_o  <= instr_compressed_int[0];
-                                illegal_c_insn_id_o <= illegal_c_insn[0];
+                                instr_rdata_id_o    <= instr_decompressed;
+                                is_compressed_id_o  <= instr_compressed_int;
+                                illegal_c_insn_id_o <= illegal_c_insn;
                                 is_fetch_failed_o   <= 1'b0;
                                 pc_id_o             <= pc_if_o;
                         end else if (clear_instr_valid_i) begin
