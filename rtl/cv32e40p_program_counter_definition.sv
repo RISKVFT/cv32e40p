@@ -1,3 +1,7 @@
+import cv32e40p_pkg::*;
+
+
+
 module cv32e40p_program_counter_definition
 (
         input  logic             [4:0]  m_exc_vec_pc_mux_i ,

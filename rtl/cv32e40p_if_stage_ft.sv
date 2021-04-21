@@ -24,6 +24,8 @@
 //                 buffering (sampling) of the read instruction               //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
+import cv32e40p_pkg::*;
+
 
 module cv32e40p_if_stage_ft
 #(
