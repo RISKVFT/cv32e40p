@@ -20,7 +20,7 @@ module cv32e40p_program_counter_definition
         input  logic             [3:0]  pc_mux_i ,
         output logic            [31:0]  branch_addr_n ,
         output logic                    csr_mtvec_init_o 
-)
+);
         logic            [31:0]  exc_pc ;
         logic            [23:0]  trap_base_addr ;
         logic             [4:0]  exc_vec_pc_mux ;

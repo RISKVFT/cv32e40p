@@ -8,7 +8,7 @@ module cv32e40p_if_stage_fsm
         output logic                    branch_req ,
         output logic                    fetch_ready ,
         output logic                    perf_imiss_o 
-)
+);
 
 
         // offset FSM state transition logic

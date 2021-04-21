@@ -19,7 +19,7 @@ module cv32e40p_if_pipeline
         output logic                    is_compressed_id_o ,
         output logic                    illegal_c_insn_id_o ,
         output logic                    if_valid 
-)
+);
         logic                    if_ready ;
 
 
