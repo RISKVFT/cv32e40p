@@ -96,7 +96,7 @@ module cv32e40p_if_stage
         logic             [2:0]  illegal_c_insn ;
         logic    [2:0]   [31:0]  instr_aligned ;
 	logic  [2:0] is_broken ;
-	assign is_broken_o[0] = is_broken; 
+	assign is_broken_o[IFST_PRCODE_I] = is_broken; 
 
 
         // exception PC selection mux

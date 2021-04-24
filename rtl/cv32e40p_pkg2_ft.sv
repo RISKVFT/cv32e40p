@@ -32,7 +32,7 @@ package cv32e40p_pkg2_ft;
         parameter PRCODE_COUNT_BIT = 8; 
         parameter PRCODE_INC_DEC_BIT = 2; 
 
-        parameter int IFST_PRCODE_I = 0;
+        parameter IFST_PRCODE_I = 0;
 
 
         //////////////////////////////////////////////////////////////////////
