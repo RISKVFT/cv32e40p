@@ -95,6 +95,8 @@ module cv32e40p_if_stage
         logic             [2:0]  instr_valid ;
         logic             [2:0]  illegal_c_insn ;
         logic    [2:0]   [31:0]  instr_aligned ;
+	logic  [2:0] is_broken ;
+	assign is_broken_o[IFST_PRCODE_I] = is_broken; 
 
 
         // exception PC selection mux
@@ -130,7 +132,7 @@ module cv32e40p_if_stage
                 .csr_mtvec_init_o       (  csr_mtvec_init_o                 ),
 
                 // Output diff ports of program_counter_definition_ft
-                .is_broken_o            (  is_broken_o[IFST_PRCODE_I]       ),
+                .is_broken_o            (  is_broken       ),
                 .err_detected_o         (  err_detected_o[IFST_PRCODE_I]    ),
                 .err_corrected_o        (  err_corrected_o[IFST_PRCODE_I]   )
         );
