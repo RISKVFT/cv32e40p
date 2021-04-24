@@ -78,10 +78,6 @@ module cv32e40p_if_stage
         output logic    [2:0]           if_busy_o ,
         output logic    [2:0]           perf_imiss_o,
 	output logic    [2:0]   [31:0]  branch_addr_n ,
-	input logic    [5:0]    [2:0]  set_broken_i, 
-	output logic    [5:0]    [2:0]  is_broken_o ,
-	output logic    [5:0]           err_detected_o ,
-	output logic    [5:0]           err_corrected_o 
 );
         logic             [2:0]  branch_req ;
         logic             [2:0]  fetch_ready ;
@@ -96,8 +92,10 @@ module cv32e40p_if_stage
         logic             [2:0]  instr_valid ;
         logic             [2:0]  illegal_c_insn ;
         logic    [2:0]   [31:0]  instr_aligned ;
-	logic  [2:0] is_broken ;
-	assign is_broken_o[IFST_PRCODE_I] = is_broken; 
+	logic    [5:0]    [2:0]  set_broken_i; 
+	 logic    [5:0]    [2:0]  is_broken_o ;
+	 logic    [5:0]           err_detected_o ;
+	 logic    [5:0]           err_corrected_o; 
 
 
         // exception PC selection mux
@@ -133,7 +131,7 @@ module cv32e40p_if_stage
                 .csr_mtvec_init_o       (  csr_mtvec_init_o                 ),
 
                 // Output diff ports of program_counter_definition_ft
-                .is_broken_o            (  is_broken       ),
+                .is_broken_o            (  is_broken_o[IFST_PRCODE_I]       ),
                 .err_detected_o         (  err_detected_o[IFST_PRCODE_I]    ),
                 .err_corrected_o        (  err_corrected_o[IFST_PRCODE_I]   )
         );
