@@ -77,7 +77,7 @@ module cv32e40p_if_stage
         output logic    [2:0]           csr_mtvec_init_o ,
         output logic    [2:0]           if_busy_o ,
         output logic    [2:0]           perf_imiss_o,
-	output logic    [2:0]   [31:0]  branch_addr_n ,
+	output logic    [2:0]   [31:0]  branch_addr_n 
 );
         logic             [2:0]  branch_req ;
         logic             [2:0]  fetch_ready ;
