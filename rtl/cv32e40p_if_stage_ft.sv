@@ -135,7 +135,7 @@ module cv32e40p_if_stage
 
         assign if_busy_o = prefetch_busy_tr[0];
 
-        assign fetch_failed_tr = {1'b0, 1'b0, 1'b0}
+        assign fetch_failed_tr = {1'b0, 1'b0, 1'b0};
 
 
 
