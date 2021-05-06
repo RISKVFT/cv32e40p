@@ -135,6 +135,8 @@ module cv32e40p_if_stage
 
         assign if_busy_o = prefetch_busy_tr[0];
 
+        assign fetch_failed_tr = {1'b0, 1'b0, 1'b0}
+
 
 
         ///////////////////////////////////////////////////////////
@@ -177,7 +179,6 @@ module cv32e40p_if_stage
         );
 
 
-        assign fetch_failed    = 1'b0; // PMP is not supported in CV32E40P
 
         // prefetch buffer, caches a fixed number of instructions
         
