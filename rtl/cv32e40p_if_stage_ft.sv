@@ -290,7 +290,7 @@ module cv32e40p_if_stage
                 .fetch_valid_i          (  fetch_valid_tr                   ),
                 .if_valid_i             (  if_valid_tr                      ),
                 .fetch_rdata_i          (  fetch_rdata_tr                   ),
-                .branch_addr_i          (  { {branch_addr_n[2][31:1], 1'b0}  , {branch_addr_n[1][31:1], 1'b0}  , {branch_addr_n[0][31:1], 1'b0}  } ),
+                .branch_addr_i          (  { {branch_addr_n_tr[2][31:1], 1'b0}  , {branch_addr_n_tr[1][31:1], 1'b0}  , {branch_addr_n_tr[0][31:1], 1'b0}  } ),
                 .branch_i               (  branch_req_tr                    ),
                 .hwlp_addr_i            (  { hwlp_target_i  , hwlp_target_i  , hwlp_target_i  } ),
                 .hwlp_update_pc_i       (  { hwlp_jump_i  , hwlp_jump_i  , hwlp_jump_i  } ),
