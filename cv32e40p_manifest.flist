@@ -46,8 +46,8 @@ ${DESIGN_RTL_DIR}/cv32e40p_compressed_decoder.sv
 ${DESIGN_RTL_DIR}/cv32e40p_compressed_decoder_ft.sv
 ${DESIGN_RTL_DIR}/cv32e40p_program_counter_definition.sv
 ${DESIGN_RTL_DIR}/cv32e40p_program_counter_definition_ft.sv
-${DESIGN_RTL_DIR}/cv32e40p_if_stage_fsm.sv
-${DESIGN_RTL_DIR}/cv32e40p_if_stage_fsm_ft.sv
+${DESIGN_RTL_DIR}/cv32e40p_if_stage_fsm_logic.sv
+${DESIGN_RTL_DIR}/cv32e40p_if_stage_fsm_logic_ft.sv
 ${DESIGN_RTL_DIR}/cv32e40p_if_pipeline.sv
 ${DESIGN_RTL_DIR}/cv32e40p_if_pipeline_ft.sv
 ${DESIGN_RTL_DIR}/cv32e40p_breakage_monitor.sv
